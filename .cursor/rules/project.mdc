@@ -1,0 +1,68 @@
+---
+description: device_debug_tools 全局约定（分层、DI、日志、代码生成、沟通语言）
+alwaysApply: true
+---
+
+# device_debug_tools 全局约定
+
+## 项目定位
+
+- Flutter 桌面端设备调试工具（`device_debug_tools`），目标平台：**Windows / macOS / Linux**
+- SDK：`^3.10.8`；状态管理：**仅 Cubit**（不使用 Bloc 的 Event/State 模式）
+- 主要依赖：`flutter_bloc`、`go_router`、`hive`、`slang`、`logger`、`flutter_easyloading`
+- 当前**无网络层与登录鉴权**；如需引入，先评估并更新本规则与 `core.mdc`
+
+## 沟通与注释
+
+- 与用户、PR 说明、文档：**简体中文**
+- 代码注释：业务逻辑用中文；只写代码本身无法表达的约束
+- 回复与解释应简洁、可执行
+
+## 目录分层（禁止破坏）
+
+```
+lib/
+├── app/          # 启动、路由、主题、全局 Cubit、DI 壳
+├── core/         # 存储、日志、响应式、通用 Widget、工具
+├── features/     # 按业务垂直切片（cubit/page/repository/...）
+├── shared/       # 多 feature 共用 model/enum/extension
+├── i18n/         # slang 文案与生成代码
+└── env/          # appIsDev 等环境标志
+```
+
+- 新业务能力放 `lib/features/<name>/`，不要堆进 `core/` 或 `app/`
+- 跨 feature 共用类型放 `lib/shared/`，单 feature 专用放各自 `model/`
+
+## 依赖注入（DI）
+
+- **禁止** 引入 `get_it`、`injectable` 等 Service Locator
+- 全局 Repository / Service：在 `lib/app/di/app_dependencies.dart` 的 `MultiRepositoryProvider` 注册
+- 全局 Cubit（`AppCubit`）：在 `lib/app/startup/bootstrap.dart` 的 `buildAppRoot` 内 `MultiBlocProvider` 注册
+- 页面级 Cubit：在对应 `Page` 内 `BlocProvider(create: ...)` 创建，通过 `context.read<XxxRepository>()` 注入依赖
+- **禁止** 在 feature 内直接 `new XxxRepository()`；统一从 `context.read` 获取
+
+## 日志
+
+- 使用 `AppLogger`（`lib/core/logger/app_logger.dart`），按 `LogCategory` 分类
+- **禁止** `print`；避免 `debugPrint`（`analysis_options.yaml` 已启用 `avoid_print`）
+- Repository / Cubit 中的错误应记录 `AppLogger.i.error(...)` 并带 `category`
+
+## 代码生成
+
+| 变更类型 | 命令 |
+|----------|------|
+| `lib/i18n/*.i18n.json` | `dart run slang`（配置见 `slang.yaml`） |
+
+- **禁止** 手改 `lib/i18n/generated/**`
+
+## 环境与入口
+
+- 生产入口：`lib/main.dart`；开发入口：`lib/main_dev.dart`（`bootstrap(isDev: true)`，开启 debug 级别控制台 + 文件日志）
+- 应用数据（Hive、日志）位于 `getApplicationSupportDirectory()`，经 `AppPaths` 获取，禁止写入用户“文档”目录
+
+## 修改原则
+
+- 最小化 diff，不重构无关代码
+- 匹配现有命名与文件布局
+- 用户可见文案走 slang，禁止硬编码（见 `i18n.mdc`）
+- 布局尺寸见 `responsive.mdc`（桌面端逻辑 px + `AppSpacing`，不使用 ScreenUtil）

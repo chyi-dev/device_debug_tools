@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>图标方向 C · 仪器旋钮</title>
+<style>
+  * { box-sizing:border-box; margin:0; }
+  body { width:1440px; height:900px; background:#e9edf1; color:#1f2933;
+         font:14px/1.6 "Segoe UI","Microsoft YaHei UI","PingFang SC",sans-serif;
+         display:grid; grid-template-rows:470px 1fr; }
+  .top { display:grid; grid-template-columns:470px 1fr; border-bottom:1px solid #c5ced7; }
+  .hero { background:#f7f8fa; display:grid; place-items:center; border-right:1px solid #c5ced7; position:relative; }
+  .hero svg { width:380px; height:380px; }
+  .hero .tag { position:absolute; left:24px; bottom:16px; color:#56616e; font-size:12px; }
+  .copy { padding:48px 64px; display:flex; flex-direction:column; gap:18px; justify-content:center; }
+  .kicker { font-size:12px; color:#56616e; letter-spacing:.08em; }
+  h1 { font-size:34px; line-height:1.25; font-weight:600; max-width:720px; text-wrap:pretty; }
+  .lede { color:#56616e; max-width:760px; text-wrap:pretty; }
+  .palette { display:flex; height:30px; border-radius:4px; overflow:hidden; width:420px; margin-top:6px; }
+  .palette span { flex:1; display:flex; align-items:center; justify-content:center; font:12px "Cascadia Mono",Consolas,monospace; }
+  .bottom { display:grid; grid-template-columns:1fr 1fr 300px; }
+  .bottom > div { padding:28px 40px; display:flex; flex-direction:column; justify-content:center; gap:14px; }
+  .bottom .light { background:#f3f3f3; }
+  .bottom .dark { background:#202020; color:#a1aab5; }
+  .label { font-size:12px; letter-spacing:.06em; }
+  .px { display:flex; gap:22px; align-items:flex-end; }
+  .px figure { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; }
+  .zooms { background:#f7f8fa; border-left:1px solid #c5ced7; }
+  canvas.zoom { width:112px; height:112px; image-rendering:pixelated; border:1px solid #c5ced7; }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="hero">
+    <svg id="icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="21.5" fill="#f7f8fa" stroke="#1f2933" stroke-width="2.5"/>
+      <circle cx="22" cy="26" r="11" fill="#1f2933"/>
+      <!-- 旋钮指针指向状态灯：「已拨到打开」 -->
+      <path d="M22 26 L29.2 18.8" stroke="#f7f8fa" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="35" cy="13" r="3.6" fill="#1f9d55"/>
+      <g class="detail" fill="#56616e">
+        <circle cx="10.5" cy="16" r=".7"/><circle cx="13" cy="11.5" r=".7"/><circle cx="17.5" cy="8.6" r=".7"/>
+        <circle cx="23" cy="7.5" r=".7"/><circle cx="28.4" cy="8.4" r=".7"/>
+      </g>
+    </svg>
+    <div class="tag">1024 母版 · 刻度点仅在 ≥128px 显示</div>
+  </div>
+  <div class="copy">
+    <div class="kicker">方向 C · 最佳设计师：Dieter Rams / Braun 产品设计部</div>
+    <h1>仪器旋钮：一个拨到「打开」的旋钮，和一盏绿灯</h1>
+    <p class="lede">如果预算不限，这件「放在桌面上天天用的测量仪器」最适合交给 Dieter Rams：少，但更好。Braun 的收音机和计算器只在一处用颜色，其余全是浅灰与深灰的秩序。这枚图标就是一块浅灰面板、一个深色旋钮、一盏绿色指示灯——旋钮指针正对着灯。<b>form 来自内容</b>：串口工具最重要的一个动作是「打开端口」，界面里的打开按钮左侧就是这盏状态灯；绿色在这里依旧只表示「已打开」。</p>
+    <div class="palette">
+      <span style="background:#f7f8fa;color:#1f2933">f7f8fa</span>
+      <span style="background:#1f2933;color:#e3e7ec">1f2933</span>
+      <span style="background:#56616e;color:#fff">56616e</span>
+      <span style="background:#1f9d55;color:#fff">1f9d55</span>
+    </div>
+  </div>
+</div>
+<div class="bottom">
+  <div class="light"><div class="label">浅色任务栏</div><div class="px" data-sizes="128,48,32,24,16"></div></div>
+  <div class="dark"><div class="label">深色任务栏</div><div class="px" data-sizes="128,48,32,24,16"></div></div>
+  <div class="zooms">
+    <div class="px">
+      <figure><canvas class="zoom" data-raster="16"></canvas>16px ×7</figure>
+      <figure><canvas class="zoom" data-raster="32"></canvas>32px ×3.5</figure>
+    </div>
+  </div>
+</div>
+
+<script>
+  const src = document.getElementById('icon');
+  const url = (hide) => {
+    const c = src.cloneNode(true);
+    c.setAttribute('width', 1024); c.setAttribute('height', 1024);
+    if (hide) c.querySelectorAll('.detail').forEach(n => n.remove());
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c));
+  };
+  document.querySelectorAll('.px[data-sizes]').forEach(box => {
+    box.dataset.sizes.split(',').map(Number).forEach(s => {
+      const f = document.createElement('figure');
+      const img = new Image(); img.src = url(s < 128); img.width = s; img.height = s;
+      f.append(img, Object.assign(document.createElement('span'), { textContent: s + 'px' }));
+      box.append(f);
+    });
+  });
+  document.querySelectorAll('canvas[data-raster]').forEach(cv => {
+    const s = +cv.dataset.raster; cv.width = s; cv.height = s;
+    const img = new Image();
+    img.onload = () => cv.getContext('2d').drawImage(img, 0, 0, s, s);
+    img.src = url(true);
+  });
+</script>
+</body>
+</html>

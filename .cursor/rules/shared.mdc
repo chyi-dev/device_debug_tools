@@ -1,0 +1,36 @@
+---
+description: shared 层共用模型、枚举与扩展
+globs: lib/shared/**
+alwaysApply: false
+---
+
+# Shared 层约定
+
+`lib/shared/` 存放**多个 feature 共用**的类型，不含页面与业务 Cubit。
+
+## 何时放入 shared
+
+| 放入 shared | 留在 feature |
+|-------------|----------------|
+| 被两个及以上 feature 使用的模型 | 仅单个 feature 使用的模型 |
+| 通用 `String` / `DateTime` 扩展 | feature 专有 enum |
+
+## 目录结构
+
+```
+lib/shared/
+├── models/       # 跨 feature 数据模型（手写 fromJson/toJson）
+├── enums/        # 共用枚举（不要与 slang AppLocale 重复）
+└── extensions/   # Dart 扩展方法
+```
+
+## 规范
+
+- 模型不可变（`final` 字段 + `copyWith`），需要持久化时提供 `fromJson` / `toJson`
+- **禁止** 在 shared 中引用 `lib/features/**`
+- 用户可见文案不在 shared 中硬编码
+
+## 新增检查清单
+
+- [ ] 至少两个 feature 需要该类型
+- [ ] 无 feature 依赖

@@ -1,0 +1,62 @@
+---
+description: 桌面平台构建与发布配置（Windows / macOS / Linux）
+globs:
+  - windows/**
+  - macos/**
+  - linux/**
+  - pubspec.yaml
+  - lib/env/**
+alwaysApply: false
+---
+
+# 平台与构建约定
+
+## 入口与环境标志
+
+| 文件 | 说明 |
+|------|------|
+| `lib/main.dart` | 生产入口，`bootstrap()` → `appIsDev=false`，仅 warning 以上日志 |
+| `lib/main_dev.dart` | 开发入口，`bootstrap(isDev: true)` → debug 级控制台 + 文件日志 |
+| `lib/env/app_env.dart` | `appIsDev`、`appIsRelease` |
+
+## 常用命令
+
+```bash
+flutter pub get
+dart run slang
+flutter analyze
+flutter test
+flutter run -d windows -t lib/main_dev.dart   # macos / linux 同理
+```
+
+## Windows
+
+- 工程：`windows/`（CMake + Win32 runner）
+- 使用插件需开启系统“开发者模式”（symlink 支持）
+- 构建：`flutter build windows --release` → `build/windows/x64/runner/Release/`
+- exe 依赖同级 `flutter_windows.dll`、插件 dll 与 `data/`，分发须带整个 `Release` 目录
+- 安装包：`iscc installer/windows/device_debug_tools.iss`（Inno Setup 6）→ `build/installer/device_debug_tools-<version>-setup.exe`；脚本 `MyAppVersion` 需与 pubspec 版本同步
+
+## macOS（需 macOS + Xcode）
+
+- 工程：`macos/Runner.xcworkspace`
+- 沙箱权限：`macos/Runner/DebugProfile.entitlements`、`Release.entitlements`；访问串口/USB/网络/文件需在两份 entitlements 中同步声明
+- 构建：`flutter build macos --release` → `build/macos/Build/Products/Release/`
+
+## Linux（需 GTK3、CMake、Ninja、Clang、pkg-config）
+
+- 工程：`linux/`（CMake + GTK runner）
+- 构建：`flutter build linux --release` → `build/linux/x64/release/bundle/`
+
+## pubspec
+
+- 版本：`version: x.y.z+build`
+- 新增依赖需确认 **三端桌面均支持**；只支持部分平台的插件须在调用处做平台判断并说明
+- dev 依赖仅放 `dev_dependencies`
+
+## 发布检查清单
+
+- [ ] 正式包走 `main.dart`（`appIsDev=false`）
+- [ ] `flutter analyze` 无问题、`flutter test` 通过
+- [ ] 版本号已更新
+- [ ] macOS entitlements 与所需能力一致

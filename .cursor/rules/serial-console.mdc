@@ -1,0 +1,37 @@
+---
+description: 串口调试台界面约定（以 doc/design/serial-console.html 为准）
+globs: lib/features/serial/**/*.dart,doc/design/**
+alwaysApply: false
+---
+
+# 串口调试台界面约定
+
+唯一设计依据：`doc/design/serial-console.html` + `doc/design/design.md`。布局参照野人家园串口调试助手 V5.15；界面里不出现 UartAssist 名称或 logo。
+
+## 布局（不要改骨架）
+
+- 菜单栏 → 三栏主体 → 状态栏。左栏 272（串口 / 接收 / 发送设置），中间数据日志 + 发送框，右侧工具面板 352（快捷指令 / 批量发送 / 自动应答 / 历史发送 / 校验计算）
+- 左栏可收起（精简模式），工具面板可隐藏；窗口 < 1180 宽默认精简模式
+- 不新增第四栏、顶部工具条或底部抽屉；新功能放进现有分组或工具面板页签
+
+## 视觉
+
+- 颜色只用 `design.md` §2 的 token，白底经典 / 黑底经典两套都要定义；加到 `AppColors`，主题切换走 `AppCubit`
+- 唯一强调色 `accent`；绿 / 红只表示连接与引脚状态。禁止渐变、发光、左侧色条提示、emoji 图标
+- 正文 14、标签与说明 12，最小 12；日志和发送框等宽字体（`AppTextStyles.mono`，日志 14）
+- 间距用 `AppSpacing`，圆角 `radiusSm`，不写裸数字
+
+## 行为（与设计稿一致）
+
+- 日志模式两行一条：`[YYYY-MM-DD HH:mm:ss.SSS]# RECV HEX>` + 数据；非日志模式只显示接收数据流
+- 状态栏固定 `COM3 OPENED, 115200, N, 8, 1, NONE`；`OPENED/CLOSED/RECV/SEND` 保持英文，其余文案走 slang
+- 串口关闭时发送、快捷指令、批量、自动应答全部拦截并提示
+- 历史只记录「发送」按钮 / Ctrl+Enter 发出的数据
+- 附加位：SUM8、XOR/BCC、LRC、CRC8、CRC16（MODBUS 低字节在前）、CRC32（IEEE 大端）
+- 新增 / 编辑 / 删除一律用对话框，校验失败在对话框内提示不关闭；不用系统 confirm
+- 快捷键：Ctrl+Enter 发送、F1–F8 快捷指令、Esc 停止循环与批量
+
+## 改设计稿
+
+- 只改 `doc/design/src/`，再 `node doc/design/build.mjs`；不要手改生成的 `doc/design/serial-console.html`
+- 行为或 token 变更同步更新 `doc/design/design.md`，并跑 `node doc/design/verify.mjs`（需可解析 playwright）

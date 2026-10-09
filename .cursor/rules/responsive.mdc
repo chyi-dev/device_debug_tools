@@ -1,0 +1,51 @@
+---
+description: 桌面端布局与尺寸约定（逻辑 px、AppSpacing、窗口断点）
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# 桌面端布局约定
+
+桌面窗口可任意缩放，**不使用 flutter_screenutil**，也不锁定方向。尺寸一律使用逻辑 px，并通过断点适配窗口宽度。
+
+## 尺寸写法
+
+| 类型 | 写法 |
+|------|------|
+| 间距 | `AppSpacing.xs/sm/md/lg/xl/xxl`（4/8/12/16/24/32） |
+| 圆角 | `AppSpacing.radiusSm/Md/Lg`（6/8/12） |
+| 字号/字重 | `AppTextStyles.titleLarge/titleMedium/body/caption/mono(cs)` |
+| 颜色 | `Theme.of(context).colorScheme`，语义色见 `AppColors` |
+
+- 日志、十六进制数据、命令输出等使用 `AppTextStyles.mono`
+
+## 窗口断点（`lib/core/responsive/app_design.dart`）
+
+| 名称 | 宽度 | 用途 |
+|------|------|------|
+| compact | < 840 | 侧栏收起为图标+标签，单栏 |
+| medium | 840 ~ 1200 | 单栏或主从两栏 |
+| expanded | ≥ 1200 | 侧栏展开，主从/多栏布局 |
+
+```dart
+final sizeClass = AppDesign.sizeClassOf(MediaQuery.sizeOf(context).width);
+// 或在局部区域使用 LayoutBuilder(builder: (c, box) => AppDesign.sizeClassOf(box.maxWidth) ...)
+```
+
+## 内容限宽
+
+表单、设置等不宜铺满宽屏的内容使用 `ResponsiveContent`（默认 `maxWidth: AppDesign.contentMaxWidth` = 720）。
+
+## 禁止事项
+
+1. Page/Widget 内裸数字布局（`EdgeInsets.all(16)`、`SizedBox(height: 20)`、`fontSize: 14`）——用 `AppSpacing` / `AppTextStyles`
+2. 引入 `flutter_screenutil` 或 `.w/.h/.sp/.r`
+3. 按 `屏幕宽度 * 系数` 计算尺寸
+4. 设置 `textScaler` 禁用系统字体缩放
+5. 断点数值散落各处（只用 `AppDesign`）
+
+## 检查清单
+
+- [ ] 尺寸来自 `AppSpacing` / `AppTextStyles`
+- [ ] 窄窗口（约 800×600）下无溢出
+- [ ] 宽内容用 `ResponsiveContent` 或断点切换布局

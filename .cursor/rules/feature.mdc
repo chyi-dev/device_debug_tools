@@ -1,0 +1,83 @@
+---
+description: Feature 垂直切片开发约定（Cubit、Repository、Page、Widget）
+globs: lib/features/**
+alwaysApply: false
+---
+
+# Feature 开发约定
+
+## 目录结构
+
+每个 feature 使用以下布局（子目录名用**单数**）：
+
+```
+lib/features/<name>/
+├── cubit/          # <Name>Cubit + <Name>State
+├── page/           # <Name><Purpose>Page
+├── repository/     # <Name>Repository
+├── data/           # 可选，数据源（串口、文件、进程等）
+├── model/          # 可选，实体模型
+└── widget/         # 仅本 feature 的 UI 组件
+```
+
+## 命名
+
+| 类型 | 约定 | 示例 |
+|------|------|------|
+| 文件 | snake_case | `device_list_page.dart` |
+| 页面 | `<Feature><Purpose>Page` | `DeviceListPage` |
+| Cubit | `<Feature>Cubit` | `DeviceCubit` |
+| State | `<Feature>State` | `DeviceState` |
+| Repository | `<Feature>Repository` | `DeviceRepository` |
+| Model | `<Entity>Model` | `DeviceModel` |
+
+## Cubit 与 State
+
+- State 为不可变类，手写 `copyWith`；多态状态用 `sealed class` + 子类
+- **一个文件只放一个 Cubit**
+- Cubit 内 `try/catch`，`emit` 错误态并 `AppLogger.i.error(...)`；不要吞掉异常又不 `emit`
+
+### 页面级 Cubit 标准写法
+
+```dart
+return BlocProvider(
+  create: (context) => DeviceCubit(
+    repository: context.read<DeviceRepository>(),
+  )..load(),
+  child: const _DeviceView(),
+);
+```
+
+## 列表/数据页三态 UI
+
+- 错误 + 重试：`AppError`
+- 空态：`AppEmpty`
+- 加载：`CircularProgressIndicator` 或 `AppLoading`（全屏阻塞）
+
+## Repository
+
+- Repository 负责编排数据源，向上暴露领域模型；平台/IO 细节放 `data/`
+- 底层异常转换为 `AppException` 子类后再抛给 Cubit
+- 需要全局共享的 Repository 在 `AppDependencies` 注册
+
+## Page 与导航
+
+- 路由路径只用 `RouteNames`，导航用 `context.go` / `context.push`
+- 主导航项需同步 `MainShell` destinations（见 `app.mdc`）
+
+## 禁止的反模式
+
+1. 页面里 `setState` + `dynamic` 直接做 IO — 应走 Repository + Cubit
+2. 同一文件多个无关 Cubit
+3. UI 硬编码用户可见文案 — 用 `Translations.of(context)`（见 `i18n.mdc`）
+4. 在 feature 内复制 `core/widgets` 已有组件 — 复用 `App*` 组件
+5. 页面内魔法数字布局 — 使用 `AppSpacing` / `AppTextStyles`（见 `responsive.mdc`）
+
+## 新增 Feature 检查清单
+
+- [ ] 目录：`cubit/`、`page/`、`repository/`（需要时 `data/`、`model/`、`widget/`）
+- [ ] `AppDependencies` 注册 Repository（若全局共享）
+- [ ] `RouteNames` + `app_router.dart`（+ `MainShell`）注册路由
+- [ ] `zh.i18n.json` / `en.i18n.json` 补充文案并 `dart run slang`
+- [ ] 数据页接好三态组件
+- [ ] 在 Windows / macOS / Linux 至少一端实际运行验证

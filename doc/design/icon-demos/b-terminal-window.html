@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>图标方向 B · 波形窗口</title>
+<style>
+  * { box-sizing:border-box; margin:0; }
+  body { width:1440px; height:900px; background:#f7f8fa; color:#1f2933;
+         font:14px/1.6 "Segoe UI","Microsoft YaHei UI","PingFang SC",sans-serif;
+         display:grid; grid-template-columns:1fr 600px; }
+  .side { padding:36px 52px; display:flex; flex-direction:column; gap:20px; order:1; }
+  .hero { order:2; background:#e9edf1; display:grid; place-items:center; position:relative; border-left:1px solid #c5ced7; }
+  .hero svg { width:420px; height:420px; }
+  .hero .tag { position:absolute; left:32px; bottom:28px; color:#56616e; font-size:12px; }
+  .grid48 { position:absolute; width:420px; height:420px; pointer-events:none;
+            background-image:linear-gradient(#c5ced7 1px,transparent 1px),linear-gradient(90deg,#c5ced7 1px,transparent 1px);
+            background-size:35px 35px; opacity:.35; }
+  .kicker { font-size:12px; color:#56616e; letter-spacing:.08em; }
+  h1 { font-size:30px; line-height:1.25; font-weight:600; text-wrap:pretty; }
+  .lede { color:#56616e; max-width:640px; text-wrap:pretty; }
+  .rows { display:grid; gap:10px; }
+  .row { display:flex; align-items:center; padding:14px 22px; border-radius:6px; }
+  .row.light { background:#f3f3f3; border:1px solid #dfe4e9; }
+  .row.dark { background:#202020; }
+  .px { display:flex; gap:22px; align-items:flex-end; }
+  .px figure { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; color:#56616e; }
+  .row.dark figure { color:#a1aab5; }
+  canvas.zoom { width:128px; height:128px; image-rendering:pixelated; border:1px solid #c5ced7; }
+  .palette { display:flex; height:30px; border-radius:4px; overflow:hidden; max-width:420px; }
+  .palette span { flex:1; display:flex; align-items:center; justify-content:center; font:12px "Cascadia Mono",Consolas,monospace; }
+  .note { font-size:12px; color:#56616e; border-top:1px solid #c5ced7; padding-top:12px; max-width:520px; }
+</style>
+</head>
+<body>
+<div class="side">
+  <div>
+    <div class="kicker">方向 B · 现实参照：Windows Terminal 应用图标与微软 Windows 应用图标规范</div>
+    <h1>波形窗口：把终端的提示符换成一帧串口波形</h1>
+  </div>
+  <p class="lede">Windows Terminal 用「窗口 + 提示符」表达命令行，按微软规范在 48 格网格上画、外圆角 2px、形状尽量少，16–24px 仍可辨。这里只迁移它的轮廓逻辑：蓝色标题条 + 深色正文区，正文里的提示符换成一个 UART 帧（起始位拉低、数据位、停止位拉高）。<b>form 来自内容</b>：日志区就是这个应用的主角，波形是串口独有、终端没有的东西。</p>
+
+  <div class="rows">
+    <div class="row light"><div class="px" data-sizes="128,48,32,24,16"></div></div>
+    <div class="row dark"><div class="px" data-sizes="128,48,32,24,16"></div></div>
+  </div>
+
+  <div class="px">
+    <figure><canvas class="zoom" data-raster="16"></canvas>16px 实际像素 ×8</figure>
+    <figure><canvas class="zoom" data-raster="32"></canvas>32px 实际像素 ×4</figure>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="palette">
+        <span style="background:#1769c2;color:#fff">1769c2</span>
+        <span style="background:#1f2329;color:#e3e7ec">1f2329</span>
+        <span style="background:#f7f8fa;color:#1f2933">f7f8fa</span>
+        <span style="background:#4c9bf0;color:#16191d">4c9bf0</span>
+      </div>
+      <div class="note">参照只取规范层面的做法（网格、圆角、少形状、不放文字），不复刻 Terminal 的图形本身。标题条用的就是界面主按钮的 accent 蓝。</div>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="grid48"></div>
+  <svg id="icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="7" width="42" height="34" rx="2.5" fill="#1f2329"/>
+    <path d="M5.5 7 H42.5 Q45 7 45 9.5 V14 H3 V9.5 Q3 7 5.5 7 Z" fill="#1769c2"/>
+    <!-- UART 帧：空闲高 → 起始位低 → 数据位 → 停止位高 -->
+    <path d="M8 22 H13 V33 H18 V22 H23 V33 H31 V22 H40"
+          fill="none" stroke="#f7f8fa" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    <rect class="detail" x="36" y="30" width="4" height="3" rx=".5" fill="#4c9bf0"/>
+  </svg>
+  <div class="tag">1024 母版 · 叠 48 格网格 · 光标块仅在 ≥128px 显示</div>
+</div>
+
+<script>
+  const src = document.getElementById('icon');
+  const url = (hide) => {
+    const c = src.cloneNode(true);
+    c.setAttribute('width', 1024); c.setAttribute('height', 1024);
+    if (hide) c.querySelectorAll('.detail').forEach(n => n.remove());
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c));
+  };
+  document.querySelectorAll('.px[data-sizes]').forEach(box => {
+    box.dataset.sizes.split(',').map(Number).forEach(s => {
+      const f = document.createElement('figure');
+      const img = new Image(); img.src = url(s < 128); img.width = s; img.height = s;
+      f.append(img, Object.assign(document.createElement('span'), { textContent: s + 'px' }));
+      box.append(f);
+    });
+  });
+  document.querySelectorAll('canvas[data-raster]').forEach(cv => {
+    const s = +cv.dataset.raster; cv.width = s; cv.height = s;
+    const img = new Image();
+    img.onload = () => cv.getContext('2d').drawImage(img, 0, 0, s, s);
+    img.src = url(true);
+  });
+</script>
+</body>
+</html>

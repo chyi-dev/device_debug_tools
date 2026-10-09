@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>图标方向 A · 接口剖面</title>
+<style>
+  :root { --ink:#16191d; --panel:#1f2329; --text:#e3e7ec; --muted:#a1aab5; --amber:#e5b54a; }
+  * { box-sizing:border-box; margin:0; }
+  body { width:1440px; height:900px; background:#e9edf1; color:#1f2933;
+         font:14px/1.6 "Segoe UI","Microsoft YaHei UI","PingFang SC",sans-serif;
+         display:grid; grid-template-columns:600px 1fr; }
+  .hero { background:var(--ink); display:grid; place-items:center; position:relative; }
+  .hero svg { width:440px; height:440px; }
+  .hero .tag { position:absolute; left:32px; bottom:28px; color:var(--muted); font-size:12px; letter-spacing:.04em; }
+  .side { padding:36px 52px; display:flex; flex-direction:column; gap:20px; }
+  .kicker { font-size:12px; color:#56616e; letter-spacing:.08em; }
+  h1 { font-size:30px; line-height:1.25; font-weight:600; text-wrap:pretty; }
+  .lede { color:#56616e; max-width:620px; text-wrap:pretty; }
+  .rows { display:grid; gap:10px; }
+  .row { display:flex; align-items:center; gap:28px; padding:14px 22px; border-radius:6px; }
+  .row.light { background:#f3f3f3; border:1px solid #dfe4e9; }
+  .row.dark { background:#202020; color:#c8ccd1; }
+  .cell { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; }
+  .px { display:flex; gap:22px; align-items:flex-end; }
+  .px figure { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; color:#56616e; }
+  canvas.zoom { width:128px; height:128px; image-rendering:pixelated; border:1px solid #c5ced7; }
+  .palette { display:flex; gap:0; height:30px; border-radius:4px; overflow:hidden; max-width:420px; }
+  .palette span { flex:1; display:flex; align-items:center; justify-content:center; font:12px "Cascadia Mono",Consolas,monospace; }
+  .note { font-size:12px; color:#56616e; border-top:1px solid #c5ced7; padding-top:12px; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <svg id="icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="48" height="48" rx="6" fill="#16191d"/>
+    <!-- D 型外壳：上宽下窄，是串口接口独有的轮廓 -->
+    <path d="M6.5 13.5 Q6 11 8.5 11 H39.5 Q42 11 41.5 13.5 L38.4 33.2 Q38 35.5 35.6 35.5 H12.4 Q10 35.5 9.6 33.2 Z"
+          fill="#2e343c" stroke="#a1aab5" stroke-width="2"/>
+    <path d="M11 15.2 Q10.8 14.2 11.8 14.2 H36.2 Q37.2 14.2 37 15.2 L34.6 31.2 Q34.4 32.3 33.3 32.3 H14.7 Q13.6 32.3 13.4 31.2 Z"
+          fill="#0d1013"/>
+    <g fill="#4a525c">
+      <circle cx="15" cy="19.5" r="2.1"/><circle cx="19.5" cy="19.5" r="2.1"/>
+      <circle cx="28.5" cy="19.5" r="2.1"/><circle cx="33" cy="19.5" r="2.1"/>
+      <circle cx="17.25" cy="27" r="2.1"/><circle cx="21.75" cy="27" r="2.1"/>
+      <circle cx="26.25" cy="27" r="2.1"/><circle cx="30.75" cy="27" r="2.1"/>
+    </g>
+    <!-- 第 2 针 RXD：唯一点亮的针脚 -->
+    <circle cx="24" cy="19.5" r="2.6" fill="#e5b54a"/>
+    <g class="detail" stroke="#e5b54a" stroke-width=".5" fill="none">
+      <path d="M24 17 V6.5 H40"/>
+      <circle cx="40" cy="6.5" r=".8" fill="#e5b54a"/>
+    </g>
+  </svg>
+  <div class="tag">1024 母版 · 剖面引线仅在 ≥128px 显示</div>
+</div>
+
+<div class="side">
+  <div>
+    <div class="kicker">方向 A · 秒数轮盘 22 → 信息图 3 号「巨幅剖面手绘（Arranz 式）」</div>
+    <h1>接口剖面：一枚 D 型串口，只有接收针亮着</h1>
+  </div>
+  <p class="lede">取自 Adolfo Arranz 剖面图的做法：暗墨底、正视剖面、一处暖色高光加一根引线。主体是 DB9 接口的 D 型外壳，上宽下窄的轮廓在 16px 仍是梯形，和常见方形、圆形图标都不撞。<b>form 来自内容</b>：这个工具每天面对的就是这枚接口；点亮的是 2 号针 RXD，对应「有数据进来」。</p>
+
+  <div class="rows">
+    <div class="row light"><div class="px" data-sizes="128,48,32,24,16"></div></div>
+    <div class="row dark"><div class="px" data-sizes="128,48,32,24,16"></div></div>
+  </div>
+
+  <div class="px">
+    <figure><canvas class="zoom" data-raster="16"></canvas>16px 实际像素 ×8</figure>
+    <figure><canvas class="zoom" data-raster="32"></canvas>32px 实际像素 ×4</figure>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="palette">
+        <span style="background:#16191d;color:#a1aab5">16191d</span>
+        <span style="background:#2e343c;color:#e3e7ec">2e343c</span>
+        <span style="background:#a1aab5;color:#16191d">a1aab5</span>
+        <span style="background:#e5b54a;color:#16191d">e5b54a</span>
+      </div>
+      <div class="note">降级说明：Arranz 的灵魂是手绘细节，纯 SVG 做不出，这里只保留剖面视角、暗底暖光和引线三件事。色值全部来自 design.md 黑底经典 token。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const src = document.getElementById('icon');
+  const svgText = (hideDetail) => {
+    const c = src.cloneNode(true);
+    c.setAttribute('width', 1024); c.setAttribute('height', 1024);
+    if (hideDetail) c.querySelectorAll('.detail').forEach(n => n.remove());
+    return new XMLSerializer().serializeToString(c);
+  };
+  const url = (hide) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText(hide));
+  document.querySelectorAll('.px[data-sizes]').forEach(box => {
+    box.dataset.sizes.split(',').map(Number).forEach(s => {
+      const f = document.createElement('figure');
+      const img = new Image(); img.src = url(s < 128); img.width = s; img.height = s;
+      f.append(img, Object.assign(document.createElement('span'), { textContent: s + 'px' }));
+      if (box.closest('.dark')) f.style.color = '#a1aab5';
+      box.append(f);
+    });
+  });
+  document.querySelectorAll('canvas[data-raster]').forEach(cv => {
+    const s = +cv.dataset.raster; cv.width = s; cv.height = s;
+    const img = new Image();
+    img.onload = () => cv.getContext('2d').drawImage(img, 0, 0, s, s);
+    img.src = url(true);
+  });
+</script>
+</body>
+</html>

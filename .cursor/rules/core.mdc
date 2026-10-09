@@ -1,0 +1,61 @@
+---
+description: core 层基础设施（存储、日志、响应式、通用 Widget、工具）
+globs: lib/core/**
+alwaysApply: false
+---
+
+# Core 层约定
+
+`lib/core/` 存放跨 feature 的基础设施，**不含业务页面与 feature 专有模型**。
+
+## 异常
+
+- 使用 `lib/core/exception/app_exception.dart` 的 sealed `AppException`：`DeviceException`、`StorageException`、`ValidationException`、`UnknownException`
+- Cubit / UI 层读取 `message`，不要到处 `e.toString()`
+- 新增异常子类加在同一文件，保持 sealed 便于 `switch` 穷举
+
+## 存储
+
+| 用途 | 类型 | 路径 |
+|------|------|------|
+| 数据根目录 | `AppPaths` | `lib/core/storage/app_paths.dart` |
+| Hive 初始化 | `initHive` | `lib/core/storage/hive_storage.dart` |
+| 主题/语言/文件日志开关 | `UserPrefsStorage` | `lib/core/storage/user_prefs_storage.dart` |
+| Key 常量 | `StorageKeys` | `lib/core/storage/storage_keys.dart` |
+
+- 新增持久化 key 必须加入 `StorageKeys`，禁止魔法字符串
+- 文件路径一律基于 `AppPaths.dataDirectory()`；测试用 `AppPaths.overrideDataDirectory` 注入临时目录
+
+## 日志
+
+- 入口：`AppLogger.i`（`lib/core/logger/app_logger.dart`）
+- 分类：`LogCategory`（app / database / device / ui），按需扩展
+- 配置：`LoggerConfig.forEnvironment(isDev:)`；文件日志开关由 `UserPrefsStorage.enableFileLog` 覆盖
+- 文件：`<数据根>/logs/app_yyyy_MM_dd.log`，保留天数与单文件上限见 `AppConstants`
+- Core 与 Repository 内**禁止** `debugPrint` 调试残留
+
+## 通用 Widget（`lib/core/widgets/`）
+
+- 命名：**App** 前缀 — `AppButton`、`AppError`、`AppEmpty`、`AppScaffold`、`AppDialogs`、`AppLoading`、`AppSnackBar`
+- 跨 feature 复用的 UI 放 core；仅单 feature 使用的放 `features/<name>/widget/`
+- 尺寸用 `AppSpacing` 逻辑 px（见 `responsive.mdc`）
+
+```dart
+final ok = await AppDialogs.confirm(context, title: t.xxx.title, message: t.xxx.message);
+AppSnackBar.success(context, t.xxx.saved);
+AppSnackBar.error(context, e.message);
+AppLoading.show(); // 全屏阻塞，完成后 AppLoading.dismiss()
+```
+
+- **禁止** 在 Page 内直接 `ScaffoldMessenger.showSnackBar(SnackBar(...))`
+- 全屏阻塞加载用 `AppLoading`，不与 SnackBar 混用
+
+## 工具类
+
+- `validators.dart` — 表单校验（文案由调用方传入已翻译字符串）
+- `debounce.dart` / `throttle.dart` — 搜索、按钮防抖节流
+
+## 修改 core 时
+
+- 保持无 feature import（core 不应依赖 `lib/features/**`）
+- 不要在 core 中引入平台专属插件而不处理其余两个桌面平台

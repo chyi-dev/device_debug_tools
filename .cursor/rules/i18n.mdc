@@ -1,0 +1,46 @@
+---
+description: slang 国际化工作流与文案规范
+globs:
+  - lib/i18n/**
+  - lib/features/**
+  - lib/app/**
+  - lib/core/widgets/**
+alwaysApply: false
+---
+
+# 国际化（slang）
+
+## 配置
+
+- 配置文件：`slang.yaml`
+- 源文案：`lib/i18n/zh.i18n.json`（base）、`lib/i18n/en.i18n.json`
+- 生成目录：`lib/i18n/generated/`（**勿手改**）
+- 统一导出：相对路径引入 `i18n/i18n.dart`
+
+## 使用方式
+
+```dart
+final t = Translations.of(context);
+Text(t.nav.home)
+Text(t.common.retry)
+```
+
+- `bootstrap.dart` 已调用 `LocaleSettings.setLocale`，并由 `buildAppRoot` 用 `TranslationProvider` 包裹
+- 语言枚举使用 slang 生成的 `AppLocale`（`AppLocale.zh` / `AppLocale.en`），不要新建重复枚举
+
+## 新增 / 修改文案流程
+
+1. 同时更新 `zh.i18n.json` 与 `en.i18n.json`（键结构一致）
+2. 运行 `dart run slang`
+3. 在 Dart 中通过 `t.<section>.<key>` 引用
+
+键名使用 camelCase，按功能分组（与 feature 名对齐，如 `home`、`device`），通用词放 `common`。
+
+## 禁止事项
+
+- **禁止** 在 `page/`、`widget/`、`app/`、`core/widgets/` 中硬编码用户可见字符串（含 SnackBar、Dialog、标题、校验提示）
+- **禁止** 手改 `lib/i18n/generated/*.g.dart`
+
+## 切换语言
+
+- 统一调用 `context.read<AppCubit>().setLocale(locale)`：内部完成 `LocaleSettings.setLocale` + `UserPrefsStorage.saveLocale` + 刷新 `MaterialApp.locale`
