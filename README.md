@@ -1,6 +1,12 @@
 # device_debug_tools
 
-Flutter 桌面端设备调试工具，支持 **Windows / macOS / Linux**。采用 feature-first 垂直切片、Cubit 状态管理、go_router 路由，以及 Hive 本地存储。
+Flutter 桌面端串口调试台，支持 **Windows / macOS / Linux**。打开串口后可收发数据，并用快捷指令、批量发送、自动应答和 Lua 脚本处理重复操作。
+
+- [项目介绍](doc/项目介绍.md)：能力、数据流、工作区与平台差异
+- [使用教程](doc/使用教程.md)：连端口、收发、应答规则和脚本
+- [设计说明](doc/design/design.md)：界面尺寸、颜色与交互，改 UI 时以它为准
+
+技术上采用 feature-first 垂直切片、Cubit 状态管理、go_router 路由，以及 Hive 本地存储。
 
 ## 技术栈
 
@@ -8,11 +14,13 @@ Flutter 桌面端设备调试工具，支持 **Windows / macOS / Linux**。采�
 |------|------|
 | 框架 | Flutter 3.10+（Dart `^3.10.8`） |
 | 状态 | flutter_bloc（仅 Cubit） |
-| 路由 | go_router（`StatefulShellRoute` + 侧边 `NavigationRail`） |
+| 路由 | go_router（`StatefulShellRoute`；当前只有串口一页，不显示侧边导航） |
 | 国际化 | slang（zh / en） |
 | 本地存储 | Hive |
 | 日志 | logger + 文件落盘（`AppLogger`） |
 | 加载提示 | flutter_easyloading |
+| 串口 | Windows 用 Win32；macOS / Linux 用 `flutter_libserialport` |
+| 脚本 | `lua_dardo_plus` |
 
 ## 项目结构
 
@@ -20,12 +28,18 @@ Flutter 桌面端设备调试工具，支持 **Windows / macOS / Linux**。采�
 lib/
 ├── app/          # 启动、路由、主题、全局 Cubit、DI
 ├── core/         # 存储、日志、响应式、通用 Widget、工具
-├── features/     # 业务模块（当前仅 home 占位）
+├── features/
+│   ├── serial/   # 串口调试台（当前产品）
+│   └── home/     # 旧占位页，未挂到路由
 ├── shared/       # 跨模块模型与扩展
 ├── i18n/         # 多语言文案与生成代码
 ├── env/          # 环境标志 appIsDev
 ├── main.dart     # 生产入口
 └── main_dev.dart # 开发入口
+doc/
+├── 项目介绍.md
+├── 使用教程.md
+└── design/       # 界面设计稿与设计说明
 ```
 
 ## 快速开始
@@ -46,9 +60,9 @@ flutter run -d windows -t lib/main_dev.dart  # 开发入口（debug 日志 + 文
 |------|------|
 | 开发环境 | `-t lib/main_dev.dart` → `appIsDev=true`，控制台 debug 级日志 + 文件日志 |
 | 生产环境 | `main.dart` → `appIsDev=false`，仅 warning 以上日志 |
-| 数据目录 | 系统 Application Support 目录（`getApplicationSupportDirectory()`），其下 `hive/` 存偏好设置、`logs/` 存日志 |
+| 数据目录 | 系统 Application Support 目录（`getApplicationSupportDirectory()`），其下 `hive/` 存偏好与串口工作区、`logs/` 存应用日志 |
 
-日志文件按天生成（`app_yyyy_MM_dd.log`），默认保留 7 天，单文件超过 10MB 时轮转，配置见 `lib/core/constants/app_constants.dart`。
+日志文件按天生成（`app_yyyy_MM_dd.log`），默认保留 7 天，单文件超过 10MB 时轮转，配置见 `lib/core/constants/app_constants.dart`。串口收发内容不写入该目录，保存方式见 [使用教程](doc/使用教程.md)。
 
 ## 常用命令
 
@@ -84,6 +98,7 @@ iscc installer/windows/device_debug_tools.iss
 ```
 
 产物：`build/installer/device_debug_tools-<version>-setup.exe`。脚本中的 `MyAppVersion` 需与 `pubspec.yaml` 的版本同步。目标机缺少 `VCRUNTIME140.dll` 时，需安装 Microsoft Visual C++ 2015–2022 可再发行组件（x64）。
+
 - macOS 访问串口、USB、网络或文件时，需要在 `macos/Runner/*.entitlements` 中声明对应权限。
 
 ### 发布检查清单
@@ -95,10 +110,10 @@ iscc installer/windows/device_debug_tools.iss
 ## 架构要点
 
 - **启动**：`main.dart` / `main_dev.dart` → `bootstrap()`，依次初始化 Hive、日志、语言、EasyLoading，再由 `buildAppRoot` 组装 Provider 树
-- **DI**：`AppDependencies` 注册全局 Repository / Service；页面内用 `BlocProvider` 创建 Cubit
-- **路由**：路径常量集中在 `lib/app/router/route_names.dart`；新增导航项需同步修改 `app_router.dart` 的 branch 和 `MainShell` 的 destinations
-- **全局状态**：`AppCubit` 管理主题与语言，并持久化到 `UserPrefsStorage`
-- **布局**：桌面端使用逻辑 px + `AppSpacing`，按 `AppDesign` 的窗口断点适配，不使用 ScreenUtil
+- **DI**：`AppDependencies` 注册全局 Repository / Service；页面内用 `BlocProvider` 创建 Cubit。串口实现在这里按平台选择：Windows 为 `Win32SerialGateway`，其他为 `LibserialportGateway`
+- **路由**：路径常量集中在 `lib/app/router/route_names.dart`；新增导航项需同步修改 `app_router.dart` 的 branch 和 `MainShell` 的 destinations。当前初始路由是 `/serial`
+- **全局状态**：`AppCubit` 管理主题与语言，并持久化到 `UserPrefsStorage`。串口工作区由 `SerialWorkspaceStore` 写入同一个 settings box
+- **布局**：桌面端使用逻辑 px + `AppSpacing`，按 `AppDesign` 的窗口断点适配，不使用 ScreenUtil。调试台尺寸见 `lib/features/serial/serial_metrics.dart`
 
 ## Cursor Rules
 
@@ -110,6 +125,7 @@ AI 辅助开发约定位于 [`.cursor/rules/`](.cursor/rules/)：
 | `app.mdc` | 应用壳层与路由 |
 | `core.mdc` | 基础设施层 |
 | `feature.mdc` | Feature 开发规范 |
+| `serial-console.mdc` | 串口调试台界面与行为 |
 | `i18n.mdc` | 国际化规范 |
 | `shared.mdc` | 共享模型 |
 | `responsive.mdc` | 桌面端布局（间距/字号 token、窗口断点） |
@@ -119,4 +135,5 @@ AI 辅助开发约定位于 [`.cursor/rules/`](.cursor/rules/)：
 
 | Feature | 说明 |
 |---------|------|
-| home | 首页占位，待业务替换 |
+| serial | 串口调试台。页面、Cubit、工具面板、Lua 引擎与工作区都在 `lib/features/serial/` |
+| home | 旧占位页，未注册到路由 |
