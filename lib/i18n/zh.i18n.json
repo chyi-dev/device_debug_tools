@@ -30,10 +30,8 @@
       "tools": "工具",
       "help": "帮助",
       "saveRecv": "保存接收数据…",
-      "exportQuick": "导出快捷指令",
-      "importQuick": "导入快捷指令…",
-      "exportRules": "导出应答规则",
-      "importRules": "导入应答规则…",
+      "exportConfig": "导出配置…",
+      "importConfig": "导入配置…",
       "themeLight": "白底经典",
       "themeDark": "黑底经典",
       "compact": "精简模式（收起左栏）",
@@ -454,6 +452,26 @@
       "badStep": "第 $n 条数据需为 HEX",
       "badStepDelay": "第 $n 条延时需为非负数"
     },
+    "config": {
+      "exportTitle": "导出配置",
+      "importTitle": "导入配置",
+      "exportLead": "勾选要写进文件的类别。导入时，文件里没有的类别保持不动。",
+      "importLead": "勾选的类别整表替换，无法撤销；不勾选的保持现状。",
+      "legacy": "旧格式 · 单类列表",
+      "countQuick": "$count 条",
+      "countRules": "$count 条",
+      "countBatch": "$count 个任务",
+      "countScripts": "$count 个",
+      "replace": "文件 $incoming，替换当前 $current",
+      "keep": "文件里没有，保持当前 $current",
+      "needOne": "至少勾选一类",
+      "export": "导出",
+      "import": "导入并替换",
+      "scriptsLive": "其中 $count 个脚本是启用状态，导入后立即参与自动运行。",
+      "batchStops": "批量发送正在运行，导入会先停止它。",
+      "summary": "$name $count",
+      "joiner": "，"
+    },
     "notice": {
       "ready": "就绪",
       "portOpened": "串口已打开",
@@ -493,10 +511,9 @@
       "lessonCreated": "已用「$title」新建 $name",
       "lessonTried": "样例试跑结果已写入运行日志",
       "checksumFilled": "已填入发送框：$text",
-      "exportedQuick": "快捷指令已导出",
-      "exportedRules": "应答规则已导出",
-      "imported": "已导入 $count 条",
-      "importInvalid": "文件格式不正确，需要导出的 JSON",
+      "exportedConfig": "配置已导出",
+      "importedConfig": "已导入 $list",
+      "importInvalid": "不是本工具导出的配置文件",
       "fileLoaded": "已载入 $name"
     }
   }

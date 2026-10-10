@@ -173,6 +173,7 @@ class Translations$serial$zh {
 	late final Translations$serial$status$zh status = Translations$serial$status$zh.internal(_root);
 	late final Translations$serial$dialog$zh dialog = Translations$serial$dialog$zh.internal(_root);
 	late final Translations$serial$validate$zh validate = Translations$serial$validate$zh.internal(_root);
+	late final Translations$serial$config$zh config = Translations$serial$config$zh.internal(_root);
 	late final Translations$serial$notice$zh notice = Translations$serial$notice$zh.internal(_root);
 }
 
@@ -199,17 +200,11 @@ class Translations$serial$menu$zh {
 	/// zh: '保存接收数据…'
 	String get saveRecv => '保存接收数据…';
 
-	/// zh: '导出快捷指令'
-	String get exportQuick => '导出快捷指令';
+	/// zh: '导出配置…'
+	String get exportConfig => '导出配置…';
 
-	/// zh: '导入快捷指令…'
-	String get importQuick => '导入快捷指令…';
-
-	/// zh: '导出应答规则'
-	String get exportRules => '导出应答规则';
-
-	/// zh: '导入应答规则…'
-	String get importRules => '导入应答规则…';
+	/// zh: '导入配置…'
+	String get importConfig => '导入配置…';
 
 	/// zh: '白底经典'
 	String get themeLight => '白底经典';
@@ -1272,6 +1267,69 @@ class Translations$serial$validate$zh {
 	String badStepDelay({required Object n}) => '第 ${n} 条延时需为非负数';
 }
 
+// Path: serial.config
+class Translations$serial$config$zh {
+	Translations$serial$config$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '导出配置'
+	String get exportTitle => '导出配置';
+
+	/// zh: '导入配置'
+	String get importTitle => '导入配置';
+
+	/// zh: '勾选要写进文件的类别。导入时，文件里没有的类别保持不动。'
+	String get exportLead => '勾选要写进文件的类别。导入时，文件里没有的类别保持不动。';
+
+	/// zh: '勾选的类别整表替换，无法撤销；不勾选的保持现状。'
+	String get importLead => '勾选的类别整表替换，无法撤销；不勾选的保持现状。';
+
+	/// zh: '旧格式 · 单类列表'
+	String get legacy => '旧格式 · 单类列表';
+
+	/// zh: '$count 条'
+	String countQuick({required Object count}) => '${count} 条';
+
+	/// zh: '$count 条'
+	String countRules({required Object count}) => '${count} 条';
+
+	/// zh: '$count 个任务'
+	String countBatch({required Object count}) => '${count} 个任务';
+
+	/// zh: '$count 个'
+	String countScripts({required Object count}) => '${count} 个';
+
+	/// zh: '文件 $incoming，替换当前 $current'
+	String replace({required Object incoming, required Object current}) => '文件 ${incoming}，替换当前 ${current}';
+
+	/// zh: '文件里没有，保持当前 $current'
+	String keep({required Object current}) => '文件里没有，保持当前 ${current}';
+
+	/// zh: '至少勾选一类'
+	String get needOne => '至少勾选一类';
+
+	/// zh: '导出'
+	String get export => '导出';
+
+	/// zh: '导入并替换'
+	String get import => '导入并替换';
+
+	/// zh: '其中 $count 个脚本是启用状态，导入后立即参与自动运行。'
+	String scriptsLive({required Object count}) => '其中 ${count} 个脚本是启用状态，导入后立即参与自动运行。';
+
+	/// zh: '批量发送正在运行，导入会先停止它。'
+	String get batchStops => '批量发送正在运行，导入会先停止它。';
+
+	/// zh: '$name $count'
+	String summary({required Object name, required Object count}) => '${name} ${count}';
+
+	/// zh: '，'
+	String get joiner => '，';
+}
+
 // Path: serial.notice
 class Translations$serial$notice$zh {
 	Translations$serial$notice$zh.internal(this._root);
@@ -1394,17 +1452,14 @@ class Translations$serial$notice$zh {
 	/// zh: '已填入发送框：$text'
 	String checksumFilled({required Object text}) => '已填入发送框：${text}';
 
-	/// zh: '快捷指令已导出'
-	String get exportedQuick => '快捷指令已导出';
+	/// zh: '配置已导出'
+	String get exportedConfig => '配置已导出';
 
-	/// zh: '应答规则已导出'
-	String get exportedRules => '应答规则已导出';
+	/// zh: '已导入 $list'
+	String importedConfig({required Object list}) => '已导入 ${list}';
 
-	/// zh: '已导入 $count 条'
-	String imported({required Object count}) => '已导入 ${count} 条';
-
-	/// zh: '文件格式不正确，需要导出的 JSON'
-	String get importInvalid => '文件格式不正确，需要导出的 JSON';
+	/// zh: '不是本工具导出的配置文件'
+	String get importInvalid => '不是本工具导出的配置文件';
 
 	/// zh: '已载入 $name'
 	String fileLoaded({required Object name}) => '已载入 ${name}';
@@ -1746,10 +1801,8 @@ extension on Translations {
 			'serial.menu.tools' => '工具',
 			'serial.menu.help' => '帮助',
 			'serial.menu.saveRecv' => '保存接收数据…',
-			'serial.menu.exportQuick' => '导出快捷指令',
-			'serial.menu.importQuick' => '导入快捷指令…',
-			'serial.menu.exportRules' => '导出应答规则',
-			'serial.menu.importRules' => '导入应答规则…',
+			'serial.menu.exportConfig' => '导出配置…',
+			'serial.menu.importConfig' => '导入配置…',
 			'serial.menu.themeLight' => '白底经典',
 			'serial.menu.themeDark' => '黑底经典',
 			'serial.menu.compact' => '精简模式（收起左栏）',
@@ -2099,6 +2152,24 @@ extension on Translations {
 			'serial.validate.needStep' => '至少需要一条指令',
 			'serial.validate.badStep' => ({required Object n}) => '第 ${n} 条数据需为 HEX',
 			'serial.validate.badStepDelay' => ({required Object n}) => '第 ${n} 条延时需为非负数',
+			'serial.config.exportTitle' => '导出配置',
+			'serial.config.importTitle' => '导入配置',
+			'serial.config.exportLead' => '勾选要写进文件的类别。导入时，文件里没有的类别保持不动。',
+			'serial.config.importLead' => '勾选的类别整表替换，无法撤销；不勾选的保持现状。',
+			'serial.config.legacy' => '旧格式 · 单类列表',
+			'serial.config.countQuick' => ({required Object count}) => '${count} 条',
+			'serial.config.countRules' => ({required Object count}) => '${count} 条',
+			'serial.config.countBatch' => ({required Object count}) => '${count} 个任务',
+			'serial.config.countScripts' => ({required Object count}) => '${count} 个',
+			'serial.config.replace' => ({required Object incoming, required Object current}) => '文件 ${incoming}，替换当前 ${current}',
+			'serial.config.keep' => ({required Object current}) => '文件里没有，保持当前 ${current}',
+			'serial.config.needOne' => '至少勾选一类',
+			'serial.config.export' => '导出',
+			'serial.config.import' => '导入并替换',
+			'serial.config.scriptsLive' => ({required Object count}) => '其中 ${count} 个脚本是启用状态，导入后立即参与自动运行。',
+			'serial.config.batchStops' => '批量发送正在运行，导入会先停止它。',
+			'serial.config.summary' => ({required Object name, required Object count}) => '${name} ${count}',
+			'serial.config.joiner' => '，',
 			'serial.notice.ready' => '就绪',
 			'serial.notice.portOpened' => '串口已打开',
 			'serial.notice.portClosed' => '串口已关闭',
@@ -2137,10 +2208,9 @@ extension on Translations {
 			'serial.notice.lessonCreated' => ({required Object title, required Object name}) => '已用「${title}」新建 ${name}',
 			'serial.notice.lessonTried' => '样例试跑结果已写入运行日志',
 			'serial.notice.checksumFilled' => ({required Object text}) => '已填入发送框：${text}',
-			'serial.notice.exportedQuick' => '快捷指令已导出',
-			'serial.notice.exportedRules' => '应答规则已导出',
-			'serial.notice.imported' => ({required Object count}) => '已导入 ${count} 条',
-			'serial.notice.importInvalid' => '文件格式不正确，需要导出的 JSON',
+			'serial.notice.exportedConfig' => '配置已导出',
+			'serial.notice.importedConfig' => ({required Object list}) => '已导入 ${list}',
+			'serial.notice.importInvalid' => '不是本工具导出的配置文件',
 			'serial.notice.fileLoaded' => ({required Object name}) => '已载入 ${name}',
 			_ => null,
 		};

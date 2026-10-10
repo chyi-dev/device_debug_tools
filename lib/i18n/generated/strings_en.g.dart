@@ -130,6 +130,7 @@ class _Translations$serial$en extends Translations$serial$zh {
 	@override late final _Translations$serial$status$en status = _Translations$serial$status$en._(_root);
 	@override late final _Translations$serial$dialog$en dialog = _Translations$serial$dialog$en._(_root);
 	@override late final _Translations$serial$validate$en validate = _Translations$serial$validate$en._(_root);
+	@override late final _Translations$serial$config$en config = _Translations$serial$config$en._(_root);
 	@override late final _Translations$serial$notice$en notice = _Translations$serial$notice$en._(_root);
 }
 
@@ -145,10 +146,8 @@ class _Translations$serial$menu$en extends Translations$serial$menu$zh {
 	@override String get tools => 'Tools';
 	@override String get help => 'Help';
 	@override String get saveRecv => 'Save received data…';
-	@override String get exportQuick => 'Export quick commands';
-	@override String get importQuick => 'Import quick commands…';
-	@override String get exportRules => 'Export auto-reply rules';
-	@override String get importRules => 'Import auto-reply rules…';
+	@override String get exportConfig => 'Export configuration…';
+	@override String get importConfig => 'Import configuration…';
 	@override String get themeLight => 'Classic light';
 	@override String get themeDark => 'Classic dark';
 	@override String get compact => 'Compact (hide left panel)';
@@ -625,6 +624,33 @@ class _Translations$serial$validate$en extends Translations$serial$validate$zh {
 	@override String badStepDelay({required Object n}) => 'Delay ${n} must be zero or greater';
 }
 
+// Path: serial.config
+class _Translations$serial$config$en extends Translations$serial$config$zh {
+	_Translations$serial$config$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get exportTitle => 'Export configuration';
+	@override String get importTitle => 'Import configuration';
+	@override String get exportLead => 'Check the categories to write to the file. On import, categories missing from the file stay as they are.';
+	@override String get importLead => 'Checked categories are replaced as a whole and cannot be undone; unchecked ones stay as they are.';
+	@override String get legacy => 'Old format · single list';
+	@override String countQuick({required Object count}) => '${count} commands';
+	@override String countRules({required Object count}) => '${count} rules';
+	@override String countBatch({required Object count}) => '${count} jobs';
+	@override String countScripts({required Object count}) => '${count} scripts';
+	@override String replace({required Object incoming, required Object current}) => 'File ${incoming}, replaces current ${current}';
+	@override String keep({required Object current}) => 'Not in file, keeps current ${current}';
+	@override String get needOne => 'Check at least one category';
+	@override String get export => 'Export';
+	@override String get import => 'Import and replace';
+	@override String scriptsLive({required Object count}) => '${count} of these scripts are enabled and will run automatically right after import.';
+	@override String get batchStops => 'A batch is running; importing will stop it first.';
+	@override String summary({required Object name, required Object count}) => '${name} ${count}';
+	@override String get joiner => ', ';
+}
+
 // Path: serial.notice
 class _Translations$serial$notice$en extends Translations$serial$notice$zh {
 	_Translations$serial$notice$en._(TranslationsEn root) : this._root = root, super.internal(root);
@@ -670,10 +696,9 @@ class _Translations$serial$notice$en extends Translations$serial$notice$zh {
 	@override String lessonCreated({required Object name, required Object title}) => 'Created ${name} from "${title}"';
 	@override String get lessonTried => 'Sample run written to the run log';
 	@override String checksumFilled({required Object text}) => 'Filled the send box: ${text}';
-	@override String get exportedQuick => 'Quick commands exported';
-	@override String get exportedRules => 'Rules exported';
-	@override String imported({required Object count}) => 'Imported ${count} items';
-	@override String get importInvalid => 'This file is not an exported JSON list';
+	@override String get exportedConfig => 'Configuration exported';
+	@override String importedConfig({required Object list}) => 'Imported ${list}';
+	@override String get importInvalid => 'This is not a configuration file exported by this tool';
 	@override String fileLoaded({required Object name}) => 'Loaded ${name}';
 }
 
@@ -907,10 +932,8 @@ extension on TranslationsEn {
 			'serial.menu.tools' => 'Tools',
 			'serial.menu.help' => 'Help',
 			'serial.menu.saveRecv' => 'Save received data…',
-			'serial.menu.exportQuick' => 'Export quick commands',
-			'serial.menu.importQuick' => 'Import quick commands…',
-			'serial.menu.exportRules' => 'Export auto-reply rules',
-			'serial.menu.importRules' => 'Import auto-reply rules…',
+			'serial.menu.exportConfig' => 'Export configuration…',
+			'serial.menu.importConfig' => 'Import configuration…',
 			'serial.menu.themeLight' => 'Classic light',
 			'serial.menu.themeDark' => 'Classic dark',
 			'serial.menu.compact' => 'Compact (hide left panel)',
@@ -1260,6 +1283,24 @@ extension on TranslationsEn {
 			'serial.validate.needStep' => 'Add at least one command',
 			'serial.validate.badStep' => ({required Object n}) => 'Step ${n} must be HEX',
 			'serial.validate.badStepDelay' => ({required Object n}) => 'Delay ${n} must be zero or greater',
+			'serial.config.exportTitle' => 'Export configuration',
+			'serial.config.importTitle' => 'Import configuration',
+			'serial.config.exportLead' => 'Check the categories to write to the file. On import, categories missing from the file stay as they are.',
+			'serial.config.importLead' => 'Checked categories are replaced as a whole and cannot be undone; unchecked ones stay as they are.',
+			'serial.config.legacy' => 'Old format · single list',
+			'serial.config.countQuick' => ({required Object count}) => '${count} commands',
+			'serial.config.countRules' => ({required Object count}) => '${count} rules',
+			'serial.config.countBatch' => ({required Object count}) => '${count} jobs',
+			'serial.config.countScripts' => ({required Object count}) => '${count} scripts',
+			'serial.config.replace' => ({required Object incoming, required Object current}) => 'File ${incoming}, replaces current ${current}',
+			'serial.config.keep' => ({required Object current}) => 'Not in file, keeps current ${current}',
+			'serial.config.needOne' => 'Check at least one category',
+			'serial.config.export' => 'Export',
+			'serial.config.import' => 'Import and replace',
+			'serial.config.scriptsLive' => ({required Object count}) => '${count} of these scripts are enabled and will run automatically right after import.',
+			'serial.config.batchStops' => 'A batch is running; importing will stop it first.',
+			'serial.config.summary' => ({required Object name, required Object count}) => '${name} ${count}',
+			'serial.config.joiner' => ', ',
 			'serial.notice.ready' => 'Ready',
 			'serial.notice.portOpened' => 'Port opened',
 			'serial.notice.portClosed' => 'Port closed',
@@ -1298,10 +1339,9 @@ extension on TranslationsEn {
 			'serial.notice.lessonCreated' => ({required Object name, required Object title}) => 'Created ${name} from "${title}"',
 			'serial.notice.lessonTried' => 'Sample run written to the run log',
 			'serial.notice.checksumFilled' => ({required Object text}) => 'Filled the send box: ${text}',
-			'serial.notice.exportedQuick' => 'Quick commands exported',
-			'serial.notice.exportedRules' => 'Rules exported',
-			'serial.notice.imported' => ({required Object count}) => 'Imported ${count} items',
-			'serial.notice.importInvalid' => 'This file is not an exported JSON list',
+			'serial.notice.exportedConfig' => 'Configuration exported',
+			'serial.notice.importedConfig' => ({required Object list}) => 'Imported ${list}',
+			'serial.notice.importInvalid' => 'This is not a configuration file exported by this tool',
 			'serial.notice.fileLoaded' => ({required Object name}) => 'Loaded ${name}',
 			_ => null,
 		};

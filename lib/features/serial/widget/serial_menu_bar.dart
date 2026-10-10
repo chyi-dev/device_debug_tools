@@ -17,10 +17,8 @@ class SerialMenuBar extends StatelessWidget {
     required this.compact,
     required this.toolsOn,
     required this.onSave,
-    required this.onExportQuick,
-    required this.onImportQuick,
-    required this.onExportRules,
-    required this.onImportRules,
+    required this.onExportConfig,
+    required this.onImportConfig,
     required this.onCompact,
     required this.onTools,
     required this.onTab,
@@ -31,10 +29,8 @@ class SerialMenuBar extends StatelessWidget {
   final bool compact;
   final bool toolsOn;
   final VoidCallback onSave;
-  final VoidCallback onExportQuick;
-  final VoidCallback onImportQuick;
-  final VoidCallback onExportRules;
-  final VoidCallback onImportRules;
+  final VoidCallback onExportConfig;
+  final VoidCallback onImportConfig;
   final VoidCallback onCompact;
   final VoidCallback onTools;
   final ValueChanged<ToolTab> onTab;
@@ -102,10 +98,8 @@ class SerialMenuBar extends StatelessWidget {
                                     kbd: t.serial.kbd.ctrlS,
                                   ),
                                   const _Item.gap(),
-                                  _Item(menu.exportQuick, onExportQuick),
-                                  _Item(menu.importQuick, onImportQuick),
-                                  _Item(menu.exportRules, onExportRules),
-                                  _Item(menu.importRules, onImportRules),
+                                  _Item(menu.exportConfig, onExportConfig),
+                                  _Item(menu.importConfig, onImportConfig),
                                 ],
                               ),
                               _Menu(

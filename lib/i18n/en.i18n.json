@@ -30,10 +30,8 @@
       "tools": "Tools",
       "help": "Help",
       "saveRecv": "Save received data…",
-      "exportQuick": "Export quick commands",
-      "importQuick": "Import quick commands…",
-      "exportRules": "Export auto-reply rules",
-      "importRules": "Import auto-reply rules…",
+      "exportConfig": "Export configuration…",
+      "importConfig": "Import configuration…",
       "themeLight": "Classic light",
       "themeDark": "Classic dark",
       "compact": "Compact (hide left panel)",
@@ -454,6 +452,26 @@
       "badStep": "Step $n must be HEX",
       "badStepDelay": "Delay $n must be zero or greater"
     },
+    "config": {
+      "exportTitle": "Export configuration",
+      "importTitle": "Import configuration",
+      "exportLead": "Check the categories to write to the file. On import, categories missing from the file stay as they are.",
+      "importLead": "Checked categories are replaced as a whole and cannot be undone; unchecked ones stay as they are.",
+      "legacy": "Old format · single list",
+      "countQuick": "$count commands",
+      "countRules": "$count rules",
+      "countBatch": "$count jobs",
+      "countScripts": "$count scripts",
+      "replace": "File $incoming, replaces current $current",
+      "keep": "Not in file, keeps current $current",
+      "needOne": "Check at least one category",
+      "export": "Export",
+      "import": "Import and replace",
+      "scriptsLive": "$count of these scripts are enabled and will run automatically right after import.",
+      "batchStops": "A batch is running; importing will stop it first.",
+      "summary": "$name $count",
+      "joiner": ", "
+    },
     "notice": {
       "ready": "Ready",
       "portOpened": "Port opened",
@@ -493,10 +511,9 @@
       "lessonCreated": "Created $name from \"$title\"",
       "lessonTried": "Sample run written to the run log",
       "checksumFilled": "Filled the send box: $text",
-      "exportedQuick": "Quick commands exported",
-      "exportedRules": "Rules exported",
-      "imported": "Imported $count items",
-      "importInvalid": "This file is not an exported JSON list",
+      "exportedConfig": "Configuration exported",
+      "importedConfig": "Imported $list",
+      "importInvalid": "This is not a configuration file exported by this tool",
       "fileLoaded": "Loaded $name"
     }
   }

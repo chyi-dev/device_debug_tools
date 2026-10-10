@@ -8,6 +8,7 @@ import 'package:device_debug_tools/features/serial/data/serial_bytes.dart';
 import 'package:device_debug_tools/features/serial/data/serial_file_gateway.dart';
 import 'package:device_debug_tools/features/serial/data/serial_port_gateway.dart';
 import 'package:device_debug_tools/features/serial/data/serial_workspace_store.dart';
+import 'package:device_debug_tools/features/serial/model/config_pack.dart';
 import 'package:device_debug_tools/features/serial/model/script_lessons.dart';
 import 'package:device_debug_tools/features/serial/model/serial_models.dart';
 import 'package:device_debug_tools/features/serial/repository/serial_console_repository.dart';
@@ -206,7 +207,7 @@ void main() {
       expect(cubit.state.history, isEmpty);
     });
 
-    test('导入新树按指令条数提示，旧数组也能导入', () async {
+    test('旧的快捷指令数组识别为快捷指令，按指令条数提示', () async {
       files.text = jsonEncode([
         {
           'type': 'command',
@@ -225,17 +226,116 @@ void main() {
           ],
         },
       ]);
-      await cubit.importQuick();
+      final pack = (await cubit.pickConfig())!;
+      expect(pack.legacy, isTrue);
+      expect(pack.parts, {ConfigPart.quick});
+      cubit.applyConfig(pack, ConfigPart.values.toSet());
       expect(cubit.state.quick.folders.single.commands, hasLength(2));
-      expect(cubit.state.toast?.kind, SerialNoticeKind.imported);
-      expect(cubit.state.toast?.args['count'], 3);
+      expect(cubit.state.toast?.kind, SerialNoticeKind.importedConfig);
+      expect(cubit.state.toast?.args, {'quick': 3});
+    });
+  });
 
-      files.text = jsonEncode([
-        {'name': 'X', 'data': '01', 'format': 'HEX', 'key': 'F3'},
-      ]);
-      await cubit.importQuick();
-      expect(cubit.state.quick.single, isA<QuickCommand>());
-      expect(cubit.state.quick.commands.single.key, 'F3');
+  group('配置包', () {
+    test('导出只写入勾选的类别，命中次数不写进文件', () async {
+      files.savePath = 'cfg.json';
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'r1',
+          name: '心跳',
+          match: MatchMode.frame,
+          pattern: 'A5 80',
+          enabled: true,
+          hits: 9,
+          replies: [ReplyStep(data: 'A5 81', delayMs: 0)],
+        ),
+      );
+      await cubit.exportConfig({ConfigPart.rules, ConfigPart.scripts});
+      final out = jsonDecode(files.written!) as Map<String, dynamic>;
+      expect(out['kind'], ConfigPack.kind);
+      expect(out.keys, containsAll(['rules', 'scripts']));
+      expect(out.containsKey('quick') || out.containsKey('batch'), isFalse);
+      expect((out['rules'] as List).single, isNot(contains('hits')));
+      expect(cubit.state.toast?.kind, SerialNoticeKind.exportedConfig);
+    });
+
+    test('只替换勾选且文件里有的类别，快捷键去重、命中归零', () async {
+      final scriptsBefore = cubit.state.scripts.length;
+      final batchBefore = cubit.state.batch;
+      files.text = jsonEncode({
+        'kind': ConfigPack.kind,
+        'version': 1,
+        'quick': [
+          {'name': 'A', 'data': '01', 'format': 'hex', 'key': 'F2'},
+          {'name': 'B', 'data': '02', 'format': 'hex', 'key': 'F2'},
+        ],
+        'rules': [
+          {
+            'id': 'r9',
+            'name': '回显',
+            'pattern': 'A5',
+            'enabled': true,
+            'hits': 37,
+            'replies': [
+              {'data': 'A5', 'delay': 0},
+            ],
+          },
+        ],
+        'scripts': [
+          {'id': 's9', 'name': 'live.lua', 'code': '', 'enabled': true},
+        ],
+      });
+      final pack = (await cubit.pickConfig())!;
+      expect(pack.parts, {
+        ConfigPart.quick,
+        ConfigPart.rules,
+        ConfigPart.scripts,
+      });
+      expect(pack.enabledScripts, 1);
+      cubit.applyConfig(pack, {
+        ConfigPart.quick,
+        ConfigPart.rules,
+        ConfigPart.batch,
+      });
+      final keys = cubit.state.quick.commands.map((q) => q.key).toList();
+      expect(keys, ['F2', '']);
+      expect(cubit.state.rules.single.hits, 0);
+      expect(cubit.state.scripts, hasLength(scriptsBefore));
+      expect(cubit.state.batch, same(batchBefore));
+      expect(cubit.state.toast?.args, {'quick': 2, 'rules': 1});
+    });
+
+    test('替换脚本后重新检查钩子并选中第一个', () async {
+      files.text = jsonEncode({
+        'kind': ConfigPack.kind,
+        'version': 1,
+        'scripts': [
+          {
+            'id': 's9',
+            'name': 'tx.lua',
+            'code': 'function before_send(frame)\n  return frame\nend',
+            'enabled': false,
+          },
+        ],
+      });
+      cubit.applyConfig((await cubit.pickConfig())!, {ConfigPart.scripts});
+      expect(cubit.state.scripts.single.name, 'tx.lua');
+      expect(cubit.state.selectedScriptId, 's9');
+      expect(cubit.state.scriptMeta.keys, ['s9']);
+      expect(cubit.state.scriptMeta['s9']!.hooks, {ScriptHook.beforeSend});
+    });
+
+    test('不是本工具的文件或空列表提示格式不对', () async {
+      for (final text in [
+        'not json',
+        jsonEncode({'kind': 'other', 'quick': <Object>[]}),
+        jsonEncode(<Object>[]),
+        jsonEncode({'kind': ConfigPack.kind, 'version': 1}),
+      ]) {
+        files.text = text;
+        expect(await cubit.pickConfig(), isNull);
+        expect(cubit.state.toast?.kind, SerialNoticeKind.importInvalid);
+      }
     });
   });
 
@@ -457,6 +557,8 @@ class _FakePorts implements SerialPortGateway {
 
 class _FakeFiles implements SerialFileGateway {
   String? text;
+  String? savePath;
+  String? written;
 
   @override
   Future<PickedBytes?> pickAny() async => null;
@@ -465,13 +567,15 @@ class _FakeFiles implements SerialFileGateway {
   Future<String?> pickSave({
     required String suggestedName,
     required String extension,
-  }) async => null;
+  }) async => savePath;
 
   @override
   Future<String?> pickText({required List<String> extensions}) async => text;
 
   @override
-  Future<void> writeText({required String path, required String text}) async {}
+  Future<void> writeText({required String path, required String text}) async {
+    written = text;
+  }
 }
 
 class _MemoryStore implements SerialWorkspaceStore {

@@ -13,6 +13,7 @@ import '../data/packet_assembler.dart';
 import '../data/serial_bytes.dart';
 import '../data/serial_native_text.dart';
 import '../data/serial_stamp.dart';
+import '../model/config_pack.dart';
 import '../model/script_lessons.dart';
 import '../model/serial_models.dart';
 import '../repository/serial_console_repository.dart';
@@ -989,28 +990,94 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     }
   }
 
-  Future<void> exportQuick() => _exportJson(
-    suggestedName: 'quick-commands.json',
-    data: state.quick.map((item) => item.toJson()).toList(),
-    done: SerialNoticeKind.exportedQuick,
+  /// 当前四类内容，供导出清单显示条数与写文件。
+  ConfigPack currentConfig() => ConfigPack(
+    quick: state.quick,
+    rules: state.rules,
+    batch: state.batch,
+    scripts: state.scripts,
   );
 
-  Future<void> exportRules() => _exportJson(
-    suggestedName: 'auto-reply-rules.json',
-    data: state.rules.map((item) => item.toJson()).toList(),
-    done: SerialNoticeKind.exportedRules,
+  Future<void> exportConfig(Set<ConfigPart> parts) => _exportJson(
+    suggestedName: ConfigPack.fileName,
+    data: currentConfig().toJson(parts),
+    done: SerialNoticeKind.exportedConfig,
   );
 
-  Future<void> importQuick() => _importList(
-    parse: QuickNode.fromJson,
-    apply: (items) => _emit(state.copyWith(quick: items.withUniqueKeys())),
-    count: (items) => items.commands.length,
-  );
+  /// 选文件并解析；取消、读失败或格式不对时返回 null（后两者已提示）。
+  Future<ConfigPack?> pickConfig() async {
+    try {
+      final text = await _repo.pickText(extensions: const ['json']);
+      if (text == null) return null;
+      final pack = ConfigPack.fromJson(jsonDecode(text));
+      if (pack == null) throw const FormatException('config');
+      return pack;
+    } on AppException catch (error, stackTrace) {
+      _logIo('导入失败', error, stackTrace);
+    } catch (error, stackTrace) {
+      AppLogger.i.error(
+        '导入文件格式不正确',
+        category: LogCategory.device,
+        error: error,
+        stackTrace: stackTrace,
+      );
+      _notify(
+        SerialNoticeKind.importInvalid,
+        toast: true,
+        warn: true,
+        hint: false,
+      );
+    }
+    return null;
+  }
 
-  Future<void> importRules() => _importList(
-    parse: ReplyRule.fromJson,
-    apply: (items) => _emit(state.copyWith(rules: items)),
-  );
+  /// 勾选且文件里有的类别整表替换；其余保持现状。
+  void applyConfig(ConfigPack pack, Set<ConfigPart> parts) {
+    final use = parts.intersection(pack.parts);
+    if (use.isEmpty) return;
+    if (use.contains(ConfigPart.batch) && state.batchRun != null) {
+      _stopBatch(notify: true);
+    }
+    final quick = pack.quick;
+    final rules = pack.rules;
+    final batch = pack.batch;
+    final scripts = pack.scripts;
+    if (use.contains(ConfigPart.scripts) && scripts != null) {
+      for (final old in state.scripts) {
+        _engine.forget(old.id);
+      }
+      _brokenLogged.clear();
+    }
+    _emit(
+      state.copyWith(
+        quick: use.contains(ConfigPart.quick) ? quick!.withUniqueKeys() : null,
+        rules: use.contains(ConfigPart.rules)
+            ? [for (final r in rules!) r.copyWith(hits: 0)]
+            : null,
+        batch: use.contains(ConfigPart.batch) ? batch : null,
+        selectedBatchId: use.contains(ConfigPart.batch)
+            ? (batch!.isEmpty ? null : batch.first.id)
+            : state.selectedBatchId,
+        scripts: use.contains(ConfigPart.scripts) ? scripts : null,
+        selectedScriptId: use.contains(ConfigPart.scripts)
+            ? (scripts!.isEmpty ? null : scripts.first.id)
+            : state.selectedScriptId,
+        scriptMeta: use.contains(ConfigPart.scripts) ? const {} : null,
+      ),
+    );
+    if (use.contains(ConfigPart.scripts)) _inspectScripts();
+    _persist();
+    final now = currentConfig();
+    _notify(
+      SerialNoticeKind.importedConfig,
+      toast: true,
+      hint: false,
+      args: {
+        for (final part in ConfigPart.values)
+          if (use.contains(part)) part.name: now.count(part) ?? 0,
+      },
+    );
+  }
 
   void appendChecksum(Uint8List raw, ChecksumKind kind) {
     final text = SerialBytes.toHex([
@@ -1546,48 +1613,6 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
       _notify(done, toast: true, hint: false);
     } on AppException catch (error, stackTrace) {
       _logIo('导出失败', error, stackTrace);
-    }
-  }
-
-  Future<void> _importList<T>({
-    required T? Function(Object? raw) parse,
-    required void Function(List<T> items) apply,
-    int Function(List<T> items)? count,
-  }) async {
-    try {
-      final text = await _repo.pickText(extensions: const ['json']);
-      if (text == null) return;
-      final raw = jsonDecode(text);
-      if (raw is! List) throw const FormatException('list');
-      final items = <T>[];
-      for (final item in raw) {
-        final parsed = parse(item);
-        if (parsed == null) throw const FormatException('item');
-        items.add(parsed);
-      }
-      apply(items);
-      _persist();
-      _notify(
-        SerialNoticeKind.imported,
-        toast: true,
-        hint: false,
-        args: {'count': count?.call(items) ?? items.length},
-      );
-    } on AppException catch (error, stackTrace) {
-      _logIo('导入失败', error, stackTrace);
-    } catch (error, stackTrace) {
-      AppLogger.i.error(
-        '导入文件格式不正确',
-        category: LogCategory.device,
-        error: error,
-        stackTrace: stackTrace,
-      );
-      _notify(
-        SerialNoticeKind.importInvalid,
-        toast: true,
-        warn: true,
-        hint: false,
-      );
     }
   }
 

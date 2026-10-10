@@ -1,0 +1,2263 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>设备调试工具 · 配置导入导出 · 版 C · 页签</title>
+<style>
+/* ---------- 设计 token：白底经典 / 黑底经典 ---------- */
+:root{
+  --win:#e9edf1;--panel:#f7f8fa;--field:#fff;--line:#c5ced7;--line2:#dfe4e9;
+  --text:#1f2933;--muted:#56616e;--accent:#1769c2;--accent-ink:#fff;--hover:#e3ebf5;
+  --log-bg:#fff;--log-prompt:#6b7480;--log-rx:#1b2630;--log-tx:#1461b8;--log-sys:#9a5a00;--mark:#ffe28a;
+  --on:#1f9d55;--off:#c8392f;--lamp-idle:#b9c1ca;
+  --sans:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --win:#16191d;--panel:#1f2329;--field:#272c33;--line:#3a414a;--line2:#2e343c;
+  --text:#e3e7ec;--muted:#a1aab5;--accent:#4c9bf0;--accent-ink:#0c1624;--hover:#2b323b;
+  --log-bg:#0d1013;--log-prompt:#8b949e;--log-rx:#7fe0a6;--log-tx:#8cc2ff;--log-sys:#e5b54a;--mark:#6b5a12;
+  --on:#3ccf7a;--off:#ef5b50;--lamp-idle:#4a525c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:14px/1.45 var(--sans);color:var(--text);background:var(--win);overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.app{height:100vh;display:grid;grid-template-rows:34px minmax(0,1fr) 30px;min-width:1180px}
+
+/* ---------- 菜单栏 ---------- */
+.menubar{display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:20}
+.menubar .title{font-weight:600;margin-right:14px;padding-left:4px}
+.menu{position:relative}
+.menu>button{border:0;background:none;height:28px;padding:0 12px;border-radius:4px}
+.menu>button:hover,.menu.open>button{background:var(--hover)}
+.drop{display:none;position:absolute;top:31px;left:0;min-width:220px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:4px}
+.menu.open .drop{display:block}
+.drop button{display:flex;justify-content:space-between;width:100%;border:0;background:none;text-align:left;padding:7px 12px;border-radius:4px;gap:20px}
+.drop button:hover{background:var(--hover)}
+.drop button kbd,.drop button .chk{font:12px var(--mono);color:var(--muted)}
+.drop hr{border:0;border-top:1px solid var(--line2);margin:4px 0}
+.menubar .right{margin-left:auto;display:flex;gap:6px}
+.iconbtn{border:1px solid transparent;background:none;height:26px;padding:0 10px;border-radius:4px;font-size:13px;color:var(--muted)}
+.iconbtn:hover{border-color:var(--line);color:var(--text)}
+.iconbtn.on{color:var(--text);border-color:var(--line);background:var(--field)}
+
+/* ---------- 主体三栏 ---------- */
+.main{display:grid;grid-template-columns:272px minmax(0,1fr) 352px;gap:8px;padding:8px;min-height:0}
+.app.compact .main{grid-template-columns:0 minmax(0,1fr) 352px;gap:0 8px}
+.app.notools .main{grid-template-columns:272px minmax(0,1fr) 0;gap:8px 0}
+.app.compact.notools .main{grid-template-columns:0 minmax(0,1fr) 0;gap:0}
+.app.compact .side,.app.notools .tools{visibility:hidden;overflow:hidden}
+
+/* 左栏分组框 */
+.side{overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;min-height:0;padding-right:2px}
+.group{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:7px 12px 8px}
+.group>legend,.group>.legend{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-bottom:6px;display:block}
+.form{display:grid;grid-template-columns:62px minmax(0,1fr);gap:5px 8px;align-items:center}
+.form select,.form .inp{height:26px}
+.form label{font-size:13px;color:var(--muted)}
+.form .pair{display:flex;gap:6px}
+.form .pair>*{flex:1;min-width:0}
+select,.inp{height:28px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 6px;outline:none;min-width:0}
+select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn{height:28px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 12px;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.sm{height:24px;padding:0 8px;font-size:13px}
+.btn.danger{color:var(--off)}
+.openrow{display:flex;align-items:center;gap:10px;margin-top:8px}
+.openbtn{flex:1;height:32px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600}
+.lamp{width:12px;height:12px;border-radius:50%;background:var(--off);box-shadow:inset 0 -1px 2px rgba(0,0,0,.25)}
+.lamp.on{background:var(--on)}
+.signals{display:flex;gap:16px;align-items:center;margin-top:8px;font-size:13px}
+.signals label{display:flex;gap:6px;align-items:center}
+.pins{display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid var(--line2);font:12px var(--mono);color:var(--muted)}
+.pins span{display:flex;align-items:center;gap:4px}
+.pins i{width:8px;height:8px;border-radius:50%;background:var(--lamp-idle)}
+.pins i.on{background:var(--on)}
+.radios{display:flex;gap:16px;margin-bottom:6px}
+.legend.withradio{display:flex;justify-content:space-between;align-items:center}
+.legend.withradio .radios{margin:0;font-size:14px;font-weight:400;color:var(--text);letter-spacing:0}
+.radios label,.checks label{display:flex;align-items:center;gap:7px}
+.checks{display:flex;flex-direction:column;gap:4px}
+.checks .with{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.checks .with select,.checks .with .inp{height:24px;width:96px;font-size:13px}
+.checks .file{font:12px var(--mono);color:var(--muted);padding-left:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.links{display:flex;gap:14px;margin-top:8px;font-size:13px}
+.links button{border:0;background:none;color:var(--accent);padding:0}
+.links button:hover{text-decoration:underline}
+
+/* ---------- 中间：数据日志 + 发送 ---------- */
+.center{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:8px;min-height:0}
+.logbox{border:1px solid var(--line);border-radius:6px;background:var(--log-bg);display:grid;grid-template-rows:36px minmax(0,1fr);min-height:0;overflow:hidden}
+.loghead{display:flex;align-items:center;gap:10px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.loghead b{font-weight:600}
+.loghead .meta{font:12px var(--mono);color:var(--muted)}
+.loghead .search{margin-left:auto;width:220px;height:26px;font-size:13px}
+.log{overflow:auto;padding:10px 12px;font:14px/1.6 var(--mono);color:var(--log-rx);white-space:pre}
+.log.wrap{white-space:pre-wrap;word-break:break-all}
+.log .p{color:var(--log-prompt)}
+.log .rx{color:var(--log-rx)}
+.log .tx{color:var(--log-tx)}
+.log .sys{color:var(--log-sys)}
+.log mark{background:var(--mark);color:inherit;border-radius:2px}
+.log .hint{color:var(--muted);font-family:var(--sans)}
+.sendbox{border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-columns:minmax(0,1fr) 120px;overflow:hidden}
+.sendbox textarea{border:0;border-right:1px solid var(--line);background:var(--field);resize:none;height:104px;padding:10px 12px;font:15px/1.5 var(--mono);outline:none}
+.sendside{display:flex;flex-direction:column;gap:6px;padding:8px}
+.sendbtn{flex:1;font-size:16px}
+.sendbtn.looping{background:var(--off);border-color:var(--off);color:#fff}
+.sendfoot{grid-column:1/-1;display:flex;gap:16px;align-items:center;padding:5px 12px;border-top:1px solid var(--line2);font:12px var(--mono);color:var(--muted)}
+.sendfoot .err{color:var(--off)}
+
+/* ---------- 右侧工具面板 ---------- */
+.tools{border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-rows:38px minmax(0,1fr);min-height:0;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 4px}
+.tabs button{flex:1;border:0;background:none;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;padding:0 2px;white-space:nowrap}
+.tabs button.on{color:var(--text);font-weight:600;border-color:var(--accent)}
+.tabbody{overflow:auto;min-height:0;display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:var(--panel);z-index:1}
+.bar .grow{flex:1}
+.bar .note{font-size:12px;color:var(--muted)}
+.list{display:flex;flex-direction:column}
+.it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line2)}
+.it:hover{background:var(--hover)}
+.it .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .dt{grid-column:2;font:12px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .ops{grid-column:3;grid-row:1/span 2;display:flex;gap:4px;align-items:center}
+.it .lead{grid-row:1/span 2}
+.it .key{font:12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+.it.active{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.it.in{padding-left:26px}
+.fd{display:flex;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line2);cursor:pointer}
+.fd:hover{background:var(--hover)}
+.fd .arw{width:12px;color:var(--muted);font-size:10px}
+.fd .nm{flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fd .cnt{font-size:12px;color:var(--muted);margin-right:4px}
+.explain.in{padding-left:26px}
+.link{border:0;background:none;color:var(--muted);font-size:13px;padding:2px 4px;border-radius:3px}
+.link:hover{color:var(--text);background:var(--line2)}
+.link.danger:hover{color:var(--off)}
+.sw{width:32px;height:18px;border-radius:9px;background:var(--lamp-idle);position:relative;border:0;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.15s}
+.sw.on{background:var(--on)}
+.sw.on::after{left:16px}
+.hits{font:12px var(--mono);color:var(--muted);white-space:nowrap}
+.steps{width:100%;border-collapse:collapse;font-size:13px}
+.steps th{font-weight:600;font-size:12px;color:var(--muted);text-align:left;padding:6px 10px;border-bottom:1px solid var(--line2)}
+.steps td{padding:6px 10px;border-bottom:1px solid var(--line2);font-family:var(--mono)}
+.steps tr.now td{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.steps td.note{font-family:var(--sans);color:var(--muted)}
+.batchmeta{display:flex;gap:14px;align-items:center;padding:8px 10px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.batchmeta .inp{width:56px;height:24px}
+.batchmeta label{display:flex;align-items:center;gap:6px}
+.prog{height:3px;background:var(--line2)}
+.prog i{display:block;height:3px;background:var(--accent);transition:width .2s}
+.explain{font-size:12px;color:var(--muted);padding:10px;line-height:1.6}
+.hist .it{grid-template-columns:auto minmax(0,1fr) auto}
+.hist .time{font:12px var(--mono)}
+.calc{padding:10px;display:flex;flex-direction:column;gap:8px}
+.calc textarea{height:84px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:8px;font:14px var(--mono);resize:vertical;outline:none}
+.calc .radios{margin:0}
+.calc table{width:100%;border-collapse:collapse;font-size:13px}
+.calc td{padding:7px 4px;border-bottom:1px solid var(--line2)}
+.calc td.v{font:600 14px var(--mono)}
+.calc td.a{text-align:right}
+/* 「脚本」会改动中间列，用竖线与其他页签隔开 */
+.tabs button{font-size:12px}
+.tabs .sctab{flex:none;padding:0 12px;margin-left:4px;position:relative}
+.tabs .sctab::before{content:"";position:absolute;left:-3px;top:10px;bottom:10px;border-left:1px solid var(--line)}
+.schook{font:12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px;white-space:nowrap}
+.it.sc{cursor:pointer}
+.it.sc .dt{display:flex;gap:6px;align-items:center}
+.it.sc.off .nm{color:var(--muted)}
+.scdock{display:none}
+.center.withdock{grid-template-rows:minmax(0,1fr) 312px auto}
+.center.withdock .scdock{display:grid;grid-template-rows:auto minmax(0,1fr);border:1px solid var(--line);border-radius:6px;background:var(--panel);overflow:hidden;min-height:0}
+.scdock>.schead{border-bottom:1px solid var(--line)}
+.scbody{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:0}
+.sclogbox{display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0}
+.schead{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line2);background:var(--panel)}
+.schead b{color:var(--text);font-weight:600;font-size:13px}
+.schead .grow{flex:1}
+.sclog{font:12px/1.55 var(--mono);overflow:auto;min-height:0;background:var(--log-bg)}
+.sclog-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:8px;padding:3px 10px;border-bottom:1px solid var(--line2)}
+.sclog-row .t{color:var(--log-prompt)}
+.sclog-row .n{color:var(--log-tx)}
+.sclog-row .o{color:var(--log-rx);word-break:break-all}
+.sclog-row.err .o{color:var(--off)}
+.sclog-empty{font:12px/1.6 var(--sans);color:var(--muted);padding:10px}
+.sced{display:grid;grid-template-columns:auto minmax(0,1fr);border-right:1px solid var(--line);background:var(--log-bg);overflow:hidden;min-height:0}
+.sced .gut{margin:0;padding:8px 6px 8px 10px;font:13px/1.55 var(--mono);color:var(--log-prompt);text-align:right;background:var(--panel);border-right:1px solid var(--line2);overflow:hidden;user-select:none;min-width:34px}
+.sced textarea{border:0;outline:none;resize:none;padding:8px 10px;font:13px/1.55 var(--mono);color:var(--log-rx);background:transparent;white-space:pre;overflow:auto;tab-size:2;min-height:0;height:100%}
+.sced:focus-within{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+/* 脚本页「我的脚本 / 教程」切换与课表 */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{border:0;background:var(--field);height:24px;padding:0 10px;font-size:13px;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.it.tut{cursor:pointer}
+.it.tut .dt{display:flex;gap:6px;align-items:center;font-family:var(--sans)}
+.tutno{font:600 12px var(--mono);color:var(--muted);min-width:18px;text-align:right}
+.tutopen{display:flex;flex-direction:column;gap:8px;padding:10px 10px 12px 38px;border-bottom:1px solid var(--line2)}
+.tuttext{font-size:13px;line-height:1.6}
+.tutcode{margin:0;font:12px/1.55 var(--mono);color:var(--log-rx);background:var(--log-bg);border:1px solid var(--line2);border-radius:4px;padding:8px 10px;white-space:pre;overflow:auto}
+.tutsample{font:12px var(--mono);color:var(--muted)}
+.tutacts{display:flex;gap:6px;align-items:center}
+
+/* ---------- 状态栏 ---------- */
+.status{display:flex;align-items:center;gap:0;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.status>span{padding:0 12px;border-right:1px solid var(--line2);display:flex;align-items:center;gap:6px;height:100%}
+.status b{color:var(--text);font:600 12px var(--mono)}
+.status .conn{font-family:var(--mono);color:var(--text)}
+.status .lamp{width:9px;height:9px}
+.status button{border:0;background:none;color:var(--accent);font-size:12px;padding:0}
+.status .saving{color:var(--log-sys)}
+.status .last{margin-left:auto;border-right:0;border-left:1px solid var(--line2)}
+
+/* ---------- 对话框 / 提示 ---------- */
+.modal{position:fixed;inset:0;background:rgba(10,14,20,.38);display:none;align-items:center;justify-content:center;z-index:50}
+.modal.show{display:flex}
+.dialog{width:min(640px,92vw);max-height:86vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 20px 48px rgba(0,0,0,.25)}
+.dialog h3{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;padding:14px 18px;border-bottom:1px solid var(--line2)}
+.dialog .body{padding:14px 18px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.dialog .foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line2)}
+.dialog .row{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;align-items:center}
+.dialog .row>label{font-size:13px;color:var(--muted)}
+.dialog .sub{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-top:4px}
+.dialog .lines{display:flex;flex-direction:column;gap:6px}
+.dialog .line{display:grid;grid-template-columns:22px 92px minmax(0,1fr) 28px;gap:6px;align-items:center}
+.dialog .line.bat{grid-template-columns:22px 92px minmax(0,1fr) 150px 28px}
+.dialog .line span{font:12px var(--mono);color:var(--muted);text-align:right}
+.dialog .line .inp{font-family:var(--mono)}
+.dialog .line .note{font-family:var(--sans)}
+.dialog .err{color:var(--off);font-size:13px;min-height:18px}
+.dialog.wide{width:min(1040px,96vw);height:min(800px,92vh);max-height:min(800px,92vh)}
+.dialog .body.split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:0;padding:0;overflow:hidden}
+.ruleform{min-width:0;min-height:0;overflow:auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.rail{min-width:0;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--win)}
+.railhead{padding:12px 14px 10px;border-bottom:1px solid var(--line2)}
+.railhead b{display:block;font-size:14px;font-weight:600}
+.railhead span{display:block;margin-top:2px;font-size:12px;line-height:1.5;color:var(--muted)}
+.rscroll{flex:1;min-height:0;overflow:auto}
+.glab{padding:10px 14px 4px;font-size:12px;font-weight:600;color:var(--muted)}
+.lrow{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line2);background:transparent;padding:8px 14px}
+.lrow:hover,.lrow.on{background:var(--hover)}
+.lrow .ti{display:flex;gap:8px;align-items:baseline;font-size:14px;font-weight:600}
+.lrow .no{flex:none;width:16px;font:600 12px var(--mono);color:var(--muted);text-align:right}
+.lrow .br{display:block;margin:2px 0 0 24px;font-size:12px;font-weight:400;color:var(--muted)}
+.lbody{display:flex;flex-direction:column;gap:10px;padding:2px 14px 14px 38px;border-bottom:1px solid var(--line2);background:var(--panel)}
+.lbody .acts{position:sticky;bottom:0;background:var(--panel);padding-top:8px}
+.rttext{margin:0;font-size:14px;line-height:1.6;text-wrap:pretty}
+.recipe{font:13px/1.5 var(--mono);color:var(--text);overflow-wrap:anywhere}
+.strip{display:flex;flex-direction:column;gap:6px}
+.slab{font-size:12px;color:var(--muted)}
+.bytes{display:flex;flex-wrap:wrap;gap:4px}
+.bytes span{min-width:40px;padding:4px 6px 3px;background:var(--field);border:1px solid var(--line);border-radius:4px;font:600 13px/1.2 var(--mono);text-align:center;color:var(--text)}
+.bytes span small{display:block;margin-top:3px;font:400 12px/1.2 var(--sans);color:var(--muted)}
+.bytes span.cap{background:var(--mark);border-color:transparent}
+.bytes span.cap small{color:var(--text)}
+.bytes span.dim{color:var(--muted);font-weight:500}
+.snote{margin:0;font-size:12px;line-height:1.5;color:var(--muted);text-wrap:pretty}
+.tx{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:8px;align-items:baseline}
+.tx code{font:600 13px var(--mono);color:var(--log-tx)}
+.tx .ms{font:12px var(--mono);color:var(--muted)}
+.tx .from{grid-column:2;font-size:12px;color:var(--muted)}
+.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.cmp th,.cmp td{text-align:left;padding:4px 6px 4px 0;border-bottom:1px solid var(--line2);font-weight:400}
+.cmp th{font-size:12px;color:var(--muted);font-weight:600}
+.cmp th.hex{font-family:var(--mono);font-weight:500}
+.cmp td.yes{font-weight:600}
+.cmp td.no{color:var(--muted)}
+.wrote{margin:0;font-size:12px;line-height:1.5;color:var(--accent)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dialog .keys{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:14px}
+.dialog .keys kbd{font:13px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--field);justify-self:start}
+.toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:var(--text);color:var(--win);padding:9px 16px;border-radius:6px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
+.toast.show{opacity:1}
+.toast.warn{background:var(--off);color:#fff}
+</style>
+<style>
+/* ---------- 配置包对话框 ---------- */
+.pk-lead{font-size:13px;color:var(--muted);line-height:1.6}
+.pk-file{display:flex;align-items:center;gap:8px;font:13px var(--mono)}
+.pk-tag{font:12px var(--sans);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 6px}
+.pk-table{border:1px solid var(--line);border-radius:6px;background:var(--field)}
+.pk-row{display:grid;grid-template-columns:22px 96px minmax(0,1fr);gap:8px;align-items:center;padding:9px 12px;border-top:1px solid var(--line2);cursor:pointer}
+.pk-row:first-child{border-top:0}
+.pk-row .pk-nm{font-weight:600}
+.pk-row .pk-num{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.pk-row .pk-num b{color:var(--text);font-weight:600}
+.pk-row.off{cursor:default}
+.pk-row.off .pk-nm{color:var(--muted);font-weight:400}
+.pk-warn{font-size:13px;color:var(--accent);line-height:1.6;min-height:0}
+.pk-warn:empty{display:none}
+/* 页签版：标题条右端的导出 / 导入，用竖线和页签自己的按钮隔开 */
+.tb-io{display:flex;align-items:center;gap:0;padding-left:6px;margin-left:2px;border-left:1px solid var(--line2);flex:none}
+.tb-sum{font-size:14px}
+.tb-sum b{font-weight:600}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="menubar" id="menubar">
+    <span class="title">设备调试工具</span>
+    <div class="menu"><button>文件</button>
+      <div class="drop">
+        <button data-cmd="saveRecv">保存接收数据…<kbd>Ctrl+S</kbd></button>
+        <hr>
+        <button data-cmd="exportQuick">导出快捷指令</button>
+        <button data-cmd="importQuick">导入快捷指令…</button>
+        <button data-cmd="exportRules">导出应答规则</button>
+        <button data-cmd="importRules">导入应答规则…</button>
+      </div>
+    </div>
+    <div class="menu"><button>设置</button>
+      <div class="drop">
+        <button data-cmd="themeLight">白底经典<span class="chk" id="chkLight"></span></button>
+        <button data-cmd="themeDark">黑底经典<span class="chk" id="chkDark"></span></button>
+        <hr>
+        <button data-cmd="compact">精简模式（收起左栏）<span class="chk" id="chkCompact"></span></button>
+        <button data-cmd="toolsPanel">显示工具面板<span class="chk" id="chkTools"></span></button>
+      </div>
+    </div>
+    <div class="menu"><button>工具</button>
+      <div class="drop">
+        <button data-cmd="tab:quick">快捷指令</button>
+        <button data-cmd="tab:batch">批量发送</button>
+        <button data-cmd="tab:reply">自动应答</button>
+        <button data-cmd="tab:history">历史发送</button>
+        <button data-cmd="tab:calc">校验计算</button>
+        <button data-cmd="tab:script">脚本</button>
+      </div>
+    </div>
+    <div class="menu"><button>帮助</button>
+      <div class="drop">
+        <button data-cmd="keys">快捷键说明<kbd>F12</kbd></button>
+        <button data-cmd="about">关于</button>
+      </div>
+    </div>
+    <div class="right">
+      <button class="iconbtn" id="btnCompact" title="收起或展开左侧设置栏">精简模式</button>
+      <button class="iconbtn on" id="btnTools" title="显示或隐藏工具面板">工具面板</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- 左栏：串口 / 接收 / 发送设置 -->
+    <aside class="side">
+      <section class="group">
+        <span class="legend">串口设置</span>
+        <div class="form">
+          <label for="cfgPort">串口号</label>
+          <div class="pair" style="flex:none"><select id="cfgPort" style="flex:1"></select><button class="btn sm" id="btnRefresh" title="重新扫描串口" style="flex:none">刷新</button></div>
+          <label for="cfgBaud">波特率</label>
+          <input class="inp" id="cfgBaud" list="baudList" value="115200" inputmode="numeric">
+          <label for="cfgParity">校验位</label>
+          <select id="cfgParity"><option value="N">NONE</option><option value="O">ODD</option><option value="E">EVEN</option><option value="M">MARK</option><option value="S">SPACE</option></select>
+          <label for="cfgData">数据位</label>
+          <select id="cfgData"><option>5</option><option>6</option><option>7</option><option selected>8</option></select>
+          <label for="cfgStop">停止位</label>
+          <select id="cfgStop"><option value="1">1</option><option value="1.5">1.5</option><option value="2">2</option></select>
+          <label for="cfgFlow">流控</label>
+          <select id="cfgFlow"><option value="NONE">NONE</option><option value="RTS/CTS">RTS/CTS</option><option value="DTR/DSR">DTR/DSR</option><option value="XON/XOFF">XON/XOFF</option></select>
+        </div>
+        <datalist id="baudList"><option>1200</option><option>2400</option><option>4800</option><option>9600</option><option>19200</option><option>38400</option><option>57600</option><option>115200</option><option>230400</option><option>460800</option><option>921600</option></datalist>
+        <div class="openrow">
+          <button class="btn openbtn" id="btnOpen"><i class="lamp" id="openLamp"></i><span id="openText">打开</span></button>
+        </div>
+        <div class="signals">
+          <label><input type="checkbox" id="sigDtr">DTR</label>
+          <label><input type="checkbox" id="sigRts">RTS</label>
+        </div>
+        <div class="pins" title="引脚状态（由下位机回环模拟）">
+          <span><i id="pinDcd"></i>DCD</span><span><i id="pinDsr"></i>DSR</span><span><i id="pinCts"></i>CTS</span><span><i id="pinRi"></i>RI</span>
+        </div>
+      </section>
+
+      <section class="group">
+        <div class="legend withradio"><span>接收设置</span><div class="radios">
+          <label><input type="radio" name="rxFmt" value="ASCII">ASCII</label>
+          <label><input type="radio" name="rxFmt" value="HEX" checked>HEX</label>
+        </div></div>
+        <div class="checks">
+          <label><input type="checkbox" id="rxLog" checked>按日志模式显示</label>
+          <label><input type="checkbox" id="rxWrap" checked>接收区自动换行</label>
+          <label><input type="checkbox" id="rxHide">接收数据不显示</label>
+          <label><input type="checkbox" id="rxSave">接收保存到文件</label>
+          <label><input type="checkbox" id="rxScroll" checked>自动滚屏</label>
+          <div class="with"><span>分包超时</span><span><input class="inp" id="rxTimeout" value="20" style="width:56px"> ms</span></div>
+        </div>
+        <div class="links"><button id="lnkSaveRecv">保存数据</button><button id="lnkClear">清除接收</button></div>
+      </section>
+
+      <section class="group">
+        <div class="legend withradio"><span>发送设置</span><div class="radios">
+          <label><input type="radio" name="txFmt" value="ASCII">ASCII</label>
+          <label><input type="radio" name="txFmt" value="HEX" checked>HEX</label>
+        </div></div>
+        <div class="checks">
+          <label><input type="checkbox" id="txEscape" checked>自动解析转义符</label>
+          <label><input type="checkbox" id="txAt">AT 指令自动回车</label>
+          <label><input type="checkbox" id="txCrlf">末尾追加回车换行</label>
+          <div class="with"><label><input type="checkbox" id="txCk">自动发送附加位</label>
+            <select id="txCkType"><option value="sum">SUM8</option><option value="xor">XOR/BCC</option><option value="lrc">LRC</option><option value="crc8">CRC8</option><option value="crc16" selected>CRC16</option><option value="crc32">CRC32</option></select></div>
+          <label><input type="checkbox" id="txClear">发送完自动清空</label>
+          <label><input type="checkbox" id="txFile">打开文件数据源…</label>
+          <div class="file" id="txFileName" hidden></div>
+          <div class="with"><label><input type="checkbox" id="txLoop">循环周期</label><span><input class="inp" id="txPeriod" value="1000" style="width:64px"> ms</span></div>
+        </div>
+        <div class="links"><button data-cmd="tab:quick">快捷指令</button><button data-cmd="tab:history">历史发送</button></div>
+      </section>
+    </aside>
+
+    <!-- 中间：数据日志 + 发送框 -->
+    <section class="center">
+      <div class="logbox">
+        <div class="loghead">
+          <b>数据日志</b>
+          <span class="meta" id="logMeta"></span>
+          <input class="inp search" id="logSearch" placeholder="搜索接收内容" spellcheck="false">
+        </div>
+        <div class="log wrap" id="log"></div>
+      </div>
+      <div class="scdock" id="scDock"></div>
+      <div class="sendbox">
+        <textarea id="txInput" spellcheck="false">A5 01 00 00 01 07</textarea>
+        <div class="sendside">
+          <button class="btn pri sendbtn" id="btnSend">发送</button>
+          <button class="btn" id="btnClearTx">清除</button>
+        </div>
+        <div class="sendfoot"><span id="txPreview"></span><span style="margin-left:auto">Ctrl+Enter 发送 · Esc 停止循环/批量</span></div>
+      </div>
+    </section>
+
+    <!-- 右侧：工具面板 -->
+    <section class="tools">
+      <nav class="tabs" id="tabs">
+        <button data-tab="quick" class="on">快捷指令</button>
+        <button data-tab="batch">批量发送</button>
+        <button data-tab="reply">自动应答</button>
+        <button data-tab="history">历史发送</button>
+        <button data-tab="calc">校验计算</button>
+        <button data-tab="script" class="sctab">脚本</button>
+      </nav>
+      <div class="tabbody" id="tabbody"></div>
+    </section>
+  </main>
+
+  <footer class="status">
+    <span><i class="lamp" id="stLamp"></i><span class="conn" id="stConn"></span></span>
+    <span>RX: <b id="stRx">0</b></span>
+    <span>TX: <b id="stTx">0</b></span>
+    <span><button id="btnReset">复位计数</button></span>
+    <span id="stReply"></span>
+    <span class="saving" id="stSave" hidden></span>
+    <span class="last" id="stHint">就绪</span>
+  </footer>
+</div>
+
+<div class="modal" id="modal"><div class="dialog"><h3 id="dlgTitle"></h3><div class="body" id="dlgBody"></div><div class="foot" id="dlgFoot"></div></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="filePick" hidden>
+
+<script>
+// 模拟串口引擎：三版设计稿共用，界面只订阅事件、调用方法。
+var Serial = (function () {
+  var PORTS = [
+    { id: 'COM3', label: 'COM3 · USB-SERIAL CH340' },
+    { id: 'COM5', label: 'COM5 · Bluetooth Link' },
+    { id: 'USB0', label: 'USB0 · FTDI FT232R' }
+  ];
+  var listeners = {};
+  var seq = 0;
+  var deviceTimer = null;
+  var loopTimer = null;
+  var batchRun = null;
+  var temp = 246, hum = 521;
+
+  var state = {
+    open: false,
+    port: 'COM3',
+    baud: 115200, dataBits: 8, parity: 'N', stopBits: 1, flow: '无', encoding: 'UTF-8',
+    rx: 0, tx: 0,
+    lines: [],
+    history: ['A5 01 00 00 01 07', 'A5 02 00 00 02 08'],
+    sendFormat: 'HEX', checksum: 'none', crlf: false,
+    escape: true, atCrlf: false, packetTimeout: 20,
+    dtr: false, rts: false,
+    pins: { dcd: false, dsr: false, cts: false, ri: false },
+    streaming: false,
+    rules: [
+      { id: 'r1', name: '温湿度回包确认', match: 'prefix', pattern: 'A5 5A 03', enabled: true, hits: 0,
+        replies: [{ data: 'A5 A0 00 A0', delay: 80 }, { data: 'A5 A1 01 A2', delay: 120 }] },
+      { id: 'r2', name: '设备上线确认', match: 'frame', pattern: 'A5 81 00 00 81', enabled: true, hits: 0,
+        replies: [{ data: 'A5 02 00 00 02 08', delay: 50 }] },
+      { id: 'r3', name: '校验失败重发', match: 'contains', pattern: 'EE', enabled: false, hits: 0,
+        replies: [{ data: 'A5 01 00 00 01 07', delay: 200 }] }
+    ],
+    quick: [
+      { id: 'q1', name: '读取温湿度', data: 'A5 01 00 00 01 07', key: 'F1' },
+      { id: 'q2', name: '读取设备信息', data: 'A5 02 00 00 02 08', key: 'F2' },
+      { id: 'q3', name: '启动采集', data: 'A5 10 01 00 11', key: 'F3' },
+      { id: 'q4', name: '停止采集', data: 'A5 10 00 00 10', key: 'F4' }
+    ],
+    batch: [
+      { id: 'b1', name: '传感器启动流程', interval: 500, stopOnFail: true,
+        steps: ['A5 02 00 00 02 08', 'A5 10 01 00 11', 'A5 01 00 00 01 07'] },
+      { id: 'b2', name: '设备复位自检', interval: 800, stopOnFail: true,
+        steps: ['A5 10 00 00 10', 'A5 02 00 00 02 08', 'A5 01 00 00 01 07', 'A5 10 01 00 11'] }
+    ],
+    // Lua 脚本：on_receive 收到数据后运行；before_send 拦截每一帧发送，返回处理后的帧再发出，返回 nil 则不发
+    scripts: [
+      { id: 's1', name: 'parse_sensor.lua', action: 'parse', enabled: true, runs: 0, last: '',
+        code: '-- 收到 A5 5A 03 帧后解析温湿度\nfunction on_receive(frame)\n  if frame:starts_with(0xA5, 0x5A, 0x03) then\n    local t = frame:u16(4) / 10\n    local h = frame:u16(6) / 10\n    log(string.format("temp=%.1f℃ hum=%.1f%%", t, h))\n  end\nend' },
+      { id: 's2', name: 'add_checksum.lua', action: 'checksum', enabled: false, runs: 0, last: '',
+        code: '-- 发送前拦截：帧尾追加 SUM8 后再发出\n-- 返回 nil 表示拦截，这一帧不发送\nfunction before_send(frame)\n  return frame:append(sum8(frame))\nend' }
+    ],
+    scriptLog: []
+  };
+
+  function on(type, fn) { (listeners[type] = listeners[type] || []).push(fn); }
+  function emit(type, payload) { (listeners[type] || []).forEach(function (fn) { fn(payload); }); }
+
+  // ---------- 字节工具 ----------
+  function parseHex(text) {
+    var clean = text.replace(/0x/gi, '').replace(/[^0-9a-fA-F]/g, '');
+    if (!clean.length || clean.length % 2) return null;
+    var out = [];
+    for (var i = 0; i < clean.length; i += 2) out.push(parseInt(clean.substr(i, 2), 16));
+    return out;
+  }
+  function textBytes(text, escape) {
+    if (escape === false) return Array.from(new TextEncoder().encode(text));
+    // 先把转义序列换成占位的原始字节，避免被 UTF-8 编码二次处理
+    var out = [], i = 0;
+    while (i < text.length) {
+      var rest = text.slice(i), m;
+      if ((m = /^\\x\[([0-9a-fA-F\s]*)\]/.exec(rest))) { out = out.concat(parseHex(m[1]) || []); i += m[0].length; continue; }
+      if ((m = /^\\x([0-9a-fA-F]{2})/.exec(rest))) { out.push(parseInt(m[1], 16)); i += m[0].length; continue; }
+      if ((m = /^\\([rnt0\\])/.exec(rest))) { out.push({ r: 13, n: 10, t: 9, '0': 0, '\\': 92 }[m[1]]); i += 2; continue; }
+      var ch = text.codePointAt(i), s = String.fromCodePoint(ch);
+      out = out.concat(Array.from(new TextEncoder().encode(s)));
+      i += s.length;
+    }
+    return out;
+  }
+  function hex(bytes) { return bytes.map(function (b) { return (b < 16 ? '0' : '') + b.toString(16).toUpperCase(); }).join(' '); }
+  function ascii(bytes) { return bytes.map(function (b) { return b >= 32 && b < 127 ? String.fromCharCode(b) : '.'; }).join(''); }
+  function sum8(bytes) { return bytes.reduce(function (a, b) { return (a + b) & 0xFF; }, 0); }
+  function xor8(bytes) { return bytes.reduce(function (a, b) { return a ^ b; }, 0); }
+  function crc16(bytes) {
+    var crc = 0xFFFF;
+    bytes.forEach(function (b) {
+      crc ^= b;
+      for (var i = 0; i < 8; i++) crc = crc & 1 ? (crc >> 1) ^ 0xA001 : crc >> 1;
+    });
+    return [crc & 0xFF, crc >> 8];
+  }
+  function lrc(bytes) { return (-sum8(bytes)) & 0xFF; }
+  function crc8(bytes) {
+    var crc = 0;
+    bytes.forEach(function (b) {
+      crc ^= b;
+      for (var i = 0; i < 8; i++) crc = crc & 0x80 ? ((crc << 1) ^ 0x07) & 0xFF : (crc << 1) & 0xFF;
+    });
+    return crc;
+  }
+  function crc32(bytes) {
+    var crc = 0xFFFFFFFF;
+    bytes.forEach(function (b) {
+      crc ^= b;
+      for (var i = 0; i < 8; i++) crc = crc & 1 ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1;
+    });
+    crc = (crc ^ 0xFFFFFFFF) >>> 0;
+    return [crc >>> 24, (crc >>> 16) & 0xFF, (crc >>> 8) & 0xFF, crc & 0xFF];
+  }
+  // 返回要追加的校验字节；CRC16 为 MODBUS 低字节在前，CRC32 为大端
+  function checksumBytes(bytes, kind) {
+    if (kind === 'sum') return [sum8(bytes)];
+    if (kind === 'xor') return [xor8(bytes)];
+    if (kind === 'lrc') return [lrc(bytes)];
+    if (kind === 'crc8') return [crc8(bytes)];
+    if (kind === 'crc16') return crc16(bytes);
+    if (kind === 'crc32') return crc32(bytes);
+    return [];
+  }
+  function withChecksum(bytes, kind) { return bytes.concat(checksumBytes(bytes, kind)); }
+
+  // ---------- 帧解析：返回字段列表，供详情树和字节高亮 ----------
+  function dissect(bytes) {
+    if (!bytes || bytes[0] !== 0xA5) return { summary: ascii(bytes || []), fields: [] };
+    var f = [{ name: '帧头', from: 0, to: 1, value: '0xA5' }];
+    if (bytes[1] === 0x5A && bytes[2] === 0x03 && bytes.length >= 8) {
+      var t = ((bytes[3] << 8) | bytes[4]) / 10, h = ((bytes[5] << 8) | bytes[6]) / 10;
+      var ok = sum8(bytes.slice(0, 7)) === bytes[7];
+      f.push({ name: '应答标识', from: 1, to: 2, value: '0x5A' },
+        { name: '命令', from: 2, to: 3, value: '0x03 温湿度上报' },
+        { name: '温度', from: 3, to: 5, value: t.toFixed(1) + ' ℃' },
+        { name: '湿度', from: 5, to: 7, value: h.toFixed(1) + ' %RH' },
+        { name: '校验 SUM8', from: 7, to: 8, value: ok ? '正确' : '错误', ok: ok });
+      return { summary: '温度 ' + t.toFixed(1) + ' ℃ · 湿度 ' + h.toFixed(1) + ' %RH', fields: f, temp: t, hum: h, ok: ok };
+    }
+    if (bytes[1] === 0x5A && bytes[2] === 0x82) {
+      var info = ascii(bytes.slice(3, bytes.length - 1));
+      f.push({ name: '应答标识', from: 1, to: 2, value: '0x5A' },
+        { name: '命令', from: 2, to: 3, value: '0x82 设备信息' },
+        { name: '型号 / 固件', from: 3, to: bytes.length - 1, value: info },
+        { name: '校验 SUM8', from: bytes.length - 1, to: bytes.length, value: '正确', ok: true });
+      return { summary: '设备信息 ' + info, fields: f, ok: true };
+    }
+    var names = { 0x01: '读取温湿度', 0x02: '读取设备信息', 0x10: '采集开关', 0x81: '上线确认', 0xA0: '主机确认', 0xA1: '主机确认（第二包）' };
+    var name = names[bytes[1]] || '未知命令';
+    f.push({ name: '命令', from: 1, to: 2, value: '0x' + hex([bytes[1]]) + ' ' + name });
+    if (bytes.length > 3) f.push({ name: '参数', from: 2, to: bytes.length - 1, value: hex(bytes.slice(2, bytes.length - 1)) });
+    if (bytes.length > 2) f.push({ name: '校验', from: bytes.length - 1, to: bytes.length, value: '0x' + hex([bytes[bytes.length - 1]]) });
+    var extra = bytes[1] === 0x10 ? (bytes[2] ? ' · 开启' : ' · 关闭') : '';
+    return { summary: name + extra, fields: f };
+  }
+
+  // ---------- 缓冲区 ----------
+  function push(dir, bytes, text) {
+    var d = bytes ? dissect(bytes) : { summary: text, fields: [] };
+    var line = { no: ++seq, time: new Date(), dir: dir, bytes: bytes, text: text || d.summary, info: d };
+    state.lines.push(line);
+    if (state.lines.length > 500) state.lines.shift();
+    if (dir === 'rx') state.rx += bytes.length;
+    if (dir === 'tx') state.tx += bytes.length;
+    emit('line', line);
+    emit('state', state);
+    if (dir === 'rx') { receiveHooks(line); matchRules(bytes); }
+    return line;
+  }
+  function sys(text) { return push('sys', null, text); }
+
+  // ---------- 连接 ----------
+  function configure(patch) { Object.assign(state, patch); emit('state', state); }
+  function portLabel() { var p = PORTS.filter(function (x) { return x.id === state.port; })[0]; return p ? p.label : state.port; }
+  function frameFormat() { return state.dataBits + state.parity + state.stopBits; }
+  // 模拟下位机把 DTR 回环到 DSR、RTS 回环到 CTS，连上即有 DCD
+  function updatePins() {
+    state.pins.dcd = state.open;
+    state.pins.dsr = state.open && state.dtr;
+    state.pins.cts = state.open && state.rts;
+    emit('pins', state.pins);
+  }
+  function setSignal(name, on) { state[name] = !!on; updatePins(); emit('state', state); }
+  function ring() {
+    if (!state.open) return;
+    state.pins.ri = true; emit('pins', state.pins);
+    setTimeout(function () { state.pins.ri = false; emit('pins', state.pins); }, 600);
+  }
+  function open() {
+    if (state.open) return;
+    state.open = true;
+    sys(state.port + ' 已打开 · ' + state.baud + ' ' + frameFormat());
+    updatePins();
+    emit('state', state);
+    setTimeout(function () { if (state.open) device([0xA5, 0x81, 0x00, 0x00, 0x81]); }, 400);
+  }
+  function close() {
+    if (!state.open) return;
+    state.open = false;
+    stopStream(); stopLoop(); stopBatch(true);
+    flushRx();
+    sys(state.port + ' 已关闭');
+    updatePins();
+    emit('state', state);
+  }
+  function toggle() { state.open ? close() : open(); }
+
+  // ---------- 模拟下位机 ----------
+  // 每帧分两段到达，间隔 8ms；接收端按分包超时合并，超时设得过小会看到被拆开的帧
+  var rxPending = [], rxTimer = null;
+  function flushRx() {
+    clearTimeout(rxTimer); rxTimer = null;
+    if (!rxPending.length) return;
+    var b = rxPending; rxPending = [];
+    push('rx', b);
+  }
+  function rxChunk(bytes) {
+    rxPending = rxPending.concat(bytes);
+    clearTimeout(rxTimer);
+    rxTimer = setTimeout(flushRx, Math.max(0, Number(state.packetTimeout) || 0));
+  }
+  function device(bytes) {
+    if (!state.open) return;
+    var cut = Math.ceil(bytes.length / 2);
+    rxChunk(bytes.slice(0, cut));
+    setTimeout(function () { if (state.open) rxChunk(bytes.slice(cut)); }, 8);
+  }
+  function sensorFrame() {
+    temp += Math.round((Math.random() - 0.5) * 4);
+    hum += Math.round((Math.random() - 0.5) * 6);
+    var b = [0xA5, 0x5A, 0x03, temp >> 8, temp & 0xFF, hum >> 8, hum & 0xFF];
+    return b.concat([sum8(b)]);
+  }
+  function infoFrame() {
+    var b = [0xA5, 0x5A, 0x82].concat(Array.from(new TextEncoder().encode('TH-01 fw1.2.0')));
+    return b.concat([sum8(b)]);
+  }
+  function startStream() {
+    if (deviceTimer) return;
+    state.streaming = true;
+    deviceTimer = setInterval(function () { device(sensorFrame()); }, 3000);
+    emit('state', state);
+  }
+  function stopStream() {
+    clearInterval(deviceTimer); deviceTimer = null; state.streaming = false; emit('state', state);
+  }
+  function deviceRespond(bytes) {
+    if (bytes[0] !== 0xA5) return;
+    var cmd = bytes[1];
+    setTimeout(function () {
+      if (cmd === 0x01) device(sensorFrame());
+      else if (cmd === 0x02) device(infoFrame());
+      else if (cmd === 0x10) { bytes[2] ? startStream() : stopStream(); device([0xA5, 0x90, bytes[2], 0x00, 0x90 + bytes[2]]); }
+    }, 60 + Math.random() * 60);
+  }
+
+  // ---------- 发送 ----------
+  function encode(text, format, checksum, crlf, extra) {
+    extra = extra || {};
+    var escape = extra.escape != null ? extra.escape : state.escape;
+    var atCrlf = extra.atCrlf != null ? extra.atCrlf : state.atCrlf;
+    var bytes = format === 'HEX' ? parseHex(text) : textBytes(text, escape);
+    if (!bytes) return { error: 'HEX 格式不正确：需要成对的十六进制字符' };
+    if (!bytes.length) return { error: '发送内容为空' };
+    bytes = withChecksum(bytes, checksum || 'none');
+    var endsCrlf = bytes[bytes.length - 2] === 0x0D && bytes[bytes.length - 1] === 0x0A;
+    var isAt = format !== 'HEX' && /^\s*AT/i.test(text);
+    if ((crlf || (atCrlf && isAt)) && !endsCrlf) bytes = bytes.concat([0x0D, 0x0A]);
+    return { bytes: bytes };
+  }
+  function send(text, opts) {
+    opts = opts || {};
+    if (!state.open) { emit('blocked', '串口未打开，发送已拦截'); return false; }
+    var r = encode(text, opts.format || state.sendFormat, opts.checksum != null ? opts.checksum : state.checksum, opts.crlf != null ? opts.crlf : state.crlf, opts);
+    if (r.error) { emit('blocked', r.error); return false; }
+    var out = sendHooks(r.bytes);
+    if (!out) return false;
+    r.bytes = out;
+    push('tx', r.bytes);
+    var h = text.trim();
+    if (h && !opts.silentHistory) {
+      state.history = [h].concat(state.history.filter(function (x) { return x !== h; })).slice(0, 12);
+      emit('history', state.history);
+    }
+    deviceRespond(r.bytes);
+    return true;
+  }
+  function sendRepeat(text, times, interval, loop) {
+    stopLoop();
+    var n = 0;
+    if (!send(text)) return;
+    n++;
+    if (!loop && n >= times) return;
+    loopTimer = setInterval(function () {
+      if (!send(text, { silentHistory: true })) return stopLoop();
+      n++;
+      if (!loop && n >= times) stopLoop();
+    }, Math.max(20, interval));
+    emit('loop', true);
+  }
+  function stopLoop() { if (loopTimer) { clearInterval(loopTimer); loopTimer = null; emit('loop', false); } }
+
+  // ---------- 自动响应 ----------
+  // 规则：kind 为 template（默认）或 regex，format 为 HEX（默认）或 ASCII，ignoreCase 只对 ASCII 生效。
+  // 模板记号：固定字节 { b }、任意一字节 { any }（HEX ?? / ASCII ?）、任意长度 { many }（*）
+  function parseTemplate(pattern, format) {
+    var out = [], i = 0;
+    if (format !== 'ASCII') {
+      var s = pattern.replace(/0x/gi, '').replace(/[^0-9a-fA-F?*]/g, '');
+      while (i < s.length) {
+        if (s[i] === '*') { out.push({ many: true }); i++; }
+        else if (s[i] === '?') { if (s[i + 1] !== '?') return null; out.push({ any: true }); i += 2; }
+        else { if (!/^[0-9a-fA-F]{2}$/.test(s.substr(i, 2))) return null; out.push({ b: parseInt(s.substr(i, 2), 16) }); i += 2; }
+      }
+      return out.length ? out : null;
+    }
+    var esc = { r: 13, n: 10, t: 9, '0': 0, '\\': 92, '?': 63, '*': 42 }, m;
+    while (i < pattern.length) {
+      var c = pattern[i], rest = pattern.slice(i);
+      if (c === '*') { out.push({ many: true }); i++; continue; }
+      if (c === '?') { out.push({ any: true }); i++; continue; }
+      if (c === '\\' && esc[pattern[i + 1]] != null) { out.push({ b: esc[pattern[i + 1]] }); i += 2; continue; }
+      if ((m = /^\\x([0-9a-fA-F]{2})/.exec(rest))) { out.push({ b: parseInt(m[1], 16) }); i += 4; continue; }
+      var ch = String.fromCodePoint(pattern.codePointAt(i));
+      Array.from(new TextEncoder().encode(ch)).forEach(function (b) { out.push({ b: b }); });
+      i += ch.length;
+    }
+    return out.length ? out : null;
+  }
+  function lower(b) { return b >= 0x41 && b <= 0x5A ? b + 0x20 : b; }
+  function matchFrom(toks, k, bytes, pos, endAnchored, fold, caps) {
+    if (k === toks.length) return !endAnchored || pos === bytes.length;
+    var t = toks[k];
+    if (t.many) {
+      for (var end = bytes.length; end >= pos; end--) {
+        caps.push(bytes.slice(pos, end));
+        if (matchFrom(toks, k + 1, bytes, end, endAnchored, fold, caps)) return true;
+        caps.pop();
+      }
+      return false;
+    }
+    if (pos >= bytes.length) return false;
+    if (t.any) {
+      caps.push([bytes[pos]]);
+      if (matchFrom(toks, k + 1, bytes, pos + 1, endAnchored, fold, caps)) return true;
+      caps.pop();
+      return false;
+    }
+    var same = fold ? lower(bytes[pos]) === lower(t.b) : bytes[pos] === t.b;
+    return same && matchFrom(toks, k + 1, bytes, pos + 1, endAnchored, fold, caps);
+  }
+  // 命中返回捕获数组（$1 起），未命中返回 null；正则 HEX 捕获到半个字节时该项为 null
+  function ruleCaptures(rule, bytes) {
+    var isHex = rule.format !== 'ASCII';
+    if (rule.kind === 'regex') {
+      var re;
+      try { re = new RegExp(rule.pattern, isHex || rule.ignoreCase ? 'i' : ''); } catch (e) { return null; }
+      var m = re.exec(isHex ? hex(bytes) : String.fromCharCode.apply(null, bytes));
+      if (!m) return null;
+      return m.slice(1).map(function (g) {
+        if (!g) return [];
+        return isHex ? parseHex(g) : Array.from(g, function (c) { return c.charCodeAt(0) & 0xFF; });
+      });
+    }
+    var toks = parseTemplate(rule.pattern, rule.format);
+    if (!toks) return null;
+    var fold = !isHex && rule.ignoreCase;
+    var startAnchored = rule.match === 'prefix' || rule.match === 'frame';
+    var endAnchored = rule.match === 'frame' || rule.match === 'suffix';
+    for (var s = 0; s <= (startAnchored ? 0 : bytes.length); s++) {
+      var caps = [];
+      if (matchFrom(toks, 0, bytes, s, endAnchored, fold, caps)) return caps;
+    }
+    return null;
+  }
+  function captureCount(pattern, format) {
+    var toks = parseTemplate(pattern, format);
+    return toks ? toks.filter(function (t) { return t.b == null; }).length : null;
+  }
+  // 应答里的 $n 换成捕获字节；引用不存在或结果不是 HEX 时返回 null
+  function expandReply(data, caps) {
+    var ok = true;
+    var out = data.replace(/\$(\d+)/g, function (_, n) {
+      var c = caps[Number(n) - 1];
+      if (!c) { ok = false; return ''; }
+      return ' ' + hex(c) + ' ';
+    });
+    return ok && parseHex(out) ? out.trim() : null;
+  }
+  function matchRules(bytes) {
+    state.rules.forEach(function (rule) {
+      if (!rule.enabled) return;
+      var caps = ruleCaptures(rule, bytes);
+      if (!caps) return;
+      rule.hits++;
+      emit('rule', rule);
+      runReplies(rule, caps);
+    });
+  }
+  function runReplies(rule, caps) {
+    var wait = 0;
+    sys('自动响应「' + rule.name + '」命中，按顺序回复 ' + rule.replies.length + ' 条');
+    rule.replies.forEach(function (r, i) {
+      wait += Number(r.delay) || 0;
+      setTimeout(function () {
+        if (!state.open) return;
+        var data = expandReply(r.data, caps);
+        if (data == null) return sys('自动响应「' + rule.name + '」第 ' + (i + 1) + ' 条应答引用的捕获不存在，已跳过');
+        send(data, { format: 'HEX', checksum: 'none', crlf: false, silentHistory: true });
+      }, wait);
+    });
+  }
+  function fireRule(id) {
+    var rule = byId(state.rules, id);
+    if (!state.open) return emit('blocked', '串口未打开，规则不会执行');
+    rule.hits++; emit('rule', rule); runReplies(rule, []);
+  }
+
+  // ---------- 批量 ----------
+  // 步骤可以是 HEX 字符串（使用任务统一间隔），也可以是 { data, delay, format }，delay 为发送本条前的等待
+  function stepOf(job, s) { return typeof s === 'string' ? { data: s, delay: job.interval, format: 'HEX' } : s; }
+  function runBatch(id) {
+    if (!state.open) return emit('blocked', '串口未打开，批量任务未启动');
+    stopBatch(true);
+    var job = byId(state.batch, id), i = 0, round = 1, rounds = Math.max(1, Number(job.repeat) || 1);
+    var steps = job.steps.map(function (s) { return stepOf(job, s); });
+    batchRun = { id: id, step: 0, total: steps.length, round: 1, rounds: rounds, timer: null };
+    sys('批量任务「' + job.name + '」开始，共 ' + steps.length + ' 步' + (rounds > 1 ? ' × ' + rounds + ' 轮' : ''));
+    function finish(msg) { sys(msg); batchRun = null; emit('batch', null); }
+    function next() {
+      if (!batchRun) return;
+      if (i >= steps.length) {
+        if (round >= rounds) return finish('批量任务「' + job.name + '」完成');
+        round++; i = 0; batchRun.round = round;
+      }
+      var st = steps[i];
+      batchRun.timer = setTimeout(function () {
+        if (!batchRun) return;
+        batchRun.step = i + 1;
+        emit('batch', batchRun);
+        var ok = send(st.data, { format: st.format || 'HEX', checksum: 'none', crlf: false, silentHistory: true });
+        if (!ok && job.stopOnFail) return finish('第 ' + (i + 1) + ' 步失败，任务停止');
+        i++;
+        next();
+      }, i === 0 && round === 1 ? 0 : Number(st.delay) || 0);
+    }
+    next();
+  }
+  function stopBatch(silent) {
+    if (!batchRun) return;
+    clearTimeout(batchRun.timer);
+    if (!silent) sys('批量任务已手动停止');
+    batchRun = null; emit('batch', null);
+  }
+
+  // ---------- Lua 脚本（设计稿只模拟预置脚本的效果，不执行 Lua） ----------
+  function scriptHook(s) { return /function\s+before_send\s*\(/.test(s.code) ? 'before_send' : 'on_receive'; }
+  function scriptOut(s, text, err) {
+    s.runs++; s.last = text;
+    state.scriptLog.push({ time: new Date(), name: s.name, text: text, err: !!err });
+    if (state.scriptLog.length > 200) state.scriptLog.shift();
+    emit('script', 'log');
+  }
+  function lastSensor() { return state.lines.slice().reverse().filter(function (l) { return l.dir === 'rx' && l.info.temp != null; })[0]; }
+  function parseOut(s, line) {
+    if (!line) return scriptOut(s, '还没有收到 A5 5A 03 温湿度帧', true);
+    scriptOut(s, 'temp=' + line.info.temp.toFixed(1) + '℃ hum=' + line.info.hum.toFixed(1) + '%');
+  }
+  function receiveHooks(line) {
+    state.scripts.forEach(function (s) {
+      if (!s.enabled || scriptHook(s) !== 'on_receive') return;
+      if (s.action === 'parse') { if (line.info.temp != null) parseOut(s, line); }
+      else scriptOut(s, '收到 ' + line.bytes.length + ' 字节：' + hex(line.bytes));
+    });
+  }
+  // 按列表顺序串联：上一个脚本处理后的帧交给下一个；任一脚本返回 nil 则整帧不发
+  function sendHooks(bytes) {
+    var out = bytes;
+    for (var i = 0; i < state.scripts.length && out; i++) {
+      var s = state.scripts[i];
+      if (!s.enabled || scriptHook(s) !== 'before_send') continue;
+      var next = s.action === 'checksum' ? out.concat([sum8(out)]) : out;
+      scriptOut(s, hex(out) + ' → ' + hex(next));
+      out = next;
+    }
+    return out;
+  }
+  // 手动运行：on_receive 用最近一帧收包；before_send 拿发送框内容试算，不真正发出
+  function runScript(id, txText) {
+    var s = byId(state.scripts, id);
+    if (scriptHook(s) === 'on_receive') {
+      if (s.action === 'parse') return parseOut(s, lastSensor());
+      var rx = state.lines.slice().reverse().filter(function (l) { return l.dir === 'rx'; })[0];
+      return scriptOut(s, rx ? '手动运行 · 最近一帧 ' + hex(rx.bytes) : '手动运行 · 还没有收到数据');
+    }
+    var sample = parseHex(txText || '');
+    if (!sample) return scriptOut(s, '发送框不是 HEX，无法试算', true);
+    scriptOut(s, hex(sample) + ' → ' + hex(s.action === 'checksum' ? sample.concat([sum8(sample)]) : sample) + '（试算，未发送）');
+  }
+  function toggleScript(id) { var s = byId(state.scripts, id); s.enabled = !s.enabled; emit('script', 'list'); return s; }
+  function newScript(name, code) {
+    var s = { id: 's' + Date.now().toString(36), name: name || 'script' + (state.scripts.length + 1) + '.lua', action: 'custom', enabled: false, runs: 0, last: '',
+      code: code || '-- 新脚本：收到数据时运行\nfunction on_receive(frame)\n  log(frame:hex())\nend' };
+    state.scripts.push(s); emit('script', 'list');
+    return s;
+  }
+  // 教程样例试跑等不属于某个脚本的输出
+  function logScript(name, text, err) {
+    state.scriptLog.push({ time: new Date(), name: name, text: text, err: !!err });
+    if (state.scriptLog.length > 200) state.scriptLog.shift();
+    emit('script', 'log');
+  }
+  function clearScriptLog() { state.scriptLog.length = 0; emit('script', 'log'); }
+
+  // ---------- 杂项 ----------
+  function byId(list, id) { return list.filter(function (x) { return x.id === id; })[0]; }
+  function clear() { state.lines = []; emit('clear'); emit('state', state); }
+  function pad(n, w) { return String(n).padStart(w || 2, '0'); }
+  function stamp(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '.' + pad(d.getMilliseconds(), 3); }
+  function logText() {
+    return state.lines.map(function (l) {
+      return '[' + stamp(l.time) + '] ' + l.dir.toUpperCase() + '  ' + (l.bytes ? hex(l.bytes) + '  ; ' + l.info.summary : l.text);
+    }).join('\r\n');
+  }
+  function download(name, text) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+    a.download = name; a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function removeHistory(i) { state.history.splice(i, 1); emit('history', state.history); }
+  function resetCounters() { state.rx = 0; state.tx = 0; emit('state', state); }
+  function saveLog() { download('serial-' + state.port + '-' + Date.now() + '.log', logText()); }
+  function exportRules() { download('auto-reply-rules.json', JSON.stringify(state.rules, null, 2)); }
+  function seed() {
+    // 预置一段历史会话，让首屏不是空白
+    state.open = true;
+    updatePins();
+    sys(state.port + ' 已打开 · ' + state.baud + ' ' + frameFormat());
+    device([0xA5, 0x81, 0x00, 0x00, 0x81]);
+  }
+
+  return {
+    PORTS: PORTS, state: state, on: on,
+    open: open, close: close, toggle: toggle, configure: configure, portLabel: portLabel, frameFormat: frameFormat,
+    send: send, sendRepeat: sendRepeat, stopLoop: stopLoop, encode: encode,
+    fireRule: fireRule, captureCount: captureCount, runBatch: runBatch, stopBatch: stopBatch,
+    runScript: runScript, toggleScript: toggleScript, newScript: newScript, logScript: logScript, clearScriptLog: clearScriptLog, scriptHook: scriptHook,
+    clear: clear, saveLog: saveLog, exportRules: exportRules, logText: logText, seed: seed,
+    hex: hex, ascii: ascii, parseHex: parseHex, textBytes: textBytes, dissect: dissect, stamp: stamp,
+    sum8: sum8, xor8: xor8, lrc: lrc, crc8: crc8, crc16: crc16, crc32: crc32,
+    checksumBytes: checksumBytes, withChecksum: withChecksum,
+    setSignal: setSignal, ring: ring, download: download, removeHistory: removeHistory, resetCounters: resetCounters
+  };
+})();
+</script>
+<script>
+var S = Serial.state;
+var $ = function (id) { return document.getElementById(id); };
+var ui = { rxFmt: 'HEX', log: true, wrap: true, hide: false, scroll: true, tab: 'quick', search: '', saveBuf: null, saveName: '', batchSel: 'b1', batchRun: null, histTime: {}, calcFmt: 'HEX', fileBytes: null };
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function toast(m, warn) { var t = $('toast'); t.textContent = m; t.className = 'toast show' + (warn ? ' warn' : ''); clearTimeout(t._h); t._h = setTimeout(function () { t.className = 'toast'; }, 1900); }
+function hint(m) { $('stHint').textContent = m; }
+function byId(list, id) { return list.filter(function (x) { return x.id === id; })[0]; }
+function uid(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+function fullStamp(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + Serial.stamp(d); }
+
+// 设计稿预置数据：快捷键 F1–F4、单层文件夹、逐条延时的批量任务
+S.quick = [
+  { id: 'q1', name: '读取温湿度', data: 'A5 01 00 00 01 07', format: 'HEX', key: 'F1' },
+  { id: 'q2', name: '读取设备信息', data: 'A5 02 00 00 02 08', format: 'HEX', key: 'F2' },
+  { type: 'folder', id: 'f1', name: '采集控制', expanded: true, commands: [
+    { id: 'q3', name: '启动采集（每 3 秒上报）', data: 'A5 10 01 00 11', format: 'HEX', key: 'F3' },
+    { id: 'q4', name: '停止采集', data: 'A5 10 00 00 10', format: 'HEX', key: 'F4' }] },
+  { type: 'folder', id: 'f2', name: 'AT 指令', expanded: false, commands: [
+    { id: 'q5', name: 'AT 测试', data: 'AT', format: 'ASCII', key: '' }] }
+];
+function isFolder(x) { return x.type === 'folder'; }
+function quickFolders() { return S.quick.filter(isFolder); }
+function allQuick() { var out = []; S.quick.forEach(function (x) { if (isFolder(x)) out.push.apply(out, x.commands); else out.push(x); }); return out; }
+function quickFolderOf(id) { return quickFolders().filter(function (f) { return !!byId(f.commands, id); })[0] || null; }
+function removeQuick(id) {
+  S.quick = S.quick.filter(function (x) { return x.id !== id; });
+  quickFolders().forEach(function (f) { f.commands = f.commands.filter(function (x) { return x.id !== id; }); });
+}
+S.batch = [
+  { id: 'b1', name: '传感器启动流程', repeat: 1, stopOnFail: true, steps: [
+    { data: 'A5 02 00 00 02 08', delay: 0, note: '读取设备信息' },
+    { data: 'A5 01 00 00 01 07', delay: 300, note: '读取一次温湿度' },
+    { data: 'A5 10 01 00 11', delay: 500, note: '启动采集' }] },
+  { id: 'b2', name: '采集稳定性测试', repeat: 3, stopOnFail: true, steps: [
+    { data: 'A5 01 00 00 01 07', delay: 0, note: '读取温湿度' },
+    { data: 'A5 01 00 00 01 07', delay: 800, note: '再次读取' }] }
+];
+
+// ---------- 菜单 ----------
+document.querySelectorAll('.menu>button').forEach(function (b) {
+  b.onclick = function (e) {
+    e.stopPropagation();
+    var m = b.parentNode, open = m.classList.contains('open');
+    document.querySelectorAll('.menu.open').forEach(function (x) { x.classList.remove('open'); });
+    if (!open) m.classList.add('open');
+  };
+  b.onmouseenter = function () { if (document.querySelector('.menu.open') && !b.parentNode.classList.contains('open')) b.click(); };
+});
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('.menu')) document.querySelectorAll('.menu.open').forEach(function (x) { x.classList.remove('open'); });
+  var c = e.target.closest('[data-cmd]');
+  if (c) { document.querySelectorAll('.menu.open').forEach(function (x) { x.classList.remove('open'); }); command(c.dataset.cmd); }
+});
+function command(cmd) {
+  if (cmd.indexOf('tab:') === 0) { setTools(true); return setTab(cmd.slice(4)); }
+  switch (cmd) {
+    case 'saveRecv': return saveRecv();
+    case 'exportQuick': Serial.download('quick-commands.json', JSON.stringify(S.quick, null, 2)); return toast('快捷指令已导出');
+    case 'exportRules': Serial.exportRules(); return toast('应答规则已导出');
+    case 'importQuick': return pickFile('.json', function (txt) { importList('quick', txt); });
+    case 'importRules': return pickFile('.json', function (txt) { importList('rules', txt); });
+    case 'themeLight': return setTheme('light');
+    case 'themeDark': return setTheme('dark');
+    case 'compact': return setCompact(!$('app').classList.contains('compact'));
+    case 'toolsPanel': return setTools($('app').classList.contains('notools'));
+    case 'keys': return showKeys();
+    case 'about': return dialog('关于', '<p>设备调试工具 · 串口调试台设计稿</p><p class="explain" style="padding:0">布局与功能分区参照野人家园串口调试助手 V5.15。本稿通信全部为模拟数据：COM3 上挂一块温湿度传感器，DTR→DSR、RTS→CTS 回环。</p>', [{ text: '关闭', pri: true }]);
+  }
+}
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  $('chkLight').textContent = t === 'light' ? '✓' : ''; $('chkDark').textContent = t === 'dark' ? '✓' : '';
+  localStorage.setItem('ddt.theme', t);
+}
+function setCompact(on) { $('app').classList.toggle('compact', on); $('btnCompact').classList.toggle('on', on); $('chkCompact').textContent = on ? '✓' : ''; }
+function setTools(on) { $('app').classList.toggle('notools', !on); $('btnTools').classList.toggle('on', on); $('chkTools').textContent = on ? '✓' : ''; }
+$('btnCompact').onclick = function () { command('compact'); };
+$('btnTools').onclick = function () { command('toolsPanel'); };
+
+function pickFile(accept, cb, asBytes) {
+  var f = $('filePick');
+  f.value = ''; f.accept = accept;
+  f.onchange = function () {
+    var file = f.files[0]; if (!file) return cb(null);
+    var r = new FileReader();
+    r.onload = function () { cb(asBytes ? Array.from(new Uint8Array(r.result)) : r.result, file); };
+    asBytes ? r.readAsArrayBuffer(file) : r.readAsText(file);
+  };
+  f.click();
+}
+function importList(kind, txt) {
+  try {
+    var arr = JSON.parse(txt);
+    if (!Array.isArray(arr)) throw new Error();
+    if (kind === 'quick') {
+      var used = {};
+      var cmd = function (x) { var k = x.key || ''; if (k && used[k]) k = ''; if (k) used[k] = 1; return { id: uid('q'), name: String(x.name || '未命名'), data: String(x.data || ''), format: x.format === 'ASCII' ? 'ASCII' : 'HEX', key: k }; };
+      S.quick = arr.map(function (x) {
+        if (x.type === 'folder' || Array.isArray(x.commands)) return { type: 'folder', id: uid('f'), name: String(x.name || '未命名'), expanded: x.expanded !== false, commands: (x.commands || []).map(cmd) };
+        return cmd(x);
+      });
+      renderTab(); renderStatus();
+      return toast('已导入 ' + allQuick().length + ' 条');
+    }
+    S.rules = arr.map(function (x) { return { id: uid('r'), name: String(x.name || '未命名'), match: x.match || 'prefix', kind: x.kind === 'regex' ? 'regex' : 'template', format: x.format === 'ASCII' ? 'ASCII' : 'HEX', ignoreCase: !!x.ignoreCase, pattern: String(x.pattern || ''), enabled: !!x.enabled, hits: 0, replies: (x.replies || []).map(function (r) { return { data: String(r.data || ''), delay: Number(r.delay) || 0 }; }) }; });
+    renderTab(); renderStatus();
+    toast('已导入 ' + arr.length + ' 条');
+  } catch (e) { toast('文件格式不正确，需要导出的 JSON', true); }
+}
+
+// ---------- 串口设置 ----------
+$('cfgPort').innerHTML = Serial.PORTS.map(function (p) { return '<option value="' + p.id + '">' + p.label + '</option>'; }).join('');
+$('btnRefresh').onclick = function () { toast('扫描完成，发现 ' + Serial.PORTS.length + ' 个串口'); };
+var cfgMap = { cfgPort: 'port', cfgParity: 'parity', cfgData: 'dataBits', cfgStop: 'stopBits', cfgFlow: 'flow', cfgBaud: 'baud' };
+Object.keys(cfgMap).forEach(function (id) {
+  $(id).onchange = function () {
+    var k = cfgMap[id], v = this.value;
+    if (k === 'baud') { v = parseInt(v, 10); if (!(v > 0)) { toast('波特率需为正整数', true); this.value = S.baud; return; } }
+    if (k === 'dataBits' || k === 'stopBits') v = Number(v);
+    if (S.open && k === 'port') { toast('请先关闭当前串口再切换', true); this.value = S.port; return; }
+    var p = {}; p[k] = v; Serial.configure(p);
+    if (S.open) hint('参数已即时生效：' + connText());
+  };
+});
+$('btnOpen').onclick = Serial.toggle;
+$('sigDtr').onchange = function () { Serial.setSignal('dtr', this.checked); };
+$('sigRts').onchange = function () { Serial.setSignal('rts', this.checked); };
+Serial.on('pins', function (p) {
+  $('pinDcd').classList.toggle('on', p.dcd); $('pinDsr').classList.toggle('on', p.dsr);
+  $('pinCts').classList.toggle('on', p.cts); $('pinRi').classList.toggle('on', p.ri);
+});
+function connText() {
+  var flow = S.flow === '无' ? 'NONE' : S.flow;
+  return S.port + (S.open ? ' OPENED' : ' CLOSED') + ', ' + S.baud + ', ' + S.parity + ', ' + S.dataBits + ', ' + S.stopBits + ', ' + flow;
+}
+
+// ---------- 接收设置 ----------
+document.querySelectorAll('[name=rxFmt]').forEach(function (r) { r.onchange = function () { ui.rxFmt = this.value; renderLog(); }; });
+$('rxLog').onchange = function () { ui.log = this.checked; renderLog(); };
+$('rxWrap').onchange = function () { ui.wrap = this.checked; $('log').classList.toggle('wrap', ui.wrap); };
+$('rxHide').onchange = function () { ui.hide = this.checked; renderLog(); };
+$('rxScroll').onchange = function () { ui.scroll = this.checked; };
+$('rxTimeout').onchange = function () {
+  var v = parseInt(this.value, 10);
+  if (!(v >= 0)) { this.value = S.packetTimeout; return toast('分包超时需为非负整数', true); }
+  Serial.configure({ packetTimeout: v });
+  hint(v < 8 ? '分包超时小于 8 ms，设备的每帧会被拆成两段显示' : '分包超时 ' + v + ' ms');
+};
+$('rxSave').onchange = function () {
+  if (this.checked) {
+    ui.saveBuf = []; ui.saveName = 'recv-' + S.port + '-' + fullStamp(new Date()).replace(/[-: .]/g, '') + '.log';
+    toast('开始保存接收数据，取消勾选时写出文件');
+  } else if (ui.saveBuf) {
+    Serial.download(ui.saveName, ui.saveBuf.join('\r\n'));
+    toast('已写出 ' + ui.saveName + '（' + ui.saveBuf.length + ' 条）');
+    ui.saveBuf = null;
+  }
+  renderStatus();
+};
+$('lnkSaveRecv').onclick = saveRecv;
+$('lnkClear').onclick = function () { Serial.clear(); hint('接收区已清除'); };
+function saveRecv() { Serial.saveLog(); toast('接收数据已保存为文本'); }
+$('logSearch').oninput = function () { ui.search = this.value.trim(); renderLog(); };
+
+// ---------- 发送设置 ----------
+document.querySelectorAll('[name=txFmt]').forEach(function (r) {
+  r.onchange = function () {
+    var from = S.sendFormat, to = this.value, box = $('txInput');
+    // 切换格式时转换发送框内容，和原版行为一致
+    if (from === 'HEX' && to === 'ASCII') { var b = Serial.parseHex(box.value); if (b) box.value = Serial.ascii(b).indexOf('.') < 0 ? new TextDecoder().decode(new Uint8Array(b)) : box.value; }
+    if (from === 'ASCII' && to === 'HEX') { box.value = Serial.hex(Serial.textBytes(box.value, S.escape)); }
+    Serial.configure({ sendFormat: to }); preview();
+  };
+});
+$('txEscape').onchange = function () { Serial.configure({ escape: this.checked }); preview(); };
+$('txAt').onchange = function () { Serial.configure({ atCrlf: this.checked }); preview(); };
+$('txCrlf').onchange = function () { Serial.configure({ crlf: this.checked }); preview(); };
+$('txCk').onchange = $('txCkType').onchange = function () { Serial.configure({ checksum: $('txCk').checked ? $('txCkType').value : 'none' }); preview(); };
+$('txFile').onchange = function () {
+  var box = this;
+  if (!box.checked) { ui.fileBytes = null; $('txFileName').hidden = true; $('txInput').disabled = false; preview(); return; }
+  box.checked = false;
+  pickFile('', function (bytes, file) {
+    if (!bytes) return;
+    ui.fileBytes = bytes; box.checked = true;
+    $('txFileName').hidden = false; $('txFileName').textContent = file.name + ' · ' + bytes.length + ' 字节';
+    $('txInput').value = Serial.hex(bytes.slice(0, 256)) + (bytes.length > 256 ? ' …' : '');
+    $('txInput').disabled = true;
+    preview();
+  }, true);
+};
+$('txInput').oninput = preview;
+$('txInput').onkeydown = function (e) { if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); doSend(); } };
+$('btnClearTx').onclick = function () { if (ui.fileBytes) $('txFile').click(); $('txInput').value = ''; preview(); $('txInput').focus(); };
+$('btnSend').onclick = doSend;
+
+function currentPayload() {
+  if (ui.fileBytes) return { text: Serial.hex(ui.fileBytes), format: 'HEX' };
+  return { text: $('txInput').value, format: S.sendFormat };
+}
+function preview() {
+  var p = currentPayload(), r = Serial.encode(p.text, p.format, S.checksum, S.crlf);
+  var el = $('txPreview');
+  if (r.error) { el.innerHTML = '<span class="err">' + esc(r.error) + '</span>'; return; }
+  var shown = r.bytes.length > 24 ? Serial.hex(r.bytes.slice(0, 24)) + ' …' : Serial.hex(r.bytes);
+  el.textContent = '实发 ' + r.bytes.length + ' 字节：' + shown;
+}
+function doSend() {
+  if (Serial._looping) return Serial.stopLoop();
+  var p = currentPayload();
+  if ($('txLoop').checked) {
+    var period = parseInt($('txPeriod').value, 10);
+    if (!(period >= 10)) return toast('循环周期至少 10 ms', true);
+    Serial.sendRepeat(p.text, 1, period, true);
+    return;
+  }
+  // 只有通过发送按钮发出的数据才记入历史
+  if (Serial.send(p.text, { format: p.format }) && $('txClear').checked && !ui.fileBytes) { $('txInput').value = ''; preview(); }
+}
+Serial.on('loop', function (on) {
+  Serial._looping = on;
+  $('btnSend').textContent = on ? '停止循环' : '发送';
+  $('btnSend').classList.toggle('looping', on);
+  hint(on ? '循环发送中，周期 ' + $('txPeriod').value + ' ms' : '循环发送已停止');
+});
+
+// ---------- 数据日志 ----------
+function fmtBytes(bytes) { return ui.rxFmt === 'HEX' ? Serial.hex(bytes) : Serial.ascii(bytes); }
+function mark(text) {
+  var t = esc(text);
+  if (!ui.search) return t;
+  var q = esc(ui.search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return t.replace(new RegExp(q, 'gi'), function (m) { return '<mark>' + m + '</mark>'; });
+}
+function lineHtml(l) {
+  if (ui.hide && l.dir === 'rx') return '';
+  if (!ui.log) {
+    // 非日志模式：只显示接收的数据流，不带时间和发送记录
+    if (l.dir !== 'rx') return '';
+    return '<span class="rx">' + mark(fmtBytes(l.bytes) + (ui.rxFmt === 'HEX' ? ' ' : '')) + '</span>';
+  }
+  var head = '[' + fullStamp(l.time) + ']# ';
+  if (l.dir === 'sys') return '<span class="p">' + head + '</span><span class="sys">' + mark(l.text) + '</span>\n';
+  var tag = (l.dir === 'rx' ? 'RECV ' : 'SEND ') + ui.rxFmt + '>';
+  return '<span class="p">' + head + tag + '</span>\n<span class="' + l.dir + '">' + mark(fmtBytes(l.bytes)) + '</span>\n';
+}
+function renderLog() {
+  var el = $('log');
+  var html = S.lines.map(lineHtml).join('');
+  el.innerHTML = html || '<span class="hint">' + (S.open ? '等待数据…' : '串口未打开。左侧选择串口后点「打开」。') + '</span>';
+  if (ui.scroll) el.scrollTop = el.scrollHeight;
+  renderLogMeta();
+}
+function renderLogMeta() {
+  var n = ui.search ? (($('log').innerHTML.match(/<mark>/g) || []).length + ' 处匹配 · ') : '';
+  $('logMeta').textContent = n + S.lines.length + ' 条记录' + (ui.hide ? ' · 接收不显示' : '');
+}
+Serial.on('line', function (l) {
+  if (ui.saveBuf && l.dir === 'rx') ui.saveBuf.push('[' + fullStamp(l.time) + '] ' + Serial.hex(l.bytes));
+  if (ui.search || !$('log').querySelector('span:not(.hint)')) return renderLog();
+  var el = $('log');
+  el.insertAdjacentHTML('beforeend', lineHtml(l));
+  if (ui.scroll) el.scrollTop = el.scrollHeight;
+  renderLogMeta();
+  if (ui.saveBuf) renderStatus();
+});
+Serial.on('clear', renderLog);
+
+// ---------- 工具面板 ----------
+$('tabs').onclick = function (e) { var t = e.target.dataset.tab; if (t) setTab(t); };
+function setTab(t) {
+  ui.tab = t;
+  document.querySelectorAll('#tabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === t); });
+  renderTab();
+}
+function renderTab() {
+  var h = { quick: quickHtml, batch: batchHtml, reply: replyHtml, history: historyHtml, calc: calcHtml, script: scriptHtml }[ui.tab]();
+  $('tabbody').innerHTML = h;
+  if (ui.tab === 'calc') calcUpdate();
+  renderDock();
+}
+var matchName = { prefix: '前缀', frame: '整帧', contains: '包含', suffix: '结尾' };
+var matchHint = {
+  'template HEX': '?? 匹配任意一字节，* 匹配任意长度；应答里用 $1、$2 依次引用它们匹配到的字节',
+  'template ASCII': '? 匹配任意一字节，* 匹配任意长度，\\? \\* \\r \\n \\xHH 为字面量；应答里用 $1、$2 引用',
+  'regex HEX': '对空格分隔的大写 HEX（如 A5 5A 03）匹配，锚点自己写 ^ 和 $；应答里用 $1、$2 引用括号分组',
+  'regex ASCII': '对原始字节逐字匹配，锚点自己写 ^ 和 $；应答里用 $1、$2 引用括号分组'
+};
+function ruleLabel(r) {
+  var f = r.format === 'ASCII' ? 'ASCII' : 'HEX';
+  return (r.kind === 'regex' ? '正则' : matchName[r.match]) + ' ' + f + (f === 'ASCII' && r.ignoreCase ? ' Aa' : '') + ' ' + r.pattern;
+}
+
+function quickRow(q, inner) {
+  return '<div class="it' + (inner ? ' in' : '') + '"><button class="btn sm pri lead" data-act="quickSend" data-id="' + q.id + '">发送</button>' +
+    '<span class="nm">' + esc(q.name) + '</span><span class="dt">' + (q.format === 'ASCII' ? 'ASCII · ' : '') + esc(q.data) + '</span>' +
+    '<span class="ops">' + (q.key ? '<span class="key">' + q.key + '</span>' : '') + '<button class="link" data-act="quickEdit" data-id="' + q.id + '">编辑</button><button class="link danger" data-act="quickDel" data-id="' + q.id + '">删除</button></span></div>';
+}
+function quickHtml() {
+  return '<div class="bar"><span class="note">点「发送」立即发出，不进入历史</span><span class="grow"></span><button class="btn sm" data-act="folderNew">新增文件夹</button><button class="btn sm" data-act="quickNew">新增</button></div>' +
+    '<div class="list">' + S.quick.map(function (x) {
+      if (!isFolder(x)) return quickRow(x, false);
+      return '<div class="fd" data-act="folderToggle" data-id="' + x.id + '"><span class="arw">' + (x.expanded ? '▼' : '▶') + '</span><span class="nm">' + esc(x.name) + '</span><span class="cnt">' + x.commands.length + ' 条</span>' +
+        '<button class="link" data-act="quickNewIn" data-id="' + x.id + '">新增</button><button class="link" data-act="folderEdit" data-id="' + x.id + '">重命名</button><button class="link danger" data-act="folderDel" data-id="' + x.id + '">删除</button></div>' +
+        (x.expanded ? (x.commands.length ? x.commands.map(function (q) { return quickRow(q, true); }).join('') : '<div class="explain in">文件夹为空。点「新增」在这里添加指令。</div>') : '');
+    }).join('') + '</div>' +
+    (S.quick.length ? '' : '<div class="explain">还没有快捷指令。点「新增」保存常用的一条指令，或点「新增文件夹」先分组。</div>');
+}
+function batchHtml() {
+  var job = byId(S.batch, ui.batchSel) || S.batch[0];
+  if (!job) return '<div class="bar"><span class="grow"></span><button class="btn sm" data-act="batchNew">新建任务</button></div><div class="explain">还没有批量任务。</div>';
+  ui.batchSel = job.id;
+  var run = ui.batchRun && ui.batchRun.id === job.id ? ui.batchRun : null;
+  return '<div class="bar"><select id="batchSel" style="flex:1">' + S.batch.map(function (b) { return '<option value="' + b.id + '"' + (b.id === job.id ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select>' +
+    '<button class="btn sm" data-act="batchNew">新建</button><button class="btn sm" data-act="batchEdit">编辑</button><button class="btn sm danger" data-act="batchDel">删除</button></div>' +
+    '<div class="batchmeta"><label>重复 <input class="inp" id="batchRepeat" value="' + job.repeat + '"> 轮</label><label><input type="checkbox" id="batchStop"' + (job.stopOnFail ? ' checked' : '') + '>失败即停</label>' +
+    '<span style="margin-left:auto">' + (run ? '第 ' + run.round + '/' + run.rounds + ' 轮 · 第 ' + run.step + '/' + run.total + ' 条' : job.steps.length + ' 条指令') + '</span>' +
+    (run ? '<button class="btn sm danger" data-act="batchStop">停止</button>' : '<button class="btn sm pri" data-act="batchRun">开始发送</button>') + '</div>' +
+    (run ? '<div class="prog"><i style="width:' + (((run.round - 1) * run.total + run.step) / (run.rounds * run.total) * 100) + '%"></i></div>' : '') +
+    '<table class="steps"><thead><tr><th>#</th><th>延时</th><th>指令数据</th><th>备注</th></tr></thead><tbody>' +
+    job.steps.map(function (s, i) { return '<tr class="' + (run && run.step === i + 1 ? 'now' : '') + '"><td>' + (i + 1) + '</td><td>' + s.delay + ' ms</td><td>' + esc(s.data) + '</td><td class="note">' + esc(s.note || '') + '</td></tr>'; }).join('') +
+    '</tbody></table><div class="explain">延时指发送本条之前等待的毫秒数，第一条立即发送。</div>';
+}
+function replyHtml() {
+  var on = S.rules.filter(function (r) { return r.enabled; }).length;
+  return '<div class="bar"><span class="note">已启用 ' + on + ' / ' + S.rules.length + '，按列表顺序逐条匹配</span><span class="grow"></span><button class="btn sm" data-act="ruleNew">新增规则</button></div>' +
+    '<div class="list">' + S.rules.map(function (r) {
+      return '<div class="it"><button class="sw lead' + (r.enabled ? ' on' : '') + '" data-act="ruleToggle" data-id="' + r.id + '" title="启用 / 停用"></button>' +
+        '<span class="nm">' + esc(r.name) + '</span>' +
+        '<span class="dt">' + esc(ruleLabel(r)) + ' → ' + r.replies.map(function (x) { return '+' + x.delay + 'ms ' + x.data; }).map(esc).join('，') + '</span>' +
+        '<span class="ops"><span class="hits">' + r.hits + ' 次</span><button class="link" data-act="ruleFire" data-id="' + r.id + '">执行</button><button class="link" data-act="ruleEdit" data-id="' + r.id + '">编辑</button><button class="link danger" data-act="ruleDel" data-id="' + r.id + '">删除</button></span></div>';
+    }).join('') + '</div>' +
+    '<div class="explain">收到的数据与规则匹配后，按应答列表顺序依次发送；每条应答的延时从上一条发出后开始计算。</div>';
+}
+function historyHtml() {
+  return '<div class="bar"><span class="note">只记录用「发送」按钮发出的数据</span><span class="grow"></span><button class="btn sm" data-act="histClear"' + (S.history.length ? '' : ' disabled') + '>清空</button></div>' +
+    '<div class="list hist">' + S.history.map(function (h, i) {
+      var t = ui.histTime[h];
+      return '<div class="it"><button class="btn sm lead time" data-act="histSend" data-i="' + i + '" title="重新发送">' + (t ? Serial.stamp(t).slice(0, 8) : '启动前') + '</button>' +
+        '<span class="nm" style="font:500 13px var(--mono)">' + esc(h) + '</span><span class="dt">点时间重发 · 点「填入」放回发送框</span>' +
+        '<span class="ops"><button class="link" data-act="histFill" data-i="' + i + '">填入</button><button class="link danger" data-act="histDel" data-i="' + i + '">删除</button></span></div>';
+    }).join('') + '</div>' + (S.history.length ? '' : '<div class="explain">还没有发送记录。</div>');
+}
+function calcHtml() {
+  return '<div class="calc"><div class="radios"><label><input type="radio" name="calcFmt" value="HEX"' + (ui.calcFmt === 'HEX' ? ' checked' : '') + '>HEX</label><label><input type="radio" name="calcFmt" value="ASCII"' + (ui.calcFmt === 'ASCII' ? ' checked' : '') + '>ASCII</label>' +
+    '<button class="link" style="margin-left:auto" data-act="calcFromTx">取发送框内容</button></div>' +
+    '<textarea id="calcInput" spellcheck="false">A5 5A 03 00 F6 02 09</textarea>' +
+    '<table id="calcTable"></table><div class="explain">CRC16 为 MODBUS（低字节在前），CRC32 为标准 IEEE（大端）。「追加」会把校验值接到发送框末尾。</div></div>';
+}
+function calcUpdate() {
+  var input = $('calcInput'); if (!input) return;
+  var bytes = ui.calcFmt === 'HEX' ? Serial.parseHex(input.value) : Serial.textBytes(input.value, true);
+  var algos = [['sum', 'SUM8 累加和'], ['xor', 'XOR / BCC'], ['lrc', 'LRC'], ['crc8', 'CRC8'], ['crc16', 'CRC16 MODBUS'], ['crc32', 'CRC32']];
+  $('calcTable').innerHTML = !bytes || !bytes.length ? '<tr><td class="explain" style="color:var(--off)">' + (ui.calcFmt === 'HEX' ? '请输入成对的十六进制字符' : '请输入内容') + '</td></tr>' :
+    '<tr><td>字节数</td><td class="v">' + bytes.length + '</td><td></td></tr>' + algos.map(function (a) {
+      return '<tr><td>' + a[1] + '</td><td class="v">' + Serial.hex(Serial.checksumBytes(bytes, a[0])) + '</td><td class="a"><button class="link" data-act="calcAppend" data-k="' + a[0] + '">追加</button></td></tr>';
+    }).join('');
+}
+$('tabbody').addEventListener('input', function (e) { if (e.target.id === 'calcInput') calcUpdate(); });
+$('tabbody').addEventListener('change', function (e) {
+  var t = e.target;
+  if (t.name === 'calcFmt') { ui.calcFmt = t.value; calcUpdate(); }
+  if (t.id === 'batchSel') { ui.batchSel = t.value; renderTab(); }
+  if (t.id === 'batchRepeat') { var v = parseInt(t.value, 10); if (v > 0) byId(S.batch, ui.batchSel).repeat = v; else { toast('重复次数需为正整数', true); renderTab(); } }
+  if (t.id === 'batchStop') byId(S.batch, ui.batchSel).stopOnFail = t.checked;
+});
+$('tabbody').onclick = function (e) {
+  var b = e.target.closest('[data-act]'); if (!b) return;
+  var id = b.dataset.id, i = Number(b.dataset.i), act = b.dataset.act;
+  if (act === 'quickSend') { var q = byId(allQuick(), id); Serial.send(q.data, { format: q.format, checksum: 'none', crlf: false, silentHistory: true }); }
+  if (act === 'quickNew') editQuick(null);
+  if (act === 'quickNewIn') editQuick(null, id);
+  if (act === 'quickEdit') editQuick(byId(allQuick(), id));
+  if (act === 'quickDel') confirmDel('快捷指令「' + byId(allQuick(), id).name + '」', function () { removeQuick(id); renderTab(); });
+  if (act === 'folderToggle') { var f0 = byId(S.quick, id); f0.expanded = !f0.expanded; renderTab(); }
+  if (act === 'folderNew') editFolder(null);
+  if (act === 'folderEdit') editFolder(byId(S.quick, id));
+  if (act === 'folderDel') {
+    var fd = byId(S.quick, id);
+    confirmDel('文件夹「' + fd.name + '」' + (fd.commands.length ? '会一并删除其中 ' + fd.commands.length + ' 条指令，' : ''), function () { removeQuick(id); renderTab(); });
+  }
+  if (act === 'batchRun') Serial.runBatch(ui.batchSel);
+  if (act === 'batchStop') Serial.stopBatch();
+  if (act === 'batchNew') editBatch(null);
+  if (act === 'batchEdit') editBatch(byId(S.batch, ui.batchSel));
+  if (act === 'batchDel') confirmDel('批量任务「' + byId(S.batch, ui.batchSel).name + '」', function () { S.batch = S.batch.filter(function (x) { return x.id !== ui.batchSel; }); ui.batchSel = S.batch[0] && S.batch[0].id; renderTab(); });
+  if (act === 'ruleToggle') { var r = byId(S.rules, id); r.enabled = !r.enabled; hint(r.name + (r.enabled ? ' 已启用' : ' 已停用')); renderTab(); renderStatus(); }
+  if (act === 'ruleFire') Serial.fireRule(id);
+  if (act === 'ruleNew') editRule(null);
+  if (act === 'ruleEdit') editRule(byId(S.rules, id));
+  if (act === 'ruleDel') confirmDel('应答规则「' + byId(S.rules, id).name + '」', function () { S.rules = S.rules.filter(function (x) { return x.id !== id; }); renderTab(); renderStatus(); });
+  if (act === 'histSend') Serial.send(S.history[i], { format: Serial.parseHex(S.history[i]) ? 'HEX' : 'ASCII' });
+  if (act === 'histFill') { $('txInput').value = S.history[i]; preview(); $('txInput').focus(); }
+  if (act === 'histDel') Serial.removeHistory(i);
+  if (act === 'histClear') confirmDel('全部 ' + S.history.length + ' 条发送历史', function () { S.history.length = 0; renderTab(); });
+  if (act === 'scToggle') { var sc = Serial.toggleScript(id); hint(sc.name + (sc.enabled ? ' 已启用 · ' + Serial.scriptHook(sc) : ' 已停用')); }
+  if (act === 'scRun') Serial.runScript(id, $('txInput').value);
+  if (act === 'scSel' && !(scUi.dock && scUi.sel === id)) { scUi.sel = id; scUi.dock = true; renderTab(); }
+  if (act === 'scNew') { scUi.sel = Serial.newScript().id; scUi.dock = true; renderTab(); $('scCode').focus(); }
+  if (act === 'scFold') { scUi.dock = false; renderTab(); }
+  if (act === 'scClear') Serial.clearScriptLog();
+  if (act === 'tutView') { tutUi.view = id; renderTab(); }
+  if (act === 'tutOpen') { tutUi.open = tutUi.open === id ? null : id; renderTab(); }
+  if (act === 'tutNew') {
+    var ls = byId(LESSONS, id), ns = Serial.newScript(ls.name, ls.code);
+    scUi.sel = ns.id; scUi.dock = true; tutUi.view = 'mine'; renderTab(); hint('已用「' + ls.title + '」新建 ' + ns.name);
+  }
+  if (act === 'tutTry') {
+    var lt = byId(LESSONS, id);
+    if (!scUi.dock && S.scripts.length) { scUi.dock = true; renderTab(); }
+    Serial.logScript(lt.name, '样例试跑 · ' + lt.hook + ' ← ' + lt.sample);
+    lt.out.forEach(function (t) { Serial.logScript(lt.name, t); });
+    hint('样例试跑结果已写入运行日志');
+  }
+  if (act === 'calcFromTx') { var p = currentPayload(); ui.calcFmt = p.format; renderTab(); $('calcInput').value = p.text; calcUpdate(); }
+  if (act === 'calcAppend') {
+    var raw = ui.calcFmt === 'HEX' ? Serial.parseHex($('calcInput').value) : Serial.textBytes($('calcInput').value, true);
+    var ck = Serial.hex(Serial.checksumBytes(raw, b.dataset.k));
+    if (S.sendFormat !== 'HEX') { document.querySelector('[name=txFmt][value=HEX]').click(); }
+    $('txInput').value = Serial.hex(raw) + ' ' + ck; preview();
+    toast('已填入发送框：' + $('txInput').value);
+  }
+};
+Serial.on('history', function (h) { if (h[0]) ui.histTime[h[0]] = new Date(); if (ui.tab === 'history') renderTab(); });
+Serial.on('rule', function () { if (ui.tab === 'reply') renderTab(); renderStatus(); });
+Serial.on('batch', function (run) { ui.batchRun = run; if (ui.tab === 'batch') renderTab(); hint(run ? '批量发送中 · 第 ' + run.step + '/' + run.total + ' 条' : '批量发送结束'); });
+
+// ---------- 脚本（Lua） ----------
+function scriptLogHtml(max) {
+  var rows = max ? S.scriptLog.slice(-max) : S.scriptLog;
+  if (!rows.length) return '<div class="sclog-empty">还没有输出。启用脚本后，收到或发送数据时会写在这里。</div>';
+  return rows.map(function (e) {
+    return '<div class="sclog-row' + (e.err ? ' err' : '') + '"><span class="t">' + Serial.stamp(e.time) + '</span><span class="n">' + esc(e.name) + '</span><span class="o">' + esc(e.text) + '</span></div>';
+  }).join('');
+}
+// 右栏只放列表和开关；选中一行后，编辑器 + 运行日志停靠在数据日志下方
+var scUi = { sel: 's1', dock: true };
+function scriptSel() { return byId(S.scripts, scUi.sel) || S.scripts[0]; }
+function scriptRows() {
+  var cur = scriptSel();
+  return S.scripts.map(function (s) {
+    return '<div class="it sc' + (scUi.dock && s === cur ? ' active' : '') + (s.enabled ? '' : ' off') + '" data-act="scSel" data-id="' + s.id + '">' +
+      '<button class="sw lead' + (s.enabled ? ' on' : '') + '" data-act="scToggle" data-id="' + s.id + '" title="启用 / 停用"></button>' +
+      '<span class="nm">' + esc(s.name) + '</span>' +
+      '<span class="dt"><span class="schook">' + Serial.scriptHook(s) + '</span>' + (s.runs ? '已输出 ' + s.runs + ' 次' : (s.enabled ? '等待触发' : '已停用')) + '</span></div>';
+  }).join('');
+}
+function scriptNote() { return '已启用 ' + S.scripts.filter(function (s) { return s.enabled; }).length + ' / ' + S.scripts.length; }
+// 教程：六课，每课一段可直接运行的代码和一帧样例；out 是样例在真实引擎里的输出，设计稿直接回放
+var LESSONS = [
+  { id: 'l1', name: 'lesson1_hooks.lua', title: '脚本什么时候运行', hook: 'on_receive', brief: '两个钩子：收到数据后、发送数据前',
+    text: '写一个叫 on_receive 的函数，每收到一包数据就会调用它，frame 是这一包的字节。写 before_send 则在每一帧发出前调用（发送、快捷指令、批量、自动应答都算），返回的帧才会真正发出。开关只控制自动运行；「运行」是用最近一帧或发送框内容试算，不会发数据。',
+    code: '-- 收到一包数据后运行，frame 是这一包的字节\nfunction on_receive(frame)\n  log("收到", frame:len(), "字节")\nend\n',
+    sample: 'A5 81 00 00 81', out: ['收到 5 字节'] },
+  { id: 'l2', name: 'lesson2_print.lua', title: '把一帧打印出来', hook: 'on_receive', brief: 'log 输出到运行日志，帧会显示成 HEX',
+    text: 'log 把内容写到右侧运行日志，多个参数用空格连起来；print 和 log 是同一个函数。直接传入帧会显示成 HEX，frame:sub(i, j) 取第 i 到第 j 字节，frame:str() 按 ASCII 转成文字。',
+    code: 'function on_receive(frame)\n  log(frame)                     -- 整帧 HEX\n  log("帧头", frame:sub(1, 2))   -- 第 1~2 字节\n  log("末字节", frame:u8(frame:len()))\nend\n',
+    sample: 'A5 5A 03 00 F6 02 09 03', out: ['A5 5A 03 00 F6 02 09 03', '帧头 A5 5A', '末字节 3'] },
+  { id: 'l3', name: 'lesson3_parse.lua', title: '认帧头、取数值', hook: 'on_receive', brief: 'starts_with 判断帧头，u16 读两字节整数',
+    text: 'frame:starts_with(0xA5, 0x5A, 0x03) 判断帧头；不是要的帧就 return 跳过。下标从 1 开始：u8(i) 读第 i 字节，u16(i) 把第 i、i+1 字节按大端拼成整数，小端用 u16le(i)。',
+    code: '-- 温湿度帧：A5 5A 03 温度(2) 湿度(2) 校验\nfunction on_receive(frame)\n  if not frame:starts_with(0xA5, 0x5A, 0x03) then return end\n  local t = frame:u16(4) / 10\n  local h = frame:u16(6) / 10\n  log(string.format("温度 %.1f℃ 湿度 %.1f%%", t, h))\nend\n',
+    sample: 'A5 5A 03 00 F6 02 09 03', out: ['温度 24.6℃ 湿度 52.1%'] },
+  { id: 'l4', name: 'lesson4_checksum.lua', title: '发送前补校验', hook: 'before_send', brief: 'before_send 返回改过的帧，append 追加字节',
+    text: 'before_send 收到即将发出的帧，返回什么就发什么。frame:append(...) 返回在末尾追加字节后的新帧；sum8 是累加和，xor8 是异或（BCC）。',
+    code: '-- 发出前在帧尾补 SUM8\nfunction before_send(frame)\n  return frame:append(sum8(frame))\n  -- 改用异或校验：return frame:append(xor8(frame))\nend\n',
+    sample: 'A5 01 00 00 01', out: ['A5 01 00 00 01 → A5 01 00 00 01 A7（试算，未发送）'] },
+  { id: 'l5', name: 'lesson5_block.lua', title: '拦截不想发的帧', hook: 'before_send', brief: '返回 nil，这一帧就不发',
+    text: 'before_send 返回 nil 时这一帧不会发出，系统日志会记一条拦截。其他帧要原样放行，记得 return frame。',
+    code: '-- 不让「停止采集」发出去，其余照常\nfunction before_send(frame)\n  if frame:starts_with(0xA5, 0x10, 0x00) then\n    log("已拦截停止采集")\n    return nil\n  end\n  return frame\nend\n',
+    sample: 'A5 10 00 00 10', out: ['已拦截停止采集', 'A5 10 00 00 10 → nil，这一帧会被拦截（试算，未发送）'] },
+  { id: 'l6', name: 'lesson6_modbus.lua', title: 'Modbus 补 CRC16', hook: 'before_send', brief: 'crc16 返回低字节、高字节',
+    text: 'crc16(frame) 按 Modbus 算法返回两个值：低字节、高字节，正好按 Modbus RTU 的顺序追加。frame(...) 可以从数字、字符串或别的帧拼出一个新帧。',
+    code: '-- Modbus RTU：帧尾追加 CRC16，低字节在前\nfunction before_send(frame)\n  local lo, hi = crc16(frame)\n  return frame:append(lo, hi)\nend\n',
+    sample: '01 03 00 00 00 01', out: ['01 03 00 00 00 01 → 01 03 00 00 00 01 84 0A（试算，未发送）'] }
+];
+var tutUi = { view: 'mine', open: 'l1' };
+function segHtml() {
+  return '<span class="seg"><button data-act="tutView" data-id="mine"' + (tutUi.view === 'mine' ? ' class="on"' : '') + '>我的脚本 ' + S.scripts.length + '</button>' +
+    '<button data-act="tutView" data-id="tut"' + (tutUi.view === 'tut' ? ' class="on"' : '') + '>教程</button></span>';
+}
+function lessonRow(l, i) {
+  var open = tutUi.open === l.id;
+  var head = '<div class="it tut' + (open ? ' active' : '') + '" data-act="tutOpen" data-id="' + l.id + '">' +
+    '<span class="tutno lead">' + (i + 1) + '</span><span class="nm">' + esc(l.title) + '</span>' +
+    '<span class="dt"><span class="schook">' + l.hook + '</span>' + esc(l.brief) + '</span></div>';
+  if (!open) return head;
+  return head + '<div class="tutopen"><p class="tuttext">' + esc(l.text) + '</p><pre class="tutcode">' + esc(l.code.replace(/\n$/, '')) + '</pre>' +
+    '<div class="tutsample">样例帧 ' + l.sample + '</div>' +
+    '<div class="tutacts"><button class="btn sm pri" data-act="tutNew" data-id="' + l.id + '">用这课新建脚本</button><button class="btn sm" data-act="tutTry" data-id="' + l.id + '">样例试跑</button></div></div>';
+}
+function scriptHtml() {
+  if (tutUi.view === 'tut') {
+    return '<div class="bar">' + segHtml() + '<span class="grow"></span><span class="note" id="scNote">' + scriptNote() + '</span></div>' +
+      '<div class="list" id="scList" hidden></div>' +
+      '<div class="list">' + LESSONS.map(lessonRow).join('') + '</div>' +
+      '<div class="explain">下标从 1 开始；0x 写法可以直接用；死循环会被自动中止，os.execute 等危险函数已移除。<br>「样例试跑」把这课的样例帧交给代码，输出写进运行日志，不会发数据。</div>';
+  }
+  return '<div class="bar">' + segHtml() + '<span class="note" id="scNote">' + scriptNote() + '</span><span class="grow"></span><button class="btn sm" data-act="scNew">新建</button></div>' +
+    '<div class="list" id="scList">' + scriptRows() + '</div>' +
+    '<div class="explain">Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。<br>点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。<br>不会写？切到「教程」，六课从收数据讲到补 CRC。</div>';
+}
+function gutter(code) { var g = ''; for (var i = 1, n = code.split('\n').length; i <= n; i++) g += i + '\n'; return g; }
+function dockHead(s) {
+  return '<b>' + esc(s.name) + '</b><span class="schook">' + Serial.scriptHook(s) + '</span><span>' + (s.enabled ? '自动运行中' : '已停用，仅手动运行') + '</span>' +
+    '<span class="grow"></span><span>Lua · 输入即保存 · Tab 缩进两格</span><button class="btn sm pri" data-act="scRun" data-id="' + s.id + '">运行</button><button class="link" data-act="scFold">收起</button>';
+}
+function renderDock() {
+  var on = ui.tab === 'script' && scUi.dock, dock = $('scDock');
+  document.querySelector('.center').classList.toggle('withdock', on);
+  if (!on) { dock.innerHTML = ''; return; }
+  var s = scriptSel();
+  dock.innerHTML = '<div class="schead" id="scDockHead">' + dockHead(s) + '</div>' +
+    '<div class="scbody"><div class="sced"><pre class="gut" id="scGut">' + gutter(s.code) + '</pre><textarea id="scCode" spellcheck="false">' + esc(s.code) + '</textarea></div>' +
+    '<div class="sclogbox"><div class="schead"><b>运行日志</b><span id="scCount">' + S.scriptLog.length + ' 条</span><span class="grow"></span><button class="link" data-act="scClear">清空</button></div>' +
+    '<div class="sclog" id="scLog">' + scriptLogHtml() + '</div></div></div>';
+  var code = $('scCode'), l = $('scLog');
+  l.scrollTop = l.scrollHeight;
+  if (ui.scroll) $('log').scrollTop = $('log').scrollHeight;
+  code.oninput = function () {
+    s.code = code.value; $('scGut').textContent = gutter(code.value);
+    $('scDockHead').innerHTML = dockHead(s); $('scList').innerHTML = scriptRows();
+  };
+  code.onscroll = function () { $('scGut').scrollTop = code.scrollTop; };
+  code.onkeydown = function (e) { if (e.key === 'Tab') { e.preventDefault(); code.setRangeText('  ', code.selectionStart, code.selectionEnd, 'end'); code.oninput(); } };
+}
+$('scDock').onclick = function (e) { $('tabbody').onclick(e); };
+Serial.on('script', function (kind) {
+  if (ui.tab !== 'script') return;
+  $('scList').innerHTML = scriptRows(); $('scNote').textContent = scriptNote();
+  if (!$('scLog')) return;
+  if (kind === 'list') $('scDockHead').innerHTML = dockHead(scriptSel());
+  if (kind === 'log') {
+    var l = $('scLog'), stick = l.scrollTop + l.clientHeight >= l.scrollHeight - 4;
+    l.innerHTML = scriptLogHtml(); $('scCount').textContent = S.scriptLog.length + ' 条';
+    if (stick) l.scrollTop = l.scrollHeight;
+  }
+});
+
+// ---------- 对话框 ----------
+function dialog(title, body, buttons) {
+  $('dlgTitle').textContent = title;
+  $('dlgBody').innerHTML = body;
+  $('dlgFoot').innerHTML = '';
+  buttons.forEach(function (b) {
+    var el = document.createElement('button');
+    el.className = 'btn' + (b.pri ? ' pri' : '') + (b.danger ? ' danger' : '');
+    el.textContent = b.text;
+    el.onclick = function () { if (b.run && b.run() === false) return; closeDialog(); };
+    $('dlgFoot').appendChild(el);
+  });
+  $('modal').classList.add('show');
+  var first = $('dlgBody').querySelector('input,select,textarea'); if (first) first.focus();
+}
+function closeDialog() { $('modal').classList.remove('show'); }
+$('modal').onmousedown = function (e) { if (e.target === this) closeDialog(); };
+function fail(msg) { $('dlgErr').textContent = msg; return false; }
+function confirmDel(what, run) { dialog('确认删除', '<p>删除' + esc(what) + '后无法恢复。</p>', [{ text: '取消' }, { text: '删除', pri: true, run: function () { run(); toast('已删除'); } }]); }
+function validHex(v) { return !!Serial.parseHex(v); }
+
+function editQuick(q, folderId) {
+  var isNew = !q; q = q || { name: '', data: '', format: 'HEX', key: '' };
+  var keys = ['', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8'];
+  var folders = quickFolders();
+  var cur = isNew ? (folderId || '') : ((quickFolderOf(q.id) || {}).id || '');
+  dialog(isNew ? '新增快捷指令' : '编辑快捷指令',
+    '<div class="row"><label>名称</label><input class="inp" id="dName" value="' + esc(q.name) + '"></div>' +
+    '<div class="row"><label>格式</label><select id="dFmt"><option' + (q.format === 'HEX' ? ' selected' : '') + '>HEX</option><option' + (q.format === 'ASCII' ? ' selected' : '') + '>ASCII</option></select></div>' +
+    '<div class="row"><label>指令数据</label><input class="inp" id="dData" style="font-family:var(--mono)" value="' + esc(q.data) + '"></div>' +
+    '<div class="row"><label>快捷键</label><select id="dKey">' + keys.map(function (k) { return '<option value="' + k + '"' + (k === q.key ? ' selected' : '') + '>' + (k || '无') + '</option>'; }).join('') + '</select></div>' +
+    (folders.length ? '<div class="row"><label>文件夹</label><select id="dFolder"><option value="">根目录</option>' + folders.map(function (f) { return '<option value="' + f.id + '"' + (f.id === cur ? ' selected' : '') + '>' + esc(f.name) + '</option>'; }).join('') + '</select></div>' : '') +
+    '<div class="err" id="dlgErr"></div>',
+    [{ text: '取消' }, { text: '保存', pri: true, run: function () {
+      var v = { name: $('dName').value.trim(), data: $('dData').value.trim(), format: $('dFmt').value, key: $('dKey').value };
+      var target = $('dFolder') ? $('dFolder').value : '';
+      if (!v.name) return fail('请填写名称');
+      if (!v.data) return fail('请填写指令数据');
+      if (v.format === 'HEX' && !validHex(v.data)) return fail('HEX 数据需为成对的十六进制字符');
+      if (v.key) allQuick().forEach(function (x) { if (x !== q && x.key === v.key) x.key = ''; });
+      if (isNew) q = Object.assign({ id: uid('q') }, v); else Object.assign(q, v);
+      if (isNew || target !== cur) {
+        removeQuick(q.id);
+        var dest = byId(S.quick, target);
+        (dest ? dest.commands : S.quick).push(q);
+      }
+      renderTab(); toast('快捷指令已保存');
+    } }]);
+}
+function editFolder(f) {
+  dialog(f ? '重命名文件夹' : '新增文件夹',
+    '<div class="row"><label>名称</label><input class="inp" id="dName" value="' + esc(f ? f.name : '') + '"></div><div class="err" id="dlgErr"></div>',
+    [{ text: '取消' }, { text: '保存', pri: true, run: function () {
+      var name = $('dName').value.trim();
+      if (!name) return fail('请填写文件夹名称');
+      if (quickFolders().some(function (x) { return x !== f && x.name === name; })) return fail('已有同名文件夹');
+      if (f) f.name = name; else S.quick.push({ type: 'folder', id: uid('f'), name: name, expanded: true, commands: [] });
+      renderTab(); toast('文件夹已保存');
+    } }]);
+}
+function editRule(r) {
+  var isNew = !r; r = r || { name: '', match: 'prefix', pattern: '', enabled: true, hits: 0, replies: [{ data: '', delay: 50 }] };
+  dialog(isNew ? '新增应答规则' : '编辑应答规则',
+    '<div class="row"><label>规则名称</label><input class="inp" id="dName" value="' + esc(r.name) + '"></div>' +
+    '<div class="row"><label>语法</label><select id="dKind"><option value="template">模板</option><option value="regex"' + (r.kind === 'regex' ? ' selected' : '') + '>正则</option></select></div>' +
+    '<div class="row"><label>格式</label><select id="dFormat"><option value="HEX">HEX</option><option value="ASCII"' + (r.format === 'ASCII' ? ' selected' : '') + '>ASCII</option></select></div>' +
+    '<div class="row" id="dMatchRow"><label>匹配方式</label><select id="dMatch">' + Object.keys(matchName).map(function (k) { return '<option value="' + k + '"' + (k === r.match ? ' selected' : '') + '>' + matchName[k] + '</option>'; }).join('') + '</select></div>' +
+    '<div class="row"><label>匹配数据</label><input class="inp" id="dPattern" style="font-family:var(--mono)" value="' + esc(r.pattern) + '"></div>' +
+    '<div class="explain" id="dHint"></div>' +
+    '<label id="dCaseRow" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="dCase"' + (r.ignoreCase ? ' checked' : '') + '>忽略大小写</label>' +
+    '<div class="sub">应答列表 <button class="btn sm" id="dAdd">添加应答</button></div>' +
+    '<div class="lines" id="dLines">' + r.replies.map(replyLine).join('') + '</div>' +
+    '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="dOn"' + (r.enabled ? ' checked' : '') + '>启用此规则</label>' +
+    '<div class="err" id="dlgErr"></div>',
+    [{ text: '取消' }, { text: '保存', pri: true, run: function () {
+      var replies = Array.from(document.querySelectorAll('#dLines .line')).map(function (l) { return { delay: Number(l.querySelector('.dl').value), data: l.querySelector('.dd').value.trim() }; });
+      var kind = $('dKind').value, format = $('dFormat').value, raw = $('dPattern').value;
+      var v = { name: $('dName').value.trim(), kind: kind, format: format, ignoreCase: $('dCase').checked, match: $('dMatch').value,
+        pattern: kind === 'template' && format === 'ASCII' ? raw : raw.trim(), enabled: $('dOn').checked };
+      if (!v.name) return fail('请填写规则名称');
+      var wild = null;
+      if (kind === 'regex') {
+        try { if (!v.pattern) throw 0; new RegExp(v.pattern); } catch (e) { return fail('正则表达式无法解析'); }
+      } else {
+        wild = Serial.captureCount(v.pattern, format);
+        if (wild == null) return fail(format === 'HEX' ? '匹配数据需为 HEX，?? 和 * 之外的字符需成对' : '请填写匹配数据');
+      }
+      if (!replies.length) return fail('至少需要一条应答');
+      for (var i = 0; i < replies.length; i++) {
+        var refs = (replies[i].data.match(/\$\d+/g) || []).map(function (x) { return Number(x.slice(1)); });
+        if (!validHex(replies[i].data.replace(/\$\d+/g, ' 00 ')) || refs.indexOf(0) >= 0) return fail('第 ' + (i + 1) + ' 条应答数据需为 HEX，可插入 $1、$2');
+        var top = Math.max.apply(null, [0].concat(refs));
+        if (wild != null && top > wild) return fail('第 ' + (i + 1) + ' 条应答引用了第 ' + top + ' 个捕获，但匹配数据只有 ' + wild + ' 个通配符');
+        if (!(replies[i].delay >= 0)) return fail('第 ' + (i + 1) + ' 条延时需为非负数');
+      }
+      v.replies = replies;
+      if (isNew) S.rules.push(Object.assign({ id: uid('r'), hits: 0 }, v)); else Object.assign(r, v);
+      renderTab(); renderStatus(); toast('应答规则已保存');
+    } }]);
+  renumber();
+  function syncMatch() {
+    var kind = $('dKind').value, format = $('dFormat').value;
+    $('dMatchRow').style.display = kind === 'regex' ? 'none' : '';
+    $('dCaseRow').style.display = format === 'ASCII' ? 'flex' : 'none';
+    $('dPattern').placeholder = format === 'HEX' ? 'HEX，如 A5 5A 03' : '';
+    $('dHint').textContent = matchHint[kind + ' ' + format];
+  }
+  $('dKind').onchange = syncMatch; $('dFormat').onchange = syncMatch; syncMatch();
+  $('dAdd').onclick = function () { $('dLines').insertAdjacentHTML('beforeend', replyLine({ data: '', delay: 50 })); renumber(); };
+  $('dLines').onclick = function (e) { if (e.target.dataset.rm != null) { e.target.parentNode.remove(); renumber(); } };
+}
+function replyLine(x) {
+  return '<div class="line"><span></span><input class="inp dl" value="' + x.delay + '" title="延时 ms"><input class="inp dd" value="' + esc(x.data) + '" placeholder="应答数据 HEX，可写 $1"><button class="link danger" data-rm title="移除">✕</button></div>';
+}
+function renumber() { document.querySelectorAll('#dLines .line>span').forEach(function (s, i) { s.textContent = (i + 1); }); }
+function editBatch(job) {
+  var isNew = !job; job = job || { name: '', repeat: 1, stopOnFail: true, steps: [{ data: '', delay: 0, note: '' }] };
+  dialog(isNew ? '新建批量任务' : '编辑批量任务',
+    '<div class="row"><label>任务名称</label><input class="inp" id="dName" value="' + esc(job.name) + '"></div>' +
+    '<div class="sub">指令序列（延时 ms / 数据 / 备注）<button class="btn sm" id="dAdd">添加指令</button></div>' +
+    '<div class="lines" id="dLines">' + job.steps.map(stepLine).join('') + '</div><div class="err" id="dlgErr"></div>',
+    [{ text: '取消' }, { text: '保存', pri: true, run: function () {
+      var steps = Array.from(document.querySelectorAll('#dLines .line')).map(function (l) { return { delay: Number(l.querySelector('.dl').value), data: l.querySelector('.dd').value.trim(), note: l.querySelector('.note').value.trim() }; });
+      var name = $('dName').value.trim();
+      if (!name) return fail('请填写任务名称');
+      if (!steps.length) return fail('至少需要一条指令');
+      for (var i = 0; i < steps.length; i++) {
+        if (!validHex(steps[i].data)) return fail('第 ' + (i + 1) + ' 条数据需为 HEX');
+        if (!(steps[i].delay >= 0)) return fail('第 ' + (i + 1) + ' 条延时需为非负数');
+      }
+      if (isNew) { var nj = { id: uid('b'), name: name, repeat: 1, stopOnFail: true, steps: steps }; S.batch.push(nj); ui.batchSel = nj.id; }
+      else { job.name = name; job.steps = steps; }
+      renderTab(); toast('批量任务已保存');
+    } }]);
+  renumber();
+  $('dAdd').onclick = function () { $('dLines').insertAdjacentHTML('beforeend', stepLine({ data: '', delay: 200, note: '' })); renumber(); };
+  $('dLines').onclick = function (e) { if (e.target.dataset.rm != null) { e.target.parentNode.remove(); renumber(); } };
+}
+function stepLine(s) {
+  return '<div class="line bat"><span></span><input class="inp dl" value="' + s.delay + '" title="延时 ms"><input class="inp dd" value="' + esc(s.data) + '" placeholder="指令数据 HEX"><input class="inp note" value="' + esc(s.note || '') + '" placeholder="备注"><button class="link danger" data-rm title="移除">✕</button></div>';
+}
+function showKeys() {
+  dialog('快捷键说明', '<div class="keys">' + [
+    ['Ctrl+Enter', '发送（发送框内）'], ['F1–F8', '发送绑定了快捷键的快捷指令'], ['Esc', '停止循环发送和批量发送'],
+    ['Ctrl+S', '保存接收数据'], ['Ctrl+L', '清除接收'], ['Ctrl+F', '搜索接收内容'], ['F12', '打开本说明']
+  ].map(function (k) { return '<kbd>' + k[0] + '</kbd><span>' + k[1] + '</span>'; }).join('') + '</div>', [{ text: '知道了', pri: true }]);
+}
+
+// ---------- 全局快捷键 ----------
+document.addEventListener('keydown', function (e) {
+  if ($('modal').classList.contains('show')) { if (e.key === 'Escape') closeDialog(); return; }
+  var fk = /^F([1-8])$/.exec(e.key);
+  if (fk) {
+    e.preventDefault();
+    var q = allQuick().filter(function (x) { return x.key === e.key; })[0];
+    if (q) Serial.send(q.data, { format: q.format, checksum: 'none', crlf: false, silentHistory: true });
+    return;
+  }
+  if (e.key === 'F12') { e.preventDefault(); return showKeys(); }
+  if (e.key === 'Escape') { Serial.stopLoop(); Serial.stopBatch(); }
+  if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); saveRecv(); }
+  if (e.ctrlKey && e.key.toLowerCase() === 'l') { e.preventDefault(); Serial.clear(); }
+  if (e.ctrlKey && e.key.toLowerCase() === 'f') { e.preventDefault(); $('logSearch').focus(); }
+});
+
+// ---------- 状态 ----------
+function renderStatus() {
+  $('stConn').textContent = connText();
+  $('stLamp').classList.toggle('on', S.open);
+  $('stRx').textContent = S.rx.toLocaleString(); $('stTx').textContent = S.tx.toLocaleString();
+  var on = S.rules.filter(function (r) { return r.enabled; }).length;
+  $('stReply').textContent = '自动应答 ' + on + '/' + S.rules.length;
+  $('stSave').hidden = !ui.saveBuf;
+  if (ui.saveBuf) $('stSave').textContent = '正在保存 ' + ui.saveName + ' · ' + ui.saveBuf.length + ' 条';
+}
+function renderOpen() {
+  $('openLamp').classList.toggle('on', S.open);
+  $('openText').textContent = S.open ? '关闭' : '打开';
+  $('btnOpen').classList.toggle('pri', !S.open);
+  $('cfgPort').disabled = S.open;
+}
+var wasOpen = null;
+Serial.on('state', function () {
+  renderStatus();
+  if (wasOpen !== S.open) { renderOpen(); if (wasOpen !== null) hint(S.open ? '串口已打开' : '串口已关闭'); if (!S.lines.length) renderLog(); wasOpen = S.open; }
+});
+Serial.on('blocked', function (m) { toast(m, true); hint(m); });
+
+// ---------- 启动 ----------
+setTheme(localStorage.getItem('ddt.theme') || 'light');
+setCompact(false); setTools(true);
+renderTab(); renderStatus(); renderOpen(); renderLog(); preview();
+Serial.seed();
+setTimeout(function () { Serial.send('A5 01 00 00 01 07', { format: 'HEX' }); }, 900);
+</script>
+<script>
+/* 应答教程三版共用的课与「填进左边」。
+   假设：教程只长在「新增 / 编辑应答规则」右侧；左边仍是现在的表单。
+   课按现有引擎来写：模板的 ?? / *、四种位置、ASCII 转义；
+   正则 HEX 比的是空格分隔的十六进制文字，只有括号才捕获。
+   「填入」只改左边，不保存；保存仍走原来的校验。
+   视觉母题：一帧拆成字节格，被抓进 $n 的格子用搜索高亮色。 */
+var RT = {
+  id: 'wild',
+  open: 'wild',
+  step: 'see',
+  wrote: '',
+  paint: function () {},
+  onClick: function () {}
+};
+
+RT.lessons = [
+  {
+    id: 'order', group: 'template', short: '收到才发',
+    title: '收到之后才发',
+    brief: '命中后按应答列表一条条发',
+    text: '串口打开后，每一包收到的数据都会跟已启用的规则比。命中的按应答列表顺序发送，每条延时从上一包发出之后算，不是从收到的时刻重算。列表里两条都命中，就会都回，不是中了一条就停。串口关着时，规则不执行。',
+    rule: { name: '握手应答', kind: 'template', format: 'HEX', match: 'prefix', pattern: 'A5 5A', replies: [{ delay: 20, data: 'A5 81' }, { delay: 50, data: 'A5 5A 00' }] },
+    rxNote: '前缀只认开头的 A5 5A，后面两字节不参与。',
+    rx: [{ t: 'A5', tag: '前缀' }, { t: '5A', tag: '前缀' }, { t: '01', tag: '忽略', dim: true }, { t: '02', tag: '忽略', dim: true }],
+    tx: [{ delay: 20, data: 'A5 81', from: 'A5 81' }, { delay: 50, data: 'A5 5A 00', from: 'A5 5A 00' }],
+    steps: [
+      { id: 'see', title: '看收到的这一包', text: '这一包以 A5 5A 开头。前缀规则只看开头，后面的 01 02 不参与比较。' },
+      { id: 'match', title: '写入匹配', text: '语法选模板，格式 HEX，匹配方式选前缀，匹配数据写 A5 5A。' },
+      { id: 'reply', title: '写入应答', text: '先等 20ms 发 A5 81，再等 50ms 发 A5 5A 00。第二段是从第一包发出后算的。' }
+    ]
+  },
+  {
+    id: 'place', group: 'template', short: '四种位置',
+    title: '前缀、整帧、包含、结尾',
+    brief: '这四项只有模板有',
+    text: '同一条匹配数据 A5 5A，换匹配方式，中不中完全不同。整帧必须整包一模一样；前缀只看开头；结尾只看末尾；包含只要中间出现过。正则没有这个下拉，位置要自己写 ^ 和 $。',
+    rule: { name: '帧里出现就回', kind: 'template', format: 'HEX', match: 'contains', pattern: 'A5 5A', replies: [{ delay: 0, data: 'A5 90' }] },
+    table: {
+      head: ['方式', 'A5 5A 03 00', '00 A5 5A'],
+      rows: [['前缀', '中', '不中'], ['包含', '中', '中'], ['整帧', '不中', '不中'], ['结尾', '不中', '中']]
+    },
+    rxNote: '这一包开头是 00。前缀不中，包含能中。',
+    rx: [{ t: '00', tag: '在前', dim: true }, { t: 'A5', tag: '匹配' }, { t: '5A', tag: '匹配' }],
+    tx: [{ delay: 0, data: 'A5 90', from: 'A5 90' }],
+    steps: [
+      { id: 'see', title: '看同一条数据的四种结果', text: '匹配数据都是 A5 5A。整帧两包都不中，因为都不是正好这两个字节。' },
+      { id: 'match', title: '写入匹配', text: '下面填进去的是「包含」。00 A5 5A 这种开头不对的包，前缀不中，包含能中。' },
+      { id: 'reply', title: '写入应答', text: '命中后立刻发 A5 90。延时 0 表示上一条（这里是收到）之后马上发。' }
+    ]
+  },
+  {
+    id: 'wild', group: 'template', short: '?? 和 *',
+    title: '?? 抓一字节，* 抓一段',
+    brief: '通配符从左到右就是 $1、$2',
+    text: 'HEX 模板里 ?? 是任意一字节，必须写成两个问号，只写一个问号存不进去。* 是任意长度，可以是空。它们按从左到右变成 $1、$2，应答里写 $1 就会换成抓到的字节。模板在保存时就检查：没有第三个通配符却写了 $3，不许存。',
+    rule: { name: '回传抓到的字节', kind: 'template', format: 'HEX', match: 'frame', pattern: 'A5 ?? *', replies: [{ delay: 10, data: 'B0 $1' }, { delay: 10, data: '$2' }] },
+    rxNote: '整帧。?? 吃掉 11，* 吃掉剩下的 22 33。',
+    rx: [{ t: 'A5', tag: '固定' }, { t: '11', tag: '$1', cap: true }, { t: '22', tag: '$2', cap: true }, { t: '33', tag: '$2', cap: true }],
+    tx: [{ delay: 10, data: 'B0 11', from: 'B0 $1' }, { delay: 10, data: '22 33', from: '$2' }],
+    steps: [
+      { id: 'see', title: '看收到的这一包', text: '整帧 A5 11 22 33。?? 只占一个字节，* 把剩下的都拿走，可以是空。' },
+      { id: 'match', title: '写入匹配', text: '语法模板，格式 HEX，匹配方式整帧，匹配数据 A5 ?? *。?? 是 $1，* 是 $2。' },
+      { id: 'reply', title: '写入应答', text: '10ms 后 B0 $1 发出 B0 11。再过 10ms，$2 发出 22 33。' }
+    ]
+  },
+  {
+    id: 'ascii', group: 'template', short: 'ASCII 问号',
+    title: 'ASCII 里一个 ? 是一字节',
+    brief: '应答框仍然写 HEX',
+    text: '格式改成 ASCII 之后，一个 ? 就是任意一字节，* 仍是任意长度。想匹配问号本身，写成反斜杠加问号；星号、回车、换行同样加反斜杠。指定某个字节用反斜杠 x 加两位，例如 \\x0D。忽略大小写只在 ASCII 下有。应答框永远写 HEX：字符 7 抓进来是字节 37。',
+    rule: { name: '回传 OK 后一字节', kind: 'template', format: 'ASCII', match: 'prefix', pattern: 'OK,?', ignoreCase: true, replies: [{ delay: 30, data: '$1' }] },
+    rxNote: '忽略大小写，所以 ok,7 也能对上 OK,?。问号抓到字符 7。',
+    rx: [{ t: 'o', tag: '固定' }, { t: 'k', tag: '固定' }, { t: ',', tag: '固定' }, { t: '7', tag: '$1', cap: true }],
+    tx: [{ delay: 30, data: '37', from: '$1' }],
+    steps: [
+      { id: 'see', title: '看收到的这一包', text: '收到的是字符 ok,7。ASCII 模板按字符比，一个 ? 只吃一个字节。' },
+      { id: 'match', title: '写入匹配', text: '格式选 ASCII，匹配方式前缀，匹配数据 OK,?，并勾上忽略大小写。' },
+      { id: 'reply', title: '写入应答', text: '应答仍是 HEX。$1 换成字符 7 的字节，发出 37。' }
+    ]
+  },
+  {
+    id: 'reword', group: 'regex', short: '正则不是模板',
+    title: '正则看的是一行 HEX 文字',
+    brief: '这里的 * 不是任意长度',
+    text: '语法改成正则后，没有「匹配方式」这一栏。HEX 正则不按字节格子比，而是去比空格分隔的十六进制文字，例如 A5 5A 03。表达式里的 * 是「前一个东西重复」，?? 也不再表示任意一字节。要抓一个字节，写括号包住两位：([0-9A-F]{2})。开头用 ^，结尾用 $，自己写。',
+    rule: { name: '取帧头后一字节', kind: 'regex', format: 'HEX', match: 'prefix', pattern: '^A5 5A ([0-9A-F]{2})', replies: [{ delay: 40, data: 'A5 $1' }] },
+    rxNote: '引擎拿去匹配的文字是「A5 5A 03」。这条没写 $，后面再跟字节也会中。',
+    rx: [{ t: 'A5', tag: '字面' }, { t: '5A', tag: '字面' }, { t: '03', tag: '$1', cap: true }],
+    tx: [{ delay: 40, data: 'A5 03', from: 'A5 $1' }],
+    steps: [
+      { id: 'see', title: '看它实际在比什么', text: '字节会先变成文字 A5 5A 03。正则比的是这行字，不是左边这种格子本身。' },
+      { id: 'match', title: '写入匹配', text: '语法选正则，匹配方式会消失。匹配数据写 ^A5 5A ([0-9A-F]{2})。不要把模板的 * 原样搬过来。' },
+      { id: 'reply', title: '写入应答', text: '括号里的 03 是 $1。应答 A5 $1 发出 A5 03。' }
+    ]
+  },
+  {
+    id: 'groups', group: 'regex', short: '括号才捕获',
+    title: '只有括号才是 $1',
+    brief: '写了不存在的 $n，那一条会跳过',
+    text: '模板的 ?? 和 * 会自动占编号。正则只有圆括号里的内容才变成 $1、$2，按左括号出现的顺序。这条用 $ 锚住整帧，两对括号各抓一个字节。应答里如果写了 $3，而只有两组括号，这一条不发送，系统日志记「引用的捕获不存在，已跳过」。括号若只抓到一个十六进制字符，同样跳过。模板则会在点保存时就拦住。',
+    rule: { name: '拆开两个字节', kind: 'regex', format: 'HEX', match: 'frame', pattern: '^A5 5A ([0-9A-F]{2}) ([0-9A-F]{2})$', replies: [{ delay: 20, data: 'B1 $1' }, { delay: 20, data: 'B2 $2' }] },
+    rxNote: '两对括号，按从左到右是 $1、$2。末尾的 $ 表示整帧到此结束。',
+    rx: [{ t: 'A5', tag: '字面' }, { t: '5A', tag: '字面' }, { t: '11', tag: '$1', cap: true }, { t: '22', tag: '$2', cap: true }],
+    tx: [{ delay: 20, data: 'B1 11', from: 'B1 $1' }, { delay: 20, data: 'B2 22', from: 'B2 $2' }],
+    steps: [
+      { id: 'see', title: '看两组括号各抓什么', text: '文字是 A5 5A 11 22。第一对括号是 11，第二对是 22。没有括号的 A5、5A 不会变成 $n。' },
+      { id: 'match', title: '写入匹配', text: '正则 HEX，匹配数据 ^A5 5A ([0-9A-F]{2}) ([0-9A-F]{2})$。最后的 $ 把整帧锚死。' },
+      { id: 'reply', title: '写入应答', text: 'B1 $1 发出 B1 11，B2 $2 发出 B2 22。若写成 $3，这一条会被跳过，规则仍算命中。' }
+    ]
+  },
+  {
+    id: 'reascii', group: 'regex', short: 'ASCII 逐字',
+    title: 'ASCII 正则逐字匹配',
+    brief: '对着字符比，不是对着 HEX 文字',
+    text: 'ASCII 正则对着收到的原始字符匹配，一个字符一个字符比，不是「A5 5A」那种十六进制文字。括号抓到的字符按字节填进应答。忽略大小写同样只在 ASCII 时可选。锚点还是自己写 ^ 和 $。',
+    rule: { name: '取逗号后面', kind: 'regex', format: 'ASCII', match: 'prefix', pattern: '^OK,(.+)$', replies: [{ delay: 20, data: '$1' }] },
+    rxNote: '收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 $1。',
+    rx: [{ t: 'O', tag: '字面' }, { t: 'K', tag: '字面' }, { t: ',', tag: '字面' }, { t: '4', tag: '$1', cap: true }, { t: '2', tag: '$1', cap: true }],
+    tx: [{ delay: 20, data: '34 32', from: '$1' }],
+    steps: [
+      { id: 'see', title: '看收到的字符', text: 'OK,42 是五个字符。括号把逗号后面的 4 和 2 收成一个 $1，发出时是两个字节。' },
+      { id: 'match', title: '写入匹配', text: '语法正则，格式 ASCII，匹配数据 ^OK,(.+)$。没有匹配方式这一栏。' },
+      { id: 'reply', title: '写入应答', text: '$1 换成 4 和 2 的字节，发出 34 32。' }
+    ]
+  }
+];
+
+RT.groups = [{ id: 'template', label: '模板' }, { id: 'regex', label: '正则' }];
+
+RT.byId = function (id) {
+  for (var i = 0; i < RT.lessons.length; i++) if (RT.lessons[i].id === id) return RT.lessons[i];
+};
+RT.no = function (l) { return RT.lessons.indexOf(l) + 1; };
+RT.recipe = function (l) {
+  var r = l.rule;
+  var fmt = r.format === 'ASCII' ? 'ASCII' : 'HEX';
+  if (r.kind === 'regex') return '正则 ' + fmt + ' · ' + r.pattern;
+  return matchName[r.match] + ' ' + fmt + (r.ignoreCase ? ' Aa' : '') + ' · ' + r.pattern;
+};
+
+RT.strip = function (l) {
+  return '<div class="strip"><div class="slab">收到</div><div class="bytes">' + l.rx.map(function (b) {
+    return '<span class="' + (b.cap ? 'cap' : '') + (b.dim ? ' dim' : '') + '">' + esc(b.t) + '<small>' + esc(b.tag) + '</small></span>';
+  }).join('') + '</div>' + (l.rxNote ? '<p class="snote">' + esc(l.rxNote) + '</p>' : '') + '</div>';
+};
+RT.tx = function (l) {
+  return '<div class="strip"><div class="slab">将发出</div>' + l.tx.map(function (x) {
+    return '<div class="tx"><span class="ms">+' + x.delay + ' ms</span><code>' + esc(x.data) + '</code><span class="from">由 ' + esc(x.from) + '</span></div>';
+  }).join('') + '</div>';
+};
+RT.table = function (l) {
+  if (!l.table) return '';
+  return '<table class="cmp"><thead><tr>' + l.table.head.map(function (h, i) {
+    return '<th' + (i ? ' class="hex"' : '') + '>' + esc(h) + '</th>';
+  }).join('') + '</tr></thead><tbody>' + l.table.rows.map(function (row) {
+    return '<tr>' + row.map(function (c, i) {
+      var cls = c === '中' ? 'yes' : (c === '不中' ? 'no' : '');
+      return '<td' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(c) + '</td>';
+    }).join('') + '</tr>';
+  }).join('') + '</tbody></table>';
+};
+RT.block = function (l) {
+  return '<p class="rttext">' + esc(l.text) + '</p>' + RT.table(l) +
+    '<div class="recipe">' + esc(RT.recipe(l)) + '</div>' + RT.strip(l) + RT.tx(l);
+};
+
+RT.fill = function (l, part) {
+  var rule = l.rule;
+  var all = !part || part === 'all';
+  if (all || part === 'match') {
+    $('dName').value = rule.name;
+    $('dKind').value = rule.kind;
+    $('dFormat').value = rule.format;
+    $('dMatch').value = rule.match || 'prefix';
+    $('dPattern').value = rule.pattern;
+    $('dCase').checked = !!rule.ignoreCase;
+    $('dKind').dispatchEvent(new Event('change'));
+  }
+  if (all || part === 'reply') {
+    $('dLines').innerHTML = rule.replies.map(replyLine).join('');
+    renumber();
+    $('dOn').checked = true;
+  }
+};
+RT.hot = function (part) {
+  document.querySelectorAll('.ruleform .hot').forEach(function (n) { n.classList.remove('hot'); });
+  if (part === 'match') {
+    ['dName', 'dKind', 'dFormat', 'dMatch', 'dPattern'].forEach(function (id) {
+      var el = $(id);
+      if (!el) return;
+      var row = el.closest('.row');
+      if (row && row.style.display !== 'none') row.classList.add('hot');
+    });
+    var caseRow = $('dCaseRow');
+    if (caseRow && caseRow.style.display !== 'none') caseRow.classList.add('hot');
+  }
+  if (part === 'reply') {
+    var sub = document.querySelector('.ruleform .sub');
+    var lines = document.querySelector('.ruleform .lines');
+    if (sub) sub.classList.add('hot');
+    if (lines) lines.classList.add('hot');
+  }
+};
+RT.wroteLine = function (key) {
+  if (RT.wrote !== key) return '';
+  return '<p class="wrote">已写入左边，点「保存」才会出现在规则列表里。</p>';
+};
+
+RT.mount = function () {
+  var body = $('dlgBody');
+  var form = document.createElement('div');
+  form.className = 'ruleform';
+  while (body.firstChild) form.appendChild(body.firstChild);
+  body.classList.add('split');
+  body.appendChild(form);
+  var rail = document.createElement('aside');
+  rail.id = 'rail';
+  rail.className = 'rail';
+  body.appendChild(rail);
+  document.querySelector('.dialog').classList.add('wide');
+  rail.onclick = function (e) {
+    var t = e.target.closest('[data-rt]');
+    if (!t) return;
+    RT.onClick(t.dataset.rt, t.dataset.id);
+  };
+  RT.paint();
+};
+RT.unmount = function () {
+  var body = $('dlgBody');
+  var form = body.querySelector('.ruleform');
+  if (form) {
+    while (form.firstChild) body.insertBefore(form.firstChild, form);
+    form.remove();
+  }
+  var rail = $('rail');
+  if (rail) rail.remove();
+  body.classList.remove('split');
+  var d = document.querySelector('.dialog');
+  if (d) d.classList.remove('wide');
+};
+RT.toggle = function () {
+  var on = !$('rail');
+  if (on) RT.mount(); else RT.unmount();
+  $('rtToggle').classList.toggle('pri', on);
+};
+
+var baseEditRule = editRule;
+editRule = function (rule) {
+  baseEditRule(rule);
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'rtToggle';
+  btn.className = 'btn sm';
+  btn.textContent = '教程';
+  btn.onclick = RT.toggle;
+  $('dlgTitle').appendChild(btn);
+};
+var baseCloseDialog = closeDialog;
+closeDialog = function () {
+  RT.unmount();
+  var btn = $('rtToggle');
+  if (btn) btn.remove();
+  baseCloseDialog();
+};
+
+/* 版 A · 课表：点一课就在列表里展开，对照左边的空表单。 */
+RT.open = 'wild';
+RT.paint = function () {
+  var html = '<div class="railhead"><b>教程</b><span>模板四课，正则三课。点开一课，可填进左边。</span></div><div class="rscroll">';
+  RT.groups.forEach(function (g) {
+    html += '<div class="glab">' + g.label + '</div>';
+    RT.lessons.forEach(function (l) {
+      if (l.group !== g.id) return;
+      var on = RT.open === l.id;
+      html += '<button type="button" class="lrow' + (on ? ' on' : '') + '" data-rt="open" data-id="' + l.id + '">' +
+        '<span class="ti"><span class="no">' + RT.no(l) + '</span><span>' + esc(l.title) + '</span></span>' +
+        '<span class="br">' + esc(l.brief) + '</span></button>';
+      if (!on) return;
+      html += '<div class="lbody">' + RT.block(l) +
+        '<div class="acts"><button type="button" class="btn sm pri" data-rt="fill" data-id="' + l.id + '">填入编辑器</button></div>' +
+        RT.wroteLine(l.id) + '</div>';
+    });
+  });
+  $('rail').innerHTML = html + '</div>';
+};
+RT.onClick = function (act, id) {
+  if (act === 'open') { RT.open = RT.open === id ? '' : id; RT.paint(); return; }
+  if (act === 'fill') { RT.fill(RT.byId(id)); RT.wrote = id; RT.hot(''); RT.paint(); }
+};
+</script>
+<script>
+// ---------- 配置包：快捷指令 / 自动应答 / 批量发送 / 脚本 ----------
+// 文件形状与 Flutter 侧一致：{ kind, version, quick?, rules?, batch?, scripts? }，各列表沿用各自 toJson()。
+var Pack = (function () {
+  var KIND = 'device-debug-config';
+  var CATS = [
+    { key: 'quick', name: '快捷指令', unit: '条', tab: 'quick', file: 'quick-commands.json' },
+    { key: 'rules', name: '自动应答', unit: '条', tab: 'reply', file: 'auto-reply-rules.json' },
+    { key: 'batch', name: '批量发送', unit: '个任务', tab: 'batch', file: 'batch-jobs.json' },
+    { key: 'scripts', name: '脚本', unit: '个', tab: 'script', file: 'lua-scripts.json' }
+  ];
+  function cat(key) { return CATS.filter(function (c) { return c.key === key; })[0]; }
+
+  function count(key, list) {
+    if (key !== 'quick') return list.length;
+    var n = 0; list.forEach(function (x) { n += isFolder(x) ? (x.commands || []).length : 1; }); return n;
+  }
+  function current(key) { return count(key, S[key]); }
+  function clean(key, list) {
+    return list.map(function (x) {
+      var o = JSON.parse(JSON.stringify(x));
+      if (key === 'rules') delete o.hits;
+      if (key === 'scripts') { delete o.runs; delete o.last; }
+      return o;
+    });
+  }
+  function build(keys) {
+    var out = { kind: KIND, version: 1 };
+    keys.forEach(function (k) { out[k] = clean(k, S[k]); });
+    return out;
+  }
+  function download(keys, name) {
+    Serial.download(name || 'device-debug-config.json', JSON.stringify(build(keys), null, 2));
+  }
+
+  // 旧的单列表文件按首项形状识别类别
+  function guess(arr) {
+    var x = arr[0];
+    if (!x || typeof x !== 'object') return null;
+    if (Array.isArray(x.steps)) return 'batch';
+    if (typeof x.code === 'string') return 'scripts';
+    if ('pattern' in x || Array.isArray(x.replies)) return 'rules';
+    if (x.type || Array.isArray(x.commands) || 'data' in x) return 'quick';
+    return null;
+  }
+  // 返回 { lists, legacy }；格式不对抛出带中文说明的 Error
+  function parse(text) {
+    var raw;
+    try { raw = JSON.parse(text); } catch (e) { throw new Error('不是有效的 JSON 文件'); }
+    var lists = {};
+    if (Array.isArray(raw)) {
+      var k = guess(raw);
+      if (!k) throw new Error(raw.length ? '认不出这份列表属于哪一类' : '空列表认不出属于哪一类');
+      lists[k] = raw;
+      return { lists: lists, legacy: true };
+    }
+    if (!raw || raw.kind !== KIND) throw new Error('不是本工具导出的配置文件');
+    CATS.forEach(function (c) {
+      if (c.key in raw) {
+        if (!Array.isArray(raw[c.key])) throw new Error(c.name + ' 不是列表');
+        lists[c.key] = raw[c.key];
+      }
+    });
+    if (!Object.keys(lists).length) throw new Error('文件里没有任何可导入的类别');
+    return { lists: lists, legacy: false };
+  }
+
+  function quickOf(arr) {
+    var used = {};
+    var cmd = function (x) { var k = x.key || ''; if (k && used[k]) k = ''; if (k) used[k] = 1; return { id: uid('q'), name: String(x.name || x.data || '未命名'), data: String(x.data || ''), format: x.format === 'ASCII' || x.format === 'ascii' ? 'ASCII' : 'HEX', key: k }; };
+    return arr.map(function (x) {
+      if (x.type === 'folder' || Array.isArray(x.commands)) return { type: 'folder', id: uid('f'), name: String(x.name || '未命名'), expanded: x.expanded !== false, commands: (x.commands || []).map(cmd) };
+      return cmd(x);
+    });
+  }
+  var normalize = {
+    quick: quickOf,
+    rules: function (arr) { return arr.map(function (x) { return { id: uid('r'), name: String(x.name || '未命名'), match: x.match || 'prefix', kind: x.kind === 'regex' ? 'regex' : 'template', format: x.format === 'ASCII' ? 'ASCII' : 'HEX', ignoreCase: !!x.ignoreCase, pattern: String(x.pattern || ''), enabled: !!x.enabled, hits: 0, replies: (x.replies || []).map(function (r) { return { data: String(r.data || ''), delay: Number(r.delay) || 0 }; }) }; }); },
+    batch: function (arr) { return arr.map(function (x) { return { id: uid('b'), name: String(x.name || '未命名'), repeat: Number(x.repeat) > 0 ? Number(x.repeat) : 1, stopOnFail: x.stopOnFail !== false, steps: (x.steps || []).map(function (s) { return typeof s === 'string' ? { data: s, delay: 0, note: '' } : { data: String(s.data || ''), delay: Number(s.delay) || 0, note: String(s.note || '') }; }) }; }); },
+    scripts: function (arr) { return arr.filter(function (x) { return x && String(x.name || '').trim(); }).map(function (x) { return { id: uid('s'), name: String(x.name).trim(), action: x.action || '', enabled: !!x.enabled, runs: 0, last: '', code: String(x.code || '') }; }); }
+  };
+
+  function enabledScripts(lists) { return (lists.scripts || []).filter(function (x) { return x && x.enabled; }).length; }
+  function batchRunning() { return !!ui.batchRun; }
+
+  function apply(lists, keys) {
+    if (keys.indexOf('batch') >= 0 && batchRunning()) Serial.stopBatch();
+    keys.forEach(function (k) { S[k] = normalize[k](lists[k]); });
+    if (keys.indexOf('batch') >= 0) ui.batchSel = S.batch[0] && S.batch[0].id;
+    if (keys.indexOf('scripts') >= 0) { scUi.sel = S.scripts[0] && S.scripts[0].id; scUi.dock = false; }
+    renderTab(); renderStatus();
+    toast('已导入 ' + keys.map(function (k) { return cat(k).name + ' ' + current(k) + ' ' + cat(k).unit; }).join('，'));
+  }
+
+  // 导入前的提醒：会立刻生效的副作用
+  function caveats(lists, keys) {
+    var out = [];
+    if (keys.indexOf('scripts') >= 0 && enabledScripts(lists)) out.push('其中 ' + enabledScripts(lists) + ' 个脚本是启用状态，导入后立即参与自动运行。');
+    if (keys.indexOf('batch') >= 0 && batchRunning()) out.push('批量发送正在运行，导入会先停止它。');
+    return out;
+  }
+
+  function pick(cb) {
+    pickFile('.json', function (txt, file) {
+      if (txt == null) return;
+      try { cb(parse(txt), file.name); } catch (e) { toast(e.message, true); }
+    });
+  }
+
+  // ---------- 清单对话框（清单版、页签版共用） ----------
+  function checks() { return Array.prototype.map.call(document.querySelectorAll('#dlgBody .pk-row input:checked'), function (x) { return x.value; }); }
+
+  function exportDialog() {
+    dialog('导出配置',
+      '<p class="pk-lead">勾选要写进文件的类别。导入时，文件里没有的类别保持不动。</p>' +
+      '<div class="pk-table">' + CATS.map(function (c) {
+        return '<label class="pk-row"><input type="checkbox" value="' + c.key + '" checked><span class="pk-nm">' + c.name + '</span>' +
+          '<span class="pk-num">' + current(c.key) + ' ' + c.unit + '</span></label>';
+      }).join('') + '</div><div class="err" id="dlgErr"></div>',
+      [{ text: '取消' }, { text: '导出', pri: true, run: function () {
+        var keys = checks();
+        if (!keys.length) return fail('至少勾选一类');
+        download(keys);
+        toast('已导出 ' + keys.map(function (k) { return cat(k).name; }).join('、'));
+      } }]);
+  }
+
+  function importDialog(res, fileName) {
+    var lists = res.lists;
+    var rowHtml = function (c) {
+      var has = c.key in lists, n = has ? count(c.key, lists[c.key]) : 0, m = current(c.key);
+      return '<label class="pk-row' + (has ? '' : ' off') + '"><input type="checkbox" value="' + c.key + '"' + (has ? ' checked' : ' disabled') + '><span class="pk-nm">' + c.name + '</span>' +
+        '<span class="pk-num">' + (has ? '文件 <b>' + n + '</b> ' + c.unit + '，替换当前 ' + m + ' ' + c.unit : '文件里没有，保持当前 ' + m + ' ' + c.unit) + '</span></label>';
+    };
+    dialog('导入配置',
+      '<p class="pk-file"><span>' + esc(fileName) + '</span>' + (res.legacy ? '<span class="pk-tag">旧格式 · 单类列表</span>' : '') + '</p>' +
+      '<p class="pk-lead">勾选的类别整表替换，无法撤销；不勾选的保持现状。</p>' +
+      '<div class="pk-table">' + CATS.map(rowHtml).join('') + '</div>' +
+      '<p class="pk-warn" id="pkWarn"></p><div class="err" id="dlgErr"></div>',
+      [{ text: '取消' }, { text: '导入并替换', pri: true, run: function () {
+        var keys = checks();
+        if (!keys.length) return fail('至少勾选一类');
+        apply(lists, keys);
+      } }]);
+    var sync = function () { $('pkWarn').textContent = caveats(lists, checks()).join(''); };
+    $('dlgBody').onchange = sync; sync();
+  }
+
+  return {
+    CATS: CATS, cat: cat, count: count, current: current, build: build, download: download,
+    parse: parse, apply: apply, caveats: caveats, pick: pick,
+    exportDialog: exportDialog, importDialog: importDialog
+  };
+})();
+
+// 文件菜单：keepOld 为假时去掉原来的四个分项，再把本版菜单项追加到末尾
+function packMenu(html, keepOld) {
+  var drop = document.querySelector('[data-cmd="exportQuick"]').parentNode;
+  if (!keepOld) ['exportQuick', 'importQuick', 'exportRules', 'importRules'].forEach(function (c) { drop.querySelector('[data-cmd="' + c + '"]').remove(); });
+  drop.insertAdjacentHTML('beforeend', html);
+}
+var baseCommand = command;
+command = function (cmd) {
+  if (cmd === 'packExport') return Pack.exportDialog();
+  if (cmd === 'packImport') return Pack.pick(Pack.importDialog);
+  return baseCommand(cmd);
+};
+</script>
+<script>
+// 页签版：四个页签的标题条各自「导出 / 导入」只动这一类；文件菜单仍是整包清单
+packMenu('<button data-cmd="packExport">导出配置…</button><button data-cmd="packImport">导入配置…</button>');
+
+var tabCat = { quick: 'quick', reply: 'rules', batch: 'batch', script: 'scripts' };
+var tabLinks = '<span class="tb-io"><button class="link" data-act="pkTabExport">导出</button><button class="link" data-act="pkTabImport">导入</button></span>';
+function withLinks(fn) {
+  return function () {
+    var h = fn(), at = h.indexOf('</div>');
+    if (h.indexOf('<div class="bar">') !== 0 || at < 0) return h;
+    return h.slice(0, at) + tabLinks + h.slice(at);
+  };
+}
+quickHtml = withLinks(quickHtml);
+replyHtml = withLinks(replyHtml);
+batchHtml = withLinks(batchHtml);
+var tabScriptBase = scriptHtml;
+scriptHtml = function () { return tutUi.view === 'mine' ? withLinks(tabScriptBase)() : tabScriptBase(); };
+
+function tabImport(res, fileName) {
+  var k = tabCat[ui.tab], c = Pack.cat(k);
+  if (!(k in res.lists)) return toast('文件里没有' + c.name + '，未导入', true);
+  var warn = Pack.caveats(res.lists, [k]).join('');
+  dialog('导入' + c.name,
+    '<p class="pk-file"><span>' + esc(fileName) + '</span></p>' +
+    '<p class="tb-sum"><b>' + Pack.count(k, res.lists[k]) + '</b> ' + c.unit + c.name + '，替换当前 ' + Pack.current(k) + ' ' + c.unit + '。</p>' +
+    '<p class="pk-lead">只替换这一类，其他页签不受影响。替换后无法撤销。</p>' +
+    (warn ? '<p class="pk-warn">' + warn + '</p>' : ''),
+    [{ text: '取消' }, { text: '替换', pri: true, run: function () { Pack.apply(res.lists, [k]); } }]);
+}
+
+var tabClickBase = $('tabbody').onclick;
+$('tabbody').onclick = function (e) {
+  var b = e.target.closest('[data-act]');
+  if (b && b.dataset.act === 'pkTabExport') {
+    var c = Pack.cat(tabCat[ui.tab]);
+    Pack.download([c.key], c.file);
+    return toast(c.name + '已导出');
+  }
+  if (b && b.dataset.act === 'pkTabImport') return Pack.pick(tabImport);
+  return tabClickBase.call(this, e);
+};
+renderTab();
+</script>
+</body>
+</html>

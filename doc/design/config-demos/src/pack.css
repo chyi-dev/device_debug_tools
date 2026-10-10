@@ -1,0 +1,14 @@
+/* ---------- 配置包对话框 ---------- */
+.pk-lead{font-size:13px;color:var(--muted);line-height:1.6}
+.pk-file{display:flex;align-items:center;gap:8px;font:13px var(--mono)}
+.pk-tag{font:12px var(--sans);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 6px}
+.pk-table{border:1px solid var(--line);border-radius:6px;background:var(--field)}
+.pk-row{display:grid;grid-template-columns:22px 96px minmax(0,1fr);gap:8px;align-items:center;padding:9px 12px;border-top:1px solid var(--line2);cursor:pointer}
+.pk-row:first-child{border-top:0}
+.pk-row .pk-nm{font-weight:600}
+.pk-row .pk-num{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.pk-row .pk-num b{color:var(--text);font-weight:600}
+.pk-row.off{cursor:default}
+.pk-row.off .pk-nm{color:var(--muted);font-weight:400}
+.pk-warn{font-size:13px;color:var(--accent);line-height:1.6;min-height:0}
+.pk-warn:empty{display:none}

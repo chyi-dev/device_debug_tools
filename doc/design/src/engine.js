@@ -530,7 +530,6 @@ var Serial = (function () {
   function removeHistory(i) { state.history.splice(i, 1); emit('history', state.history); }
   function resetCounters() { state.rx = 0; state.tx = 0; emit('state', state); }
   function saveLog() { download('serial-' + state.port + '-' + Date.now() + '.log', logText()); }
-  function exportRules() { download('auto-reply-rules.json', JSON.stringify(state.rules, null, 2)); }
   function seed() {
     // 预置一段历史会话，让首屏不是空白
     state.open = true;
@@ -545,7 +544,7 @@ var Serial = (function () {
     send: send, sendRepeat: sendRepeat, stopLoop: stopLoop, encode: encode,
     fireRule: fireRule, captureCount: captureCount, runBatch: runBatch, stopBatch: stopBatch,
     runScript: runScript, toggleScript: toggleScript, newScript: newScript, logScript: logScript, clearScriptLog: clearScriptLog, scriptHook: scriptHook,
-    clear: clear, saveLog: saveLog, exportRules: exportRules, logText: logText, seed: seed,
+    clear: clear, saveLog: saveLog, logText: logText, seed: seed,
     hex: hex, ascii: ascii, parseHex: parseHex, textBytes: textBytes, dissect: dissect, stamp: stamp,
     sum8: sum8, xor8: xor8, lrc: lrc, crc8: crc8, crc16: crc16, crc32: crc32,
     checksumBytes: checksumBytes, withChecksum: withChecksum,

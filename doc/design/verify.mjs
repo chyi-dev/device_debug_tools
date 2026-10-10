@@ -1,6 +1,7 @@
 // 走一遍串口调试台主流程并截图白底 / 黑底：node doc/design/verify.mjs
 // 需要能解析到 playwright 包；默认使用本机 Edge（PW_CHANNEL 可改）。
 import { chromium } from 'playwright';
+import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 
@@ -93,6 +94,23 @@ await page.screenshot({ path: resolve(root, 'serial-console-tutorial.png') });
 await page.click('[data-act=tutNew][data-id=l3]');
 check('用课新建脚本并打开编辑区', (await page.inputValue('#scCode')).includes('starts_with') && (await page.textContent('#scList')).includes('lesson3_parse.lua'));
 await page.click('[data-tab=quick]');
+
+const fileMenu = async (cmd) => { await page.click('.menu:nth-of-type(1)>button'); await page.click(`[data-cmd=${cmd}]`); };
+await fileMenu('packExport');
+await page.uncheck('#dlgBody .pk-row input[value=batch]');
+const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#dlgFoot .btn.pri')]);
+const pack = JSON.parse(readFileSync(await dl.path(), 'utf8'));
+check('导出配置只含勾选的类别', pack.kind === 'device-debug-config' && !('batch' in pack) && pack.scripts.length > 0);
+const counts = () => page.evaluate(() => ({ s: S.scripts.length, b: S.batch.length }));
+const c0 = await counts();
+const incoming = JSON.stringify({ kind: 'device-debug-config', version: 1, scripts: [{ name: 'only.lua', code: '', enabled: true }] });
+const [fc] = await Promise.all([page.waitForEvent('filechooser'), fileMenu('packImport')]);
+await fc.setFiles({ name: 'cfg.json', mimeType: 'application/json', buffer: Buffer.from(incoming) });
+await page.waitForSelector('#modal.show');
+check('导入清单禁用文件里没有的类别并提示启用脚本', (await page.isDisabled('#dlgBody .pk-row input[value=quick]')) && (await page.textContent('#pkWarn')).includes('1 个脚本'));
+await page.click('#dlgFoot .btn.pri');
+const c1 = await counts();
+check('导入只替换脚本', c1.s === 1 && c1.b === c0.b);
 
 await page.click('#btnOpen');
 await page.click('#btnSend');

@@ -1,0 +1,4 @@
+/* 页签版：标题条右端的导出 / 导入，用竖线和页签自己的按钮隔开 */
+.tb-io{display:flex;align-items:center;gap:0;padding-left:6px;margin-left:2px;border-left:1px solid var(--line2);flex:none}
+.tb-sum{font-size:14px}
+.tb-sum b{font-weight:600}

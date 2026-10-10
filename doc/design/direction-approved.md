@@ -135,3 +135,26 @@
 - 新增 / 编辑应答规则对话框左右分栏：左表单、右课表。课在 `lib/features/serial/model/reply_lessons.dart`，文案走 slang `serial.reply.lessons.<key>`。
 - 「填入编辑器」只写表单，不保存。设计稿由 `src/reply-tutor.js` 在打开规则对话框时挂上同一课表。
 - 规则写入 `design.md` 工具面板「自动应答」一行。
+
+---
+
+# 配置导入导出方向确认
+
+## 展示的三版初稿
+
+范围由用户先选定：只打包快捷指令、自动应答、批量发送、脚本四类。三版数据规则相同（整表替换、文件里没有的类别不动、旧单列表文件可读、命中次数归零、启用脚本与运行中批量给提醒），只换入口与确认方式。源文件 `config-demos/src/`，`config-demos/build.mjs` 生成，`config-demos/shoot.mjs` 走流程并截图。
+
+| 方向 | 文件 | 截图 |
+|---|---|---|
+| A · 清单：文件菜单收成「导出配置… / 导入配置…」，两边都是四行勾选清单，写清文件条数与当前条数 | `config-demos/checklist.html` | `config-demos/checklist.png`、`config-demos/checklist-export.png` |
+| B · 总包：保留分项导入导出，另加「导出全部 / 导入全部」，导入用当前 / 导入后对照表整体确认 | `config-demos/bundle.html` | `config-demos/bundle.png` |
+| C · 页签：四个页签标题条各自导出 / 导入，菜单为整包清单（展示时已说明 352px 栏内拥挤） | `config-demos/tab.html` | `config-demos/tab.png`、`config-demos/tab-bar.png` |
+
+## 用户选择（原话）
+
+> 版 A · 清单
+
+## 落地
+
+- 主稿文件菜单去掉原来的「导出 / 导入快捷指令」「导出 / 导入应答规则」，换成「导出配置… / 导入配置…」；清单与替换逻辑并入 `src/serial-console.html`。
+- 规则写入 `design.md`「配置导入导出」一节。

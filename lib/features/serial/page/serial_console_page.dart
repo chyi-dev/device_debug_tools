@@ -13,6 +13,7 @@ import '../cubit/serial_console_state.dart';
 import '../model/serial_models.dart';
 import '../repository/serial_console_repository.dart';
 import '../serial_metrics.dart';
+import '../widget/serial_config_dialog.dart';
 import '../widget/serial_editors.dart';
 import '../widget/serial_l10n.dart';
 import '../widget/serial_log_view.dart';
@@ -159,10 +160,8 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                       compact: chrome.compact,
                       toolsOn: chrome.toolsVisible,
                       onSave: cubit.saveLog,
-                      onExportQuick: cubit.exportQuick,
-                      onImportQuick: cubit.importQuick,
-                      onExportRules: cubit.exportRules,
-                      onImportRules: cubit.importRules,
+                      onExportConfig: () => showConfigExport(context),
+                      onImportConfig: () => showConfigImport(context),
                       onCompact: () => cubit.setCompact(!chrome.compact),
                       onTools: () =>
                           cubit.setToolsVisible(!chrome.toolsVisible),

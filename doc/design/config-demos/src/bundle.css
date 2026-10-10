@@ -1,0 +1,8 @@
+/* 总包版：当前 → 导入后 对照 */
+.bd-cmp{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.bd-cmp th,.bd-cmp td{text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid var(--line2)}
+.bd-cmp thead th{font-size:12px;color:var(--muted);font-weight:600;padding-top:0}
+.bd-cmp tbody th{font-weight:600;width:110px}
+.bd-cmp td{color:var(--muted)}
+.bd-cmp td.to{color:var(--text);font-weight:600}
+.bd-cmp tr.same th,.bd-cmp tr.same td.to{color:var(--muted);font-weight:400}

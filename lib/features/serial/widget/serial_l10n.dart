@@ -1,4 +1,5 @@
 import '../../../i18n/i18n.dart';
+import '../model/config_pack.dart';
 import '../model/reply_lessons.dart';
 import '../model/serial_models.dart';
 
@@ -64,13 +65,38 @@ String serialNoticeText(Translations t, SerialNotice notice) {
     SerialNoticeKind.checksumFilled => n.checksumFilled(
       text: args['text'] ?? '',
     ),
-    SerialNoticeKind.exportedQuick => n.exportedQuick,
-    SerialNoticeKind.exportedRules => n.exportedRules,
-    SerialNoticeKind.imported => n.imported(count: args['count'] ?? 0),
+    SerialNoticeKind.exportedConfig => n.exportedConfig,
+    SerialNoticeKind.importedConfig => n.importedConfig(
+      list: [
+        for (final part in ConfigPart.values)
+          if (args[part.name] case final int count)
+            t.serial.config.summary(
+              name: configPartName(t, part),
+              count: configCountText(t, part, count),
+            ),
+      ].join(t.serial.config.joiner),
+    ),
     SerialNoticeKind.importInvalid => n.importInvalid,
     SerialNoticeKind.fileLoaded => n.fileLoaded(name: args['name'] ?? ''),
     SerialNoticeKind.badHex => t.serial.sendBox.badHex,
     SerialNoticeKind.emptySend => t.serial.sendBox.empty,
+  };
+}
+
+String configPartName(Translations t, ConfigPart part) => switch (part) {
+  ConfigPart.quick => t.serial.tab.quick,
+  ConfigPart.rules => t.serial.tab.reply,
+  ConfigPart.batch => t.serial.tab.batch,
+  ConfigPart.scripts => t.serial.tab.script,
+};
+
+String configCountText(Translations t, ConfigPart part, int count) {
+  final c = t.serial.config;
+  return switch (part) {
+    ConfigPart.quick => c.countQuick(count: count),
+    ConfigPart.rules => c.countRules(count: count),
+    ConfigPart.batch => c.countBatch(count: count),
+    ConfigPart.scripts => c.countScripts(count: count),
   };
 }
 

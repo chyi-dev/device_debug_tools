@@ -78,9 +78,8 @@ enum SerialNoticeKind {
   ruleSaved,
   batchSaved,
   checksumFilled,
-  exportedQuick,
-  exportedRules,
-  imported,
+  exportedConfig,
+  importedConfig,
   importInvalid,
   fileLoaded,
 }
