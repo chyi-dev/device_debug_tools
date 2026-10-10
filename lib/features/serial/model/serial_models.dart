@@ -10,7 +10,9 @@ enum FlowControl { none, rtsCts, dtrDsr, xonXoff }
 
 enum ChecksumKind { none, sum, xor, lrc, crc8, crc16, crc32 }
 
-enum MatchMode { prefix, frame, contains }
+enum MatchMode { prefix, frame, contains, suffix }
+
+enum MatchKind { template, regex }
 
 enum ToolTab { quick, batch, reply, history, calc }
 
@@ -20,6 +22,7 @@ enum SysLogKind {
   opened,
   closed,
   autoReply,
+  replySkipped,
   batchStart,
   batchDone,
   batchFail,
@@ -62,6 +65,7 @@ enum SerialNoticeKind {
   ruleToggled,
   deleted,
   quickSaved,
+  folderSaved,
   ruleSaved,
   batchSaved,
   checksumFilled,
@@ -161,7 +165,25 @@ class LogLine {
   final Map<String, Object> args;
 }
 
-class QuickCommand {
+/// 快捷指令列表的根节点：指令或单层文件夹（文件夹内只放指令）。
+sealed class QuickNode {
+  const QuickNode();
+
+  String get id;
+
+  Map<String, Object> toJson();
+
+  /// 无 `type` 的旧指令对象按根目录指令解析。
+  static QuickNode? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    if (raw['type'] == 'folder' || raw['commands'] is List) {
+      return QuickFolder.fromJson(raw);
+    }
+    return QuickCommand.fromJson(raw);
+  }
+}
+
+class QuickCommand extends QuickNode {
   const QuickCommand({
     required this.id,
     required this.name,
@@ -170,6 +192,7 @@ class QuickCommand {
     this.key = '',
   });
 
+  @override
   final String id;
   final String name;
   final String data;
@@ -177,20 +200,22 @@ class QuickCommand {
   final String key;
 
   QuickCommand copyWith({String? key}) => QuickCommand(
-        id: id,
-        name: name,
-        data: data,
-        format: format,
-        key: key ?? this.key,
-      );
+    id: id,
+    name: name,
+    data: data,
+    format: format,
+    key: key ?? this.key,
+  );
 
+  @override
   Map<String, Object> toJson() => {
-        'id': id,
-        'name': name,
-        'data': data,
-        'format': format.name,
-        'key': key,
-      };
+    'type': 'command',
+    'id': id,
+    'name': name,
+    'data': data,
+    'format': format.name,
+    'key': key,
+  };
 
   static QuickCommand? fromJson(Object? raw) {
     if (raw is! Map) return null;
@@ -206,6 +231,107 @@ class QuickCommand {
           : DataFormat.hex,
       key: _fnKey(raw['key']),
     );
+  }
+}
+
+class QuickFolder extends QuickNode {
+  const QuickFolder({
+    required this.id,
+    required this.name,
+    this.expanded = true,
+    this.commands = const [],
+  });
+
+  @override
+  final String id;
+  final String name;
+  final bool expanded;
+  final List<QuickCommand> commands;
+
+  QuickFolder copyWith({
+    String? name,
+    bool? expanded,
+    List<QuickCommand>? commands,
+  }) => QuickFolder(
+    id: id,
+    name: name ?? this.name,
+    expanded: expanded ?? this.expanded,
+    commands: commands ?? this.commands,
+  );
+
+  @override
+  Map<String, Object> toJson() => {
+    'type': 'folder',
+    'id': id,
+    'name': name,
+    'expanded': expanded,
+    'commands': commands.map((c) => c.toJson()).toList(),
+  };
+
+  static QuickFolder? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final name = raw['name']?.toString().trim() ?? '';
+    if (name.isEmpty) return null;
+    final list = raw['commands'];
+    return QuickFolder(
+      id: _id(raw['id'], 'f'),
+      name: name,
+      expanded: raw['expanded'] != false,
+      commands: list is List
+          ? [
+              for (final item in list) QuickCommand.fromJson(item),
+            ].whereType<QuickCommand>().toList()
+          : const [],
+    );
+  }
+}
+
+extension QuickTree on List<QuickNode> {
+  Iterable<QuickCommand> get commands sync* {
+    for (final node in this) {
+      switch (node) {
+        case QuickCommand():
+          yield node;
+        case QuickFolder():
+          yield* node.commands;
+      }
+    }
+  }
+
+  List<QuickFolder> get folders => whereType<QuickFolder>().toList();
+
+  QuickCommand? commandById(String id) {
+    for (final command in commands) {
+      if (command.id == id) return command;
+    }
+    return null;
+  }
+
+  /// 指令所在文件夹 id；在根目录或不存在时为 null。
+  String? folderIdOf(String commandId) {
+    for (final folder in folders) {
+      if (folder.commands.any((c) => c.id == commandId)) return folder.id;
+    }
+    return null;
+  }
+
+  /// 同一 F 键出现多次时保留先出现的那条。
+  List<QuickNode> withUniqueKeys() {
+    final used = <String>{};
+    QuickCommand fix(QuickCommand c) {
+      if (c.key.isEmpty) return c;
+      return used.add(c.key) ? c : c.copyWith(key: '');
+    }
+
+    return [
+      for (final node in this)
+        switch (node) {
+          QuickCommand() => fix(node),
+          QuickFolder() => node.copyWith(
+            commands: node.commands.map(fix).toList(),
+          ),
+        },
+    ];
   }
 }
 
@@ -235,6 +361,9 @@ class ReplyRule {
     required this.enabled,
     required this.hits,
     required this.replies,
+    this.kind = MatchKind.template,
+    this.format = DataFormat.hex,
+    this.ignoreCase = false,
   });
 
   final String id;
@@ -244,6 +373,11 @@ class ReplyRule {
   final bool enabled;
   final int hits;
   final List<ReplyStep> replies;
+  final MatchKind kind;
+  final DataFormat format;
+
+  /// 只对 ASCII 生效。
+  final bool ignoreCase;
 
   ReplyRule copyWith({bool? enabled, int? hits, List<ReplyStep>? replies}) {
     return ReplyRule(
@@ -254,18 +388,24 @@ class ReplyRule {
       enabled: enabled ?? this.enabled,
       hits: hits ?? this.hits,
       replies: replies ?? this.replies,
+      kind: kind,
+      format: format,
+      ignoreCase: ignoreCase,
     );
   }
 
   Map<String, Object> toJson() => {
-        'id': id,
-        'name': name,
-        'match': match.name,
-        'pattern': pattern,
-        'enabled': enabled,
-        'hits': hits,
-        'replies': replies.map((r) => r.toJson()).toList(),
-      };
+    'id': id,
+    'name': name,
+    'match': match.name,
+    'kind': kind.name,
+    'format': format.name,
+    'ignoreCase': ignoreCase,
+    'pattern': pattern,
+    'enabled': enabled,
+    'hits': hits,
+    'replies': replies.map((r) => r.toJson()).toList(),
+  };
 
   static ReplyRule? fromJson(Object? raw) {
     if (raw is! Map) return null;
@@ -281,6 +421,9 @@ class ReplyRule {
       id: _id(raw['id'], 'r'),
       name: raw['name']?.toString() ?? '',
       match: MatchMode.values.asNameMap()[raw['match']] ?? MatchMode.prefix,
+      kind: MatchKind.values.asNameMap()[raw['kind']] ?? MatchKind.template,
+      format: DataFormat.values.asNameMap()[raw['format']] ?? DataFormat.hex,
+      ignoreCase: raw['ignoreCase'] == true,
       pattern: raw['pattern']?.toString() ?? '',
       enabled: raw['enabled'] == true,
       hits: _int(raw['hits']),
@@ -290,21 +433,17 @@ class ReplyRule {
 }
 
 class BatchStep {
-  const BatchStep({
-    required this.data,
-    required this.delayMs,
-    this.note = '',
-  });
+  const BatchStep({required this.data, required this.delayMs, this.note = ''});
 
   final String data;
   final int delayMs;
   final String note;
 
   Map<String, Object> toJson() => {
-        'data': data,
-        'delay': delayMs,
-        'note': note,
-      };
+    'data': data,
+    'delay': delayMs,
+    'note': note,
+  };
 
   static BatchStep? fromJson(Object? raw) {
     if (raw is String) {
@@ -345,12 +484,12 @@ class BatchJob {
   }
 
   Map<String, Object> toJson() => {
-        'id': id,
-        'name': name,
-        'repeat': repeat,
-        'stopOnFail': stopOnFail,
-        'steps': steps.map((s) => s.toJson()).toList(),
-      };
+    'id': id,
+    'name': name,
+    'repeat': repeat,
+    'stopOnFail': stopOnFail,
+    'steps': steps.map((s) => s.toJson()).toList(),
+  };
 
   static BatchJob? fromJson(Object? raw) {
     if (raw is! Map) return null;
@@ -395,9 +534,9 @@ class HistoryEntry {
   final DateTime? time;
 
   Map<String, Object?> toJson() => {
-        'text': text,
-        'time': time?.toIso8601String(),
-      };
+    'text': text,
+    'time': time?.toIso8601String(),
+  };
 
   static HistoryEntry? fromJson(Object? raw) {
     if (raw is String) return HistoryEntry(text: raw);
@@ -489,79 +628,79 @@ class SerialWorkspace {
   final bool compact;
   final bool toolsVisible;
   final ToolTab tab;
-  final List<QuickCommand> quick;
+  final List<QuickNode> quick;
   final List<ReplyRule> rules;
   final List<BatchJob> batch;
   final String? selectedBatchId;
   final List<HistoryEntry> history;
 
   static SerialWorkspace defaults() => SerialWorkspace(
-        portName: null,
-        baud: 115200,
-        parity: Parity.none,
-        dataBits: 8,
-        stopBits: StopBits.one,
-        flow: FlowControl.none,
-        dtr: true,
-        rts: true,
-        rxFormat: DataFormat.hex,
-        logMode: true,
-        wrap: true,
-        hideRx: false,
-        autoScroll: true,
-        packetTimeoutMs: 20,
-        txFormat: DataFormat.hex,
-        escape: true,
-        atCrlf: false,
-        crlf: false,
-        checksum: ChecksumKind.none,
-        clearAfterSend: false,
-        loopEnabled: false,
-        loopPeriodMs: 1000,
-        txText: '',
-        compact: false,
-        toolsVisible: true,
-        tab: ToolTab.quick,
-        quick: const [],
-        rules: const [],
-        batch: const [],
-        selectedBatchId: null,
-        history: const [],
-      );
+    portName: null,
+    baud: 115200,
+    parity: Parity.none,
+    dataBits: 8,
+    stopBits: StopBits.one,
+    flow: FlowControl.none,
+    dtr: true,
+    rts: true,
+    rxFormat: DataFormat.hex,
+    logMode: true,
+    wrap: true,
+    hideRx: false,
+    autoScroll: true,
+    packetTimeoutMs: 20,
+    txFormat: DataFormat.hex,
+    escape: true,
+    atCrlf: false,
+    crlf: false,
+    checksum: ChecksumKind.none,
+    clearAfterSend: false,
+    loopEnabled: false,
+    loopPeriodMs: 1000,
+    txText: '',
+    compact: false,
+    toolsVisible: true,
+    tab: ToolTab.quick,
+    quick: const [],
+    rules: const [],
+    batch: const [],
+    selectedBatchId: null,
+    history: const [],
+  );
 
   Map<String, Object?> toJson() => {
-        'portName': portName,
-        'baud': baud,
-        'parity': parity.name,
-        'dataBits': dataBits,
-        'stopBits': stopBits.name,
-        'flow': flow.name,
-        'dtr': dtr,
-        'rts': rts,
-        'rxFormat': rxFormat.name,
-        'logMode': logMode,
-        'wrap': wrap,
-        'hideRx': hideRx,
-        'autoScroll': autoScroll,
-        'packetTimeoutMs': packetTimeoutMs,
-        'txFormat': txFormat.name,
-        'escape': escape,
-        'atCrlf': atCrlf,
-        'crlf': crlf,
-        'checksum': checksum.name,
-        'clearAfterSend': clearAfterSend,
-        'loopEnabled': loopEnabled,
-        'loopPeriodMs': loopPeriodMs,
-        'txText': txText,
-        'compact': compact,
-        'toolsVisible': toolsVisible,
-        'tab': tab.name,
-        'quick': quick.map((q) => q.toJson()).toList(),
-        'rules': rules.map((r) => r.toJson()).toList(),
-        'batch': batch.map((b) => b.toJson()).toList(),
-        'selectedBatchId': selectedBatchId,
-        'history': history.map((h) => h.toJson()).toList(),
-      };
+    'portName': portName,
+    'baud': baud,
+    'parity': parity.name,
+    'dataBits': dataBits,
+    'stopBits': stopBits.name,
+    'flow': flow.name,
+    'dtr': dtr,
+    'rts': rts,
+    'rxFormat': rxFormat.name,
+    'logMode': logMode,
+    'wrap': wrap,
+    'hideRx': hideRx,
+    'autoScroll': autoScroll,
+    'packetTimeoutMs': packetTimeoutMs,
+    'txFormat': txFormat.name,
+    'escape': escape,
+    'atCrlf': atCrlf,
+    'crlf': crlf,
+    'checksum': checksum.name,
+    'clearAfterSend': clearAfterSend,
+    'loopEnabled': loopEnabled,
+    'loopPeriodMs': loopPeriodMs,
+    'txText': txText,
+    'compact': compact,
+    'toolsVisible': toolsVisible,
+    'tab': tab.name,
+    'quick': quick.map((q) => q.toJson()).toList(),
+    'rules': rules.map((r) => r.toJson()).toList(),
+    'batch': batch.map((b) => b.toJson()).toList(),
+    'selectedBatchId': selectedBatchId,
+    'history': history.map((h) => h.toJson()).toList(),
+  };
 
   static SerialWorkspace? fromJson(Object? raw) {
     if (raw is! Map) return null;
@@ -571,7 +710,7 @@ class SerialWorkspace {
       return [for (final item in value) parse(item)].whereType<T>().toList();
     }
 
-    final quick = listOf(raw['quick'], QuickCommand.fromJson);
+    final quick = listOf(raw['quick'], QuickNode.fromJson).withUniqueKeys();
     final rules = listOf(raw['rules'], ReplyRule.fromJson);
     final batch = listOf(raw['batch'], BatchJob.fromJson);
     final history = listOf(raw['history'], HistoryEntry.fromJson);
@@ -606,7 +745,8 @@ class SerialWorkspace {
       quick: raw.containsKey('quick') ? quick : base.quick,
       rules: raw.containsKey('rules') ? rules : base.rules,
       batch: raw.containsKey('batch') ? batch : base.batch,
-      selectedBatchId: raw['selectedBatchId']?.toString() ?? base.selectedBatchId,
+      selectedBatchId:
+          raw['selectedBatchId']?.toString() ?? base.selectedBatchId,
       history: history,
     );
   }
@@ -642,41 +782,40 @@ DataFormat _format(Object? value, DataFormat fallback) {
 
 extension ParityToken on Parity {
   String get token => switch (this) {
-        Parity.none => 'N',
-        Parity.odd => 'O',
-        Parity.even => 'E',
-        Parity.mark => 'M',
-        Parity.space => 'S',
-      };
+    Parity.none => 'N',
+    Parity.odd => 'O',
+    Parity.even => 'E',
+    Parity.mark => 'M',
+    Parity.space => 'S',
+  };
 }
 
 extension StopBitsToken on StopBits {
   String get label => switch (this) {
-        StopBits.one => '1',
-        StopBits.oneHalf => '1.5',
-        StopBits.two => '2',
-      };
+    StopBits.one => '1',
+    StopBits.oneHalf => '1.5',
+    StopBits.two => '2',
+  };
 
   /// libserialport：1 与 2 为停止位数，1.5 在部分平台用 3 表示。
   int get wireValue => switch (this) {
-        StopBits.one => 1,
-        StopBits.two => 2,
-        StopBits.oneHalf => 3,
-      };
+    StopBits.one => 1,
+    StopBits.two => 2,
+    StopBits.oneHalf => 3,
+  };
 }
 
 extension FlowToken on FlowControl {
   String get label => switch (this) {
-        FlowControl.none => 'NONE',
-        FlowControl.rtsCts => 'RTS/CTS',
-        FlowControl.dtrDsr => 'DTR/DSR',
-        FlowControl.xonXoff => 'XON/XOFF',
-      };
+    FlowControl.none => 'NONE',
+    FlowControl.rtsCts => 'RTS/CTS',
+    FlowControl.dtrDsr => 'DTR/DSR',
+    FlowControl.xonXoff => 'XON/XOFF',
+  };
 }
 
 String frameLabel({
   required int dataBits,
   required Parity parity,
   required StopBits stopBits,
-}) =>
-    '$dataBits${parity.token}${stopBits.label}';
+}) => '$dataBits${parity.token}${stopBits.label}';

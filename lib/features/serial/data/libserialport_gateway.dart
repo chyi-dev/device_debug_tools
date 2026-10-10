@@ -109,10 +109,7 @@ class LibserialportGateway implements SerialPortGateway {
   }
 
   @override
-  Future<void> apply(
-    SerialLinkConfig config, {
-    bool applyLines = true,
-  }) async {
+  Future<void> apply(SerialLinkConfig config, {bool applyLines = true}) async {
     final port = _port;
     if (port == null || !port.isOpen) {
       throw DeviceException('port closed');

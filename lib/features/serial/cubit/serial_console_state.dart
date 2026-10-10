@@ -144,7 +144,7 @@ class SerialConsoleState {
   final bool compact;
   final bool toolsVisible;
   final ToolTab tab;
-  final List<QuickCommand> quick;
+  final List<QuickNode> quick;
   final List<ReplyRule> rules;
   final List<BatchJob> batch;
   final String? selectedBatchId;
@@ -175,38 +175,38 @@ class SerialConsoleState {
   }
 
   SerialWorkspace toWorkspace() => SerialWorkspace(
-        portName: portName,
-        baud: baud,
-        parity: parity,
-        dataBits: dataBits,
-        stopBits: stopBits,
-        flow: flow,
-        dtr: dtr,
-        rts: rts,
-        rxFormat: rxFormat,
-        logMode: logMode,
-        wrap: wrap,
-        hideRx: hideRx,
-        autoScroll: autoScroll,
-        packetTimeoutMs: packetTimeoutMs,
-        txFormat: txFormat,
-        escape: escape,
-        atCrlf: atCrlf,
-        crlf: crlf,
-        checksum: checksum,
-        clearAfterSend: clearAfterSend,
-        loopEnabled: loopEnabled,
-        loopPeriodMs: loopPeriodMs,
-        txText: txText,
-        compact: compact,
-        toolsVisible: toolsVisible,
-        tab: tab,
-        quick: quick,
-        rules: rules,
-        batch: batch,
-        selectedBatchId: selectedBatchId,
-        history: history,
-      );
+    portName: portName,
+    baud: baud,
+    parity: parity,
+    dataBits: dataBits,
+    stopBits: stopBits,
+    flow: flow,
+    dtr: dtr,
+    rts: rts,
+    rxFormat: rxFormat,
+    logMode: logMode,
+    wrap: wrap,
+    hideRx: hideRx,
+    autoScroll: autoScroll,
+    packetTimeoutMs: packetTimeoutMs,
+    txFormat: txFormat,
+    escape: escape,
+    atCrlf: atCrlf,
+    crlf: crlf,
+    checksum: checksum,
+    clearAfterSend: clearAfterSend,
+    loopEnabled: loopEnabled,
+    loopPeriodMs: loopPeriodMs,
+    txText: txText,
+    compact: compact,
+    toolsVisible: toolsVisible,
+    tab: tab,
+    quick: quick,
+    rules: rules,
+    batch: batch,
+    selectedBatchId: selectedBatchId,
+    history: history,
+  );
 
   SerialConsoleState copyWith({
     List<SerialPortInfo>? ports,
@@ -247,7 +247,7 @@ class SerialConsoleState {
     bool? compact,
     bool? toolsVisible,
     ToolTab? tab,
-    List<QuickCommand>? quick,
+    List<QuickNode>? quick,
     List<ReplyRule>? rules,
     List<BatchJob>? batch,
     Object? selectedBatchId = _keep,

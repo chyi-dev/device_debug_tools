@@ -6,7 +6,11 @@ class PacketAssembler {
   final List<int> _buffer = [];
   Timer? _timer;
 
-  void add(List<int> chunk, int timeoutMs, void Function(Uint8List bytes) onPacket) {
+  void add(
+    List<int> chunk,
+    int timeoutMs,
+    void Function(Uint8List bytes) onPacket,
+  ) {
     if (chunk.isEmpty) return;
     _buffer.addAll(chunk);
     _timer?.cancel();

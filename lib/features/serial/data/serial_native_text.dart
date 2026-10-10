@@ -38,22 +38,24 @@ bool _looksLikeSuccess({int? code, required String message}) {
       lower == 'the operation completed successfully.';
 }
 
-typedef _MultiByteToWideCharNative = Int32 Function(
-  Uint32 codePage,
-  Uint32 dwFlags,
-  Pointer<Uint8> lpMultiByteStr,
-  Int32 cbMultiByte,
-  Pointer<Utf16> lpWideCharStr,
-  Int32 cchWideChar,
-);
-typedef _MultiByteToWideCharDart = int Function(
-  int codePage,
-  int dwFlags,
-  Pointer<Uint8> lpMultiByteStr,
-  int cbMultiByte,
-  Pointer<Utf16> lpWideCharStr,
-  int cchWideChar,
-);
+typedef _MultiByteToWideCharNative =
+    Int32 Function(
+      Uint32 codePage,
+      Uint32 dwFlags,
+      Pointer<Uint8> lpMultiByteStr,
+      Int32 cbMultiByte,
+      Pointer<Utf16> lpWideCharStr,
+      Int32 cchWideChar,
+    );
+typedef _MultiByteToWideCharDart =
+    int Function(
+      int codePage,
+      int dwFlags,
+      Pointer<Uint8> lpMultiByteStr,
+      int cbMultiByte,
+      Pointer<Utf16> lpWideCharStr,
+      int cchWideChar,
+    );
 
 typedef _GetAcpNative = Uint32 Function();
 typedef _GetAcpDart = int Function();
@@ -70,8 +72,8 @@ void _ensureKernel32() {
   _kernel32 = lib;
   _multiByteToWideChar = lib
       .lookupFunction<_MultiByteToWideCharNative, _MultiByteToWideCharDart>(
-    'MultiByteToWideChar',
-  );
+        'MultiByteToWideChar',
+      );
   _getAcp = lib.lookupFunction<_GetAcpNative, _GetAcpDart>('GetACP');
 }
 

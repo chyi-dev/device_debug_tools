@@ -10,9 +10,9 @@ class SerialConsoleRepository {
     required SerialPortGateway ports,
     required SerialFileGateway files,
     required SerialWorkspaceStore store,
-  })  : _ports = ports,
-        _files = files,
-        _store = store;
+  }) : _ports = ports,
+       _files = files,
+       _store = store;
 
   final SerialPortGateway _ports;
   final SerialFileGateway _files;
@@ -46,8 +46,7 @@ class SerialConsoleRepository {
   Future<String?> pickSave({
     required String suggestedName,
     required String extension,
-  }) =>
-      _files.pickSave(suggestedName: suggestedName, extension: extension);
+  }) => _files.pickSave(suggestedName: suggestedName, extension: extension);
 
   Future<void> writeText({required String path, required String text}) =>
       _files.writeText(path: path, text: text);

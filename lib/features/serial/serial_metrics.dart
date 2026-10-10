@@ -20,6 +20,8 @@ abstract final class SerialMetrics {
   static const double searchWidth = 220;
   static const double dialogWidth = 640;
   static const double controlRadius = 4;
+  static const double menuMaxWidth = 320;
+  static const double menuMaxHeight = 320;
   static const double lamp = 12;
   static const double pin = 8;
   static const double statusLamp = 9;

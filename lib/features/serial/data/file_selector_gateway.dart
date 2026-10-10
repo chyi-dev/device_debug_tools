@@ -21,9 +21,7 @@ class FileSelectorGateway implements SerialFileGateway {
   @override
   Future<String?> pickText({required List<String> extensions}) async {
     final file = await openFile(
-      acceptedTypeGroups: [
-        XTypeGroup(extensions: extensions),
-      ],
+      acceptedTypeGroups: [XTypeGroup(extensions: extensions)],
     );
     if (file == null) return null;
     return file.readAsString();

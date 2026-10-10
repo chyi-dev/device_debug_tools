@@ -17,8 +17,8 @@ import 'win32_serial_bindings.dart';
 /// Windows 专用串口网关：CreateFile 成功即视为打开；SetCommState 失败可降级。
 class Win32SerialGateway implements SerialPortGateway {
   Win32SerialGateway({Win32SerialBindings? bindings})
-      : _api = bindings ?? NativeWin32SerialBindings(),
-        _incoming = StreamController<Uint8List>.broadcast();
+    : _api = bindings ?? NativeWin32SerialBindings(),
+      _incoming = StreamController<Uint8List>.broadcast();
 
   final Win32SerialBindings _api;
   final StreamController<Uint8List> _incoming;

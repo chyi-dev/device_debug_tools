@@ -58,7 +58,8 @@ class _SerialSendBoxState extends State<SerialSendBox> {
         }
         final cubit = context.read<SerialConsoleCubit>();
         final preview = _preview(t, state);
-        return DecoratedBox(
+        return Container(
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: palette.panel,
             border: Border.all(color: palette.line),

@@ -112,10 +112,9 @@ class SerialDialogError extends StatelessWidget {
       height: 18,
       child: Text(
         message,
-        style: AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
-          color: palette.off,
-          fontSize: 13,
-        ),
+        style: AppTextStyles.caption(
+          Theme.of(context).colorScheme,
+        ).copyWith(color: palette.off, fontSize: 13),
       ),
     );
   }

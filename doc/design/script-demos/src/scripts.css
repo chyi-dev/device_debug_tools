@@ -1,0 +1,22 @@
+/* ---------- 脚本：三版共用 ---------- */
+.schook{font:12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px;white-space:nowrap}
+.sced{display:grid;grid-template-columns:auto minmax(0,1fr);border:1px solid var(--line);border-radius:4px;background:var(--log-bg);overflow:hidden;min-height:0}
+.sced .gut{margin:0;padding:8px 6px 8px 10px;font:13px/1.55 var(--mono);color:var(--log-prompt);text-align:right;background:var(--panel);border-right:1px solid var(--line2);overflow:hidden;user-select:none;min-width:34px}
+.sced textarea{border:0;outline:none;resize:none;padding:8px 10px;font:13px/1.55 var(--mono);color:var(--log-rx);background:transparent;white-space:pre;overflow:auto;tab-size:2;min-height:0;height:100%}
+.sced:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent)}
+.sclog{font:12px/1.55 var(--mono);overflow:auto;min-height:0;background:var(--log-bg)}
+.sclog-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:8px;padding:3px 10px;border-bottom:1px solid var(--line2)}
+.sclog-row .t{color:var(--log-prompt)}
+.sclog-row .n{color:var(--log-tx)}
+.sclog-row .o{color:var(--log-rx);word-break:break-all}
+.sclog-row.err .o{color:var(--off)}
+.tools .sclog-row{grid-template-columns:auto minmax(0,1fr);gap:0 8px}
+.tools .sclog-row .o{grid-column:1/-1}
+.sclog-empty{font:12px/1.6 var(--sans);color:var(--muted);padding:10px}
+.schead{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line2);background:var(--panel)}
+.schead b{color:var(--text);font-weight:600;font-size:13px}
+.schead .grow{flex:1}
+.it.sc{cursor:pointer}
+.it.sc .dt{display:flex;gap:6px;align-items:center}
+.it.sc .dt .out{overflow:hidden;text-overflow:ellipsis}
+.it.sc.off .nm{color:var(--muted)}

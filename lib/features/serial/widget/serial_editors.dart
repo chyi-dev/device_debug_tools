@@ -13,13 +13,34 @@ import 'serial_chrome.dart';
 import 'serial_dialog.dart';
 import 'serial_l10n.dart';
 
-Future<void> showQuickEditor(BuildContext context, {QuickCommand? existing}) {
+/// [folderId] 为新增指令时预选的文件夹；编辑已有指令时取其所在文件夹。
+Future<void> showQuickEditor(
+  BuildContext context, {
+  QuickCommand? existing,
+  String? folderId,
+}) {
+  final cubit = context.read<SerialConsoleCubit>();
+  final quick = cubit.state.quick;
+  return showSerialDialog<void>(
+    context: context,
+    builder: (dialogContext) => BlocProvider.value(
+      value: cubit,
+      child: _QuickEditor(
+        existing: existing,
+        folders: quick.folders,
+        folderId: existing != null ? quick.folderIdOf(existing.id) : folderId,
+      ),
+    ),
+  );
+}
+
+Future<void> showFolderEditor(BuildContext context, {QuickFolder? existing}) {
   final cubit = context.read<SerialConsoleCubit>();
   return showSerialDialog<void>(
     context: context,
     builder: (dialogContext) => BlocProvider.value(
       value: cubit,
-      child: _QuickEditor(existing: existing),
+      child: _FolderEditor(existing: existing),
     ),
   );
 }
@@ -59,9 +80,9 @@ Future<void> showSerialDelete(
         title: t.serial.dialog.deleteTitle,
         body: Text(
           message,
-          style: AppTextStyles.body(Theme.of(dialogContext).colorScheme).copyWith(
-            color: SerialPalette.of(dialogContext).text,
-          ),
+          style: AppTextStyles.body(
+            Theme.of(dialogContext).colorScheme,
+          ).copyWith(color: SerialPalette.of(dialogContext).text),
         ),
         actions: [
           SerialButton(
@@ -121,14 +142,20 @@ Future<void> showShortcutHelp(BuildContext context) {
                       ),
                       child: Text(
                         row.$1,
-                        style: AppTextStyles.mono(cs, fontSize: 13, color: palette.text),
+                        style: AppTextStyles.mono(
+                          cs,
+                          fontSize: 13,
+                          color: palette.text,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
                         row.$2,
-                        style: AppTextStyles.body(cs).copyWith(color: palette.text),
+                        style: AppTextStyles.body(
+                          cs,
+                        ).copyWith(color: palette.text),
                       ),
                     ),
                   ],
@@ -167,10 +194,9 @@ Future<void> showSerialAbout(BuildContext context) {
             const SizedBox(height: AppSpacing.sm),
             Text(
               t.serial.dialog.aboutDetail,
-              style: AppTextStyles.caption(cs).copyWith(
-                color: palette.muted,
-                height: 1.6,
-              ),
+              style: AppTextStyles.caption(
+                cs,
+              ).copyWith(color: palette.muted, height: 1.6),
             ),
           ],
         ),
@@ -186,10 +212,61 @@ Future<void> showSerialAbout(BuildContext context) {
   );
 }
 
+Future<void> showFileSourceHelp(BuildContext context) {
+  final t = Translations.of(context);
+  final d = t.serial.dialog;
+  final items = [
+    d.fileRaw,
+    d.fileText,
+    d.fileAppend,
+    d.fileWhole,
+    d.filePreview(count: SerialMetrics.filePreviewBytes),
+    d.fileLoop,
+  ];
+  return showSerialDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      final palette = SerialPalette.of(dialogContext);
+      final style = AppTextStyles.body(
+        Theme.of(dialogContext).colorScheme,
+      ).copyWith(color: palette.text, height: 1.6);
+      return SerialDialogFrame(
+        title: d.fileTitle,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final item in items)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('•', style: style.copyWith(color: palette.accent)),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(child: Text(item, style: style)),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          SerialButton(
+            label: d.know,
+            primary: true,
+            onPressed: () => Navigator.of(dialogContext).pop(),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 class _QuickEditor extends StatefulWidget {
-  const _QuickEditor({this.existing});
+  const _QuickEditor({required this.folders, this.existing, this.folderId});
 
   final QuickCommand? existing;
+  final List<QuickFolder> folders;
+  final String? folderId;
 
   @override
   State<_QuickEditor> createState() => _QuickEditorState();
@@ -204,6 +281,9 @@ class _QuickEditorState extends State<_QuickEditor> {
   );
   late DataFormat _format = widget.existing?.format ?? DataFormat.hex;
   late String _key = widget.existing?.key ?? '';
+  late String _folder = widget.folders.any((f) => f.id == widget.folderId)
+      ? widget.folderId!
+      : '';
   String _error = '';
 
   @override
@@ -230,14 +310,15 @@ class _QuickEditorState extends State<_QuickEditor> {
       return;
     }
     context.read<SerialConsoleCubit>().upsertQuick(
-          QuickCommand(
-            id: widget.existing?.id ?? newSerialId('q'),
-            name: name,
-            data: data,
-            format: _format,
-            key: _key,
-          ),
-        );
+      QuickCommand(
+        id: widget.existing?.id ?? newSerialId('q'),
+        name: name,
+        data: data,
+        format: _format,
+        key: _key,
+      ),
+      folderId: _folder.isEmpty ? null : _folder,
+    );
     Navigator.of(context).pop();
   }
 
@@ -250,7 +331,10 @@ class _QuickEditorState extends State<_QuickEditor> {
       title: isNew ? q.newTitle : q.editTitle,
       body: Column(
         children: [
-          _Row(label: q.name, child: SerialField(controller: _name)),
+          _Row(
+            label: q.name,
+            child: SerialField(controller: _name),
+          ),
           _Row(
             label: q.format,
             child: SerialDropdown<DataFormat>(
@@ -278,6 +362,86 @@ class _QuickEditorState extends State<_QuickEditor> {
               ],
               onChanged: (value) => setState(() => _key = value),
             ),
+          ),
+          if (widget.folders.isNotEmpty)
+            _Row(
+              label: q.folder,
+              child: SerialDropdown<String>(
+                value: _folder,
+                height: 28,
+                items: [
+                  (value: '', label: q.root),
+                  for (final folder in widget.folders)
+                    (value: folder.id, label: folder.name),
+                ],
+                onChanged: (value) => setState(() => _folder = value),
+              ),
+            ),
+          SerialDialogError(message: _error),
+        ],
+      ),
+      actions: [
+        SerialButton(
+          label: t.common.cancel,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        SerialButton(label: t.common.save, primary: true, onPressed: _save),
+      ],
+    );
+  }
+}
+
+class _FolderEditor extends StatefulWidget {
+  const _FolderEditor({this.existing});
+
+  final QuickFolder? existing;
+
+  @override
+  State<_FolderEditor> createState() => _FolderEditorState();
+}
+
+class _FolderEditorState extends State<_FolderEditor> {
+  late final TextEditingController _name = TextEditingController(
+    text: widget.existing?.name ?? '',
+  );
+  String _error = '';
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final t = Translations.of(context);
+    final cubit = context.read<SerialConsoleCubit>();
+    final name = _name.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = t.serial.validate.needFolderName);
+      return;
+    }
+    final duplicate = cubit.state.quick.folders.any(
+      (f) => f.name == name && f.id != widget.existing?.id,
+    );
+    if (duplicate) {
+      setState(() => _error = t.serial.validate.dupFolder);
+      return;
+    }
+    cubit.upsertFolder(widget.existing?.id, name);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final q = t.serial.quick;
+    return SerialDialogFrame(
+      title: widget.existing == null ? q.folderNewTitle : q.folderEditTitle,
+      body: Column(
+        children: [
+          _Row(
+            label: q.folderName,
+            child: SerialField(controller: _name),
           ),
           SerialDialogError(message: _error),
         ],
@@ -310,10 +474,13 @@ class _RuleEditorState extends State<_RuleEditor> {
     text: widget.existing?.pattern ?? '',
   );
   late MatchMode _match = widget.existing?.match ?? MatchMode.prefix;
+  late MatchKind _kind = widget.existing?.kind ?? MatchKind.template;
+  late DataFormat _format = widget.existing?.format ?? DataFormat.hex;
+  late bool _ignoreCase = widget.existing?.ignoreCase ?? false;
   late bool _enabled = widget.existing?.enabled ?? true;
   late final List<_Pair> _rows = [
-    for (final reply in widget.existing?.replies ??
-        const [ReplyStep(data: '', delayMs: 50)])
+    for (final reply
+        in widget.existing?.replies ?? const [ReplyStep(data: '', delayMs: 50)])
       _Pair('${reply.delayMs}', reply.data),
   ];
   String _error = '';
@@ -331,25 +498,49 @@ class _RuleEditorState extends State<_RuleEditor> {
   void _save() {
     final t = Translations.of(context);
     final name = _name.text.trim();
-    final pattern = _pattern.text.trim();
+    // ASCII 模板首尾空格可能是要匹配的内容，不裁剪。
+    final pattern = _kind == MatchKind.template && _format == DataFormat.ascii
+        ? _pattern.text
+        : _pattern.text.trim();
+    final v = t.serial.validate;
     if (name.isEmpty) {
-      setState(() => _error = t.serial.validate.needRuleName);
+      setState(() => _error = v.needRuleName);
       return;
     }
-    if (!SerialBytes.isHex(pattern)) {
-      setState(() => _error = t.serial.validate.badPattern);
-      return;
+    int? wildcards;
+    if (_kind == MatchKind.regex) {
+      if (!SerialBytes.isRegex(pattern)) {
+        setState(() => _error = v.badRegex);
+        return;
+      }
+    } else {
+      wildcards = SerialBytes.templateCaptureCount(pattern, _format);
+      if (wildcards == null) {
+        setState(
+          () => _error = _format == DataFormat.hex
+              ? v.badPattern
+              : v.badAsciiPattern,
+        );
+        return;
+      }
     }
     if (_rows.isEmpty) {
-      setState(() => _error = t.serial.validate.needReply);
+      setState(() => _error = v.needReply);
       return;
     }
     final replies = <ReplyStep>[];
     for (var i = 0; i < _rows.length; i++) {
       final data = _rows[i].data.text.trim();
       final delay = int.tryParse(_rows[i].delay.text.trim());
-      if (!SerialBytes.isHex(data)) {
-        setState(() => _error = t.serial.validate.badReply(n: i + 1));
+      if (!SerialBytes.isReplyHex(data)) {
+        setState(() => _error = v.badReply(n: i + 1));
+        return;
+      }
+      final ref = SerialBytes.maxCaptureRef(data);
+      if (wildcards != null && ref > wildcards) {
+        setState(
+          () => _error = v.badCapture(n: i + 1, ref: ref, count: wildcards!),
+        );
         return;
       }
       if (delay == null || delay < 0) {
@@ -360,16 +551,19 @@ class _RuleEditorState extends State<_RuleEditor> {
     }
     final previous = widget.existing;
     context.read<SerialConsoleCubit>().upsertRule(
-          ReplyRule(
-            id: previous?.id ?? newSerialId('r'),
-            name: name,
-            match: _match,
-            pattern: pattern,
-            enabled: _enabled,
-            hits: previous?.hits ?? 0,
-            replies: replies,
-          ),
-        );
+      ReplyRule(
+        id: previous?.id ?? newSerialId('r'),
+        name: name,
+        match: _match,
+        kind: _kind,
+        format: _format,
+        ignoreCase: _ignoreCase,
+        pattern: pattern,
+        enabled: _enabled,
+        hits: previous?.hits ?? 0,
+        replies: replies,
+      ),
+    );
     Navigator.of(context).pop();
   }
 
@@ -381,37 +575,86 @@ class _RuleEditorState extends State<_RuleEditor> {
       title: widget.existing == null ? r.newTitle : r.editTitle,
       body: Column(
         children: [
-          _Row(label: r.name, child: SerialField(controller: _name)),
           _Row(
-            label: r.match,
-            child: SerialDropdown<MatchMode>(
-              value: _match,
+            label: r.name,
+            child: SerialField(controller: _name),
+          ),
+          _Row(
+            label: r.kind,
+            child: SerialDropdown<MatchKind>(
+              value: _kind,
               height: 28,
               items: [
-                for (final mode in MatchMode.values)
-                  (value: mode, label: matchModeLabel(t, mode)),
+                (value: MatchKind.template, label: r.template),
+                (value: MatchKind.regex, label: r.regex),
               ],
-              onChanged: (value) => setState(() => _match = value),
+              onChanged: (value) => setState(() => _kind = value),
             ),
           ),
+          _Row(
+            label: r.format,
+            child: SerialDropdown<DataFormat>(
+              value: _format,
+              height: 28,
+              items: const [
+                (value: DataFormat.hex, label: 'HEX'),
+                (value: DataFormat.ascii, label: 'ASCII'),
+              ],
+              onChanged: (value) => setState(() => _format = value),
+            ),
+          ),
+          if (_kind == MatchKind.template)
+            _Row(
+              label: r.match,
+              child: SerialDropdown<MatchMode>(
+                value: _match,
+                height: 28,
+                items: [
+                  for (final mode in MatchMode.values)
+                    (value: mode, label: matchModeLabel(t, mode)),
+                ],
+                onChanged: (value) => setState(() => _match = value),
+              ),
+            ),
           _Row(
             label: r.pattern,
             child: SerialField(
               controller: _pattern,
               mono: true,
-              hint: r.patternHint,
+              hint: _format == DataFormat.hex ? r.patternHint : null,
             ),
           ),
+          _Row(
+            label: '',
+            child: Text(
+              switch ((_kind, _format)) {
+                (MatchKind.template, DataFormat.hex) => r.hintTemplateHex,
+                (MatchKind.template, DataFormat.ascii) => r.hintTemplateAscii,
+                (MatchKind.regex, DataFormat.hex) => r.hintRegexHex,
+                (MatchKind.regex, DataFormat.ascii) => r.hintRegexAscii,
+              },
+              style: AppTextStyles.body(
+                Theme.of(context).colorScheme,
+              ).copyWith(color: SerialPalette.of(context).muted, fontSize: 12),
+            ),
+          ),
+          if (_format == DataFormat.ascii)
+            SerialCheck(
+              label: r.ignoreCase,
+              value: _ignoreCase,
+              onChanged: (value) => setState(() => _ignoreCase = value),
+            ),
           Row(
             children: [
               Expanded(
                 child: Text(
                   r.list,
-                  style: AppTextStyles.body(Theme.of(context).colorScheme).copyWith(
-                    color: SerialPalette.of(context).text,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
+                  style: AppTextStyles.body(Theme.of(context).colorScheme)
+                      .copyWith(
+                        color: SerialPalette.of(context).text,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                 ),
               ),
               SerialButton(
@@ -464,8 +707,8 @@ class _BatchEditorState extends State<_BatchEditor> {
     text: widget.existing?.name ?? '',
   );
   late final List<_StepRow> _rows = [
-    for (final step in widget.existing?.steps ??
-        const [BatchStep(data: '', delayMs: 0)])
+    for (final step
+        in widget.existing?.steps ?? const [BatchStep(data: '', delayMs: 0)])
       _StepRow('${step.delayMs}', step.data, step.note),
   ];
   String _error = '';
@@ -508,14 +751,14 @@ class _BatchEditorState extends State<_BatchEditor> {
     }
     final previous = widget.existing;
     context.read<SerialConsoleCubit>().upsertBatch(
-          BatchJob(
-            id: previous?.id ?? newSerialId('b'),
-            name: name,
-            repeat: previous?.repeat ?? 1,
-            stopOnFail: previous?.stopOnFail ?? true,
-            steps: steps,
-          ),
-        );
+      BatchJob(
+        id: previous?.id ?? newSerialId('b'),
+        name: name,
+        repeat: previous?.repeat ?? 1,
+        stopOnFail: previous?.stopOnFail ?? true,
+        steps: steps,
+      ),
+    );
     Navigator.of(context).pop();
   }
 
@@ -527,23 +770,28 @@ class _BatchEditorState extends State<_BatchEditor> {
       title: widget.existing == null ? b.newTitle : b.editTitle,
       body: Column(
         children: [
-          _Row(label: b.name, child: SerialField(controller: _name)),
+          _Row(
+            label: b.name,
+            child: SerialField(controller: _name),
+          ),
           Row(
             children: [
               Expanded(
                 child: Text(
                   b.sequence,
-                  style: AppTextStyles.body(Theme.of(context).colorScheme).copyWith(
-                    color: SerialPalette.of(context).text,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
+                  style: AppTextStyles.body(Theme.of(context).colorScheme)
+                      .copyWith(
+                        color: SerialPalette.of(context).text,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                 ),
               ),
               SerialButton(
                 label: b.addStep,
                 small: true,
-                onPressed: () => setState(() => _rows.add(_StepRow('200', '', ''))),
+                onPressed: () =>
+                    setState(() => _rows.add(_StepRow('200', '', ''))),
               ),
             ],
           ),
@@ -572,8 +820,8 @@ class _BatchEditorState extends State<_BatchEditor> {
 
 class _Pair {
   _Pair(String delay, String data)
-      : delay = TextEditingController(text: delay),
-        data = TextEditingController(text: data);
+    : delay = TextEditingController(text: delay),
+      data = TextEditingController(text: data);
 
   final TextEditingController delay;
   final TextEditingController data;
@@ -586,9 +834,9 @@ class _Pair {
 
 class _StepRow {
   _StepRow(String delay, String data, String note)
-      : delay = TextEditingController(text: delay),
-        data = TextEditingController(text: data),
-        note = TextEditingController(text: note);
+    : delay = TextEditingController(text: delay),
+      data = TextEditingController(text: data),
+      note = TextEditingController(text: note);
 
   final TextEditingController delay;
   final TextEditingController data;
@@ -618,10 +866,9 @@ class _Row extends StatelessWidget {
             width: 84,
             child: Text(
               label,
-              style: AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
-                color: palette.muted,
-                fontSize: 13,
-              ),
+              style: AppTextStyles.caption(
+                Theme.of(context).colorScheme,
+              ).copyWith(color: palette.muted, fontSize: 13),
             ),
           ),
           const SizedBox(width: AppSpacing.sm + 2),
@@ -667,7 +914,11 @@ class _LineEditor extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs + 2),
           SizedBox(
             width: 92,
-            child: SerialField(controller: delay, mono: true, hint: t.serial.reply.delayHint),
+            child: SerialField(
+              controller: delay,
+              mono: true,
+              hint: t.serial.reply.delayHint,
+            ),
           ),
           const SizedBox(width: AppSpacing.xs + 2),
           Expanded(
@@ -734,7 +985,10 @@ class _StepEditor extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs + 2),
           SizedBox(
             width: 120,
-            child: SerialField(controller: row.note, hint: t.serial.batch.noteHint),
+            child: SerialField(
+              controller: row.note,
+              hint: t.serial.batch.noteHint,
+            ),
           ),
           SerialLinkButton(
             label: t.serial.dialog.remove,

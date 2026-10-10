@@ -63,7 +63,8 @@ class _SerialLogViewState extends State<SerialLogView> {
       t.serial.log.records(count: state.lines.length),
       if (state.hideRx) t.serial.log.rxHidden,
     ].join(' · ');
-    return DecoratedBox(
+    return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: palette.logBg,
         border: Border.all(color: palette.line),
@@ -82,10 +83,9 @@ class _SerialLogViewState extends State<SerialLogView> {
               children: [
                 Text(
                   t.serial.log.title,
-                  style: AppTextStyles.body(cs).copyWith(
-                    color: palette.text,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.body(
+                    cs,
+                  ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: AppSpacing.sm + 2),
                 Expanded(
@@ -93,7 +93,11 @@ class _SerialLogViewState extends State<SerialLogView> {
                     meta,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.mono(cs, fontSize: 12, color: palette.muted),
+                    style: AppTextStyles.mono(
+                      cs,
+                      fontSize: 12,
+                      color: palette.muted,
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -101,17 +105,15 @@ class _SerialLogViewState extends State<SerialLogView> {
                   child: TextField(
                     focusNode: widget.searchFocus,
                     onChanged: widget.onSearch,
-                    style: AppTextStyles.body(cs).copyWith(
-                      color: palette.text,
-                      fontSize: 13,
-                    ),
+                    style: AppTextStyles.body(
+                      cs,
+                    ).copyWith(color: palette.text, fontSize: 13, height: 1),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: t.serial.log.search,
-                      hintStyle: AppTextStyles.body(cs).copyWith(
-                        color: palette.muted,
-                        fontSize: 13,
-                      ),
+                      hintStyle: AppTextStyles.body(
+                        cs,
+                      ).copyWith(color: palette.muted, fontSize: 13, height: 1),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.sm,
                         vertical: AppSpacing.sm,
@@ -137,22 +139,27 @@ class _SerialLogViewState extends State<SerialLogView> {
             ),
           ),
           Expanded(
-            child: Scrollbar(
-              controller: _scroll,
-              child: ListView(
+            child: SelectionArea(
+              child: Scrollbar(
                 controller: _scroll,
-                padding: const EdgeInsets.all(AppSpacing.sm + 2),
-                children: [
-                  if (_visible(state).isEmpty)
-                    Text(
-                      state.open ? t.serial.log.waiting : t.serial.log.closed,
-                      style: AppTextStyles.body(cs).copyWith(color: palette.muted),
-                    )
-                  else if (!state.logMode)
-                    _stream(state, palette, cs)
-                  else
-                    for (final line in _visible(state)) _entry(line, t, palette, cs),
-                ],
+                child: ListView(
+                  controller: _scroll,
+                  padding: const EdgeInsets.all(AppSpacing.sm + 2),
+                  children: [
+                    if (_visible(state).isEmpty)
+                      Text(
+                        state.open ? t.serial.log.waiting : t.serial.log.closed,
+                        style: AppTextStyles.body(
+                          cs,
+                        ).copyWith(color: palette.muted),
+                      )
+                    else if (!state.logMode)
+                      _stream(state, palette, cs)
+                    else
+                      for (final line in _visible(state))
+                        _entry(line, t, palette, cs),
+                  ],
+                ),
               ),
             ),
           ),
@@ -174,7 +181,11 @@ class _SerialLogViewState extends State<SerialLogView> {
     ];
   }
 
-  Widget _stream(SerialConsoleState state, SerialPalette palette, ColorScheme cs) {
+  Widget _stream(
+    SerialConsoleState state,
+    SerialPalette palette,
+    ColorScheme cs,
+  ) {
     final style = AppTextStyles.mono(
       cs,
       fontSize: 14,
@@ -271,8 +282,8 @@ int _matchCount(SerialConsoleState state, String query, Translations t) {
     final text = line.dir == LogDir.sys
         ? serialSysText(t, line)
         : (state.rxFormat == DataFormat.hex
-            ? SerialBytes.toHex(line.bytes ?? const [])
-            : SerialBytes.toAscii(line.bytes ?? const []));
+              ? SerialBytes.toHex(line.bytes ?? const [])
+              : SerialBytes.toAscii(line.bytes ?? const []));
     var i = 0;
     final lower = text.toLowerCase();
     while (true) {

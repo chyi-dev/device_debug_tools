@@ -175,7 +175,7 @@ class _Translations$serial$port$en extends Translations$serial$port$zh {
 
 	// Translations
 	@override String get title => 'Port';
-	@override String get name => 'Port';
+	@override String get name => 'Address';
 	@override String get baud => 'Baud';
 	@override String get parity => 'Parity';
 	@override String get dataBits => 'Data';
@@ -264,8 +264,7 @@ class _Translations$serial$tx$en extends Translations$serial$tx$zh {
 	@override String get clear => 'Clear after send';
 	@override String get file => 'Open file source…';
 	@override String get loop => 'Repeat every';
-	@override String get quick => 'Quick commands';
-	@override String get history => 'Send history';
+	@override String get fileHelp => 'About data files';
 }
 
 // Path: serial.checksum
@@ -300,6 +299,7 @@ class _Translations$serial$log$en extends Translations$serial$log$zh {
 	@override String opened({required Object port, required Object baud, required Object frame}) => '${port} opened · ${baud} ${frame}';
 	@override String closedPort({required Object port}) => '${port} closed';
 	@override String autoReply({required Object name, required Object count}) => 'Auto-reply "${name}" matched, sending ${count} replies';
+	@override String replySkipped({required Object name, required Object step}) => 'Auto-reply "${name}" reply ${step} refers to a missing capture, skipped';
 	@override String batchStart({required Object name, required Object steps, required Object extra}) => 'Batch "${name}" started, ${steps} steps${extra}';
 	@override String batchRounds({required Object rounds}) => ' × ${rounds} rounds';
 	@override String batchDone({required Object name}) => 'Batch "${name}" finished';
@@ -346,7 +346,7 @@ class _Translations$serial$quick$en extends Translations$serial$quick$zh {
 	// Translations
 	@override String get note => 'Send now. These do not enter history';
 	@override String get send => 'Send';
-	@override String get empty => 'No quick commands yet. Add one you send often.';
+	@override String get empty => 'No quick commands yet. Add one you send often, or add a folder to group them.';
 	@override String get newTitle => 'New quick command';
 	@override String get editTitle => 'Edit quick command';
 	@override String get name => 'Name';
@@ -354,6 +354,16 @@ class _Translations$serial$quick$en extends Translations$serial$quick$zh {
 	@override String get data => 'Payload';
 	@override String get key => 'Shortcut';
 	@override String get noKey => 'None';
+	@override String get folder => 'Folder';
+	@override String get root => 'Top level';
+	@override String get newFolder => 'New folder';
+	@override String get add => 'Add';
+	@override String get rename => 'Rename';
+	@override String folderCount({required Object count}) => '${count}';
+	@override String get folderEmpty => 'This folder is empty. Click Add to put a command here.';
+	@override String get folderNewTitle => 'New folder';
+	@override String get folderEditTitle => 'Rename folder';
+	@override String get folderName => 'Name';
 }
 
 // Path: serial.batch
@@ -405,16 +415,27 @@ class _Translations$serial$reply$en extends Translations$serial$reply$zh {
 	@override String get editTitle => 'Edit auto-reply rule';
 	@override String get name => 'Name';
 	@override String get match => 'Match';
+	@override String get kind => 'Syntax';
+	@override String get template => 'Template';
+	@override String get regex => 'Regex';
+	@override String get format => 'Format';
+	@override String get ignoreCase => 'Ignore case';
+	@override String get ignoreCaseShort => 'Aa';
 	@override String get pattern => 'Pattern';
 	@override String get patternHint => 'HEX, e.g. A5 5A 03';
+	@override String get hintTemplateHex => '?? matches any one byte, * matches any length; use \$1, \$2 in replies for the bytes they matched';
+	@override String get hintTemplateAscii => '? matches any one byte, * any length; \\? \\* \\r \\n \\xHH are literals; use \$1, \$2 in replies';
+	@override String get hintRegexHex => 'Matched against spaced uppercase HEX (e.g. A5 5A 03); write ^ and \$ yourself; use \$1, \$2 for groups';
+	@override String get hintRegexAscii => 'Matched against the raw bytes; write ^ and \$ yourself; use \$1, \$2 for groups';
 	@override String get list => 'Replies';
 	@override String get addReply => 'Add reply';
 	@override String get enable => 'Enable this rule';
 	@override String get delayHint => 'Delay ms';
-	@override String get dataHint => 'Reply HEX';
+	@override String get dataHint => 'Reply HEX, \$1 allowed';
 	@override String get prefix => 'Prefix';
 	@override String get frame => 'Full frame';
 	@override String get contains => 'Contains';
+	@override String get suffix => 'Suffix';
 	@override String get toggleOn => 'Enable / disable';
 }
 
@@ -477,6 +498,8 @@ class _Translations$serial$dialog$en extends Translations$serial$dialog$zh {
 	// Translations
 	@override String get deleteTitle => 'Delete';
 	@override String deleteQuick({required Object name}) => 'Delete quick command "${name}"? This cannot be undone.';
+	@override String deleteFolder({required Object name}) => 'Delete folder "${name}"? This cannot be undone.';
+	@override String deleteFolderWith({required Object name, required Object count}) => 'Delete folder "${name}" and the ${count} commands in it? This cannot be undone.';
 	@override String deleteRule({required Object name}) => 'Delete rule "${name}"? This cannot be undone.';
 	@override String deleteBatch({required Object name}) => 'Delete batch "${name}"? This cannot be undone.';
 	@override String deleteHistory({required Object count}) => 'Delete all ${count} history entries? This cannot be undone.';
@@ -498,6 +521,13 @@ class _Translations$serial$dialog$en extends Translations$serial$dialog$zh {
 	@override String get ctrlL => 'Ctrl+L';
 	@override String get ctrlF => 'Ctrl+F';
 	@override String get remove => 'Remove';
+	@override String get fileTitle => 'About data files';
+	@override String get fileRaw => 'Any file type works (.bin, .dat, .txt, …). The file\'s raw bytes are sent as-is, with no encoding conversion.';
+	@override String get fileText => 'Hex characters in a text file are not parsed: a .txt containing "01 02" sends the ASCII codes of those 5 characters. Use a binary file to send HEX data.';
+	@override String get fileAppend => 'If "Append checksum" or "Append CR LF" is checked, it is added after the file data. Escape parsing and AT auto-CR do not apply to files.';
+	@override String get fileWhole => 'The whole file is read into memory and written in one go, without splitting. Split large files yourself to avoid UI stalls while sending.';
+	@override String filePreview({required Object count}) => 'While a file is loaded the send box is read-only and previews only the first ${count} bytes. Click "Remove" or the send box\'s "Clear" to leave file mode.';
+	@override String get fileLoop => 'With "Repeat every" checked, the whole file is resent on each period.';
 }
 
 // Path: serial.validate
@@ -509,11 +539,16 @@ class _Translations$serial$validate$en extends Translations$serial$validate$zh {
 	// Translations
 	@override String get needName => 'Enter a name';
 	@override String get needData => 'Enter the payload';
+	@override String get needFolderName => 'Enter a folder name';
+	@override String get dupFolder => 'A folder with this name already exists';
 	@override String get badHex => 'HEX must be pairs of hex characters';
 	@override String get needRuleName => 'Enter a rule name';
-	@override String get badPattern => 'Pattern must be HEX';
+	@override String get badPattern => 'Pattern must be HEX; characters other than ?? and * must come in pairs';
+	@override String get badAsciiPattern => 'Enter a pattern';
+	@override String get badRegex => 'Regular expression cannot be parsed';
 	@override String get needReply => 'Add at least one reply';
-	@override String badReply({required Object n}) => 'Reply ${n} must be HEX';
+	@override String badReply({required Object n}) => 'Reply ${n} must be HEX; \$1, \$2 may be inserted';
+	@override String badCapture({required Object n, required Object ref, required Object count}) => 'Reply ${n} refers to capture ${ref}, but the pattern has only ${count} wildcards';
 	@override String badDelay({required Object n}) => 'Delay ${n} must be zero or greater';
 	@override String get needTask => 'Enter a task name';
 	@override String get needStep => 'Add at least one command';
@@ -559,6 +594,7 @@ class _Translations$serial$notice$en extends Translations$serial$notice$zh {
 	@override String ruleOff({required Object name}) => '${name} disabled';
 	@override String get deleted => 'Deleted';
 	@override String get quickSaved => 'Quick command saved';
+	@override String get folderSaved => 'Folder saved';
 	@override String get ruleSaved => 'Rule saved';
 	@override String get batchSaved => 'Batch saved';
 	@override String checksumFilled({required Object text}) => 'Filled the send box: ${text}';
@@ -615,7 +651,7 @@ extension on TranslationsEn {
 			'serial.compactTip' => 'Hide or show the left settings panel',
 			'serial.toolsTip' => 'Show or hide the tools panel',
 			'serial.port.title' => 'Port',
-			'serial.port.name' => 'Port',
+			'serial.port.name' => 'Address',
 			'serial.port.baud' => 'Baud',
 			'serial.port.parity' => 'Parity',
 			'serial.port.dataBits' => 'Data',
@@ -659,8 +695,7 @@ extension on TranslationsEn {
 			'serial.tx.clear' => 'Clear after send',
 			'serial.tx.file' => 'Open file source…',
 			'serial.tx.loop' => 'Repeat every',
-			'serial.tx.quick' => 'Quick commands',
-			'serial.tx.history' => 'Send history',
+			'serial.tx.fileHelp' => 'About data files',
 			'serial.checksum.sum' => 'SUM8',
 			'serial.checksum.xor' => 'XOR/BCC',
 			'serial.checksum.lrc' => 'LRC',
@@ -677,6 +712,7 @@ extension on TranslationsEn {
 			'serial.log.opened' => ({required Object port, required Object baud, required Object frame}) => '${port} opened · ${baud} ${frame}',
 			'serial.log.closedPort' => ({required Object port}) => '${port} closed',
 			'serial.log.autoReply' => ({required Object name, required Object count}) => 'Auto-reply "${name}" matched, sending ${count} replies',
+			'serial.log.replySkipped' => ({required Object name, required Object step}) => 'Auto-reply "${name}" reply ${step} refers to a missing capture, skipped',
 			'serial.log.batchStart' => ({required Object name, required Object steps, required Object extra}) => 'Batch "${name}" started, ${steps} steps${extra}',
 			'serial.log.batchRounds' => ({required Object rounds}) => ' × ${rounds} rounds',
 			'serial.log.batchDone' => ({required Object name}) => 'Batch "${name}" finished',
@@ -696,7 +732,7 @@ extension on TranslationsEn {
 			'serial.tab.calc' => 'Checksum',
 			'serial.quick.note' => 'Send now. These do not enter history',
 			'serial.quick.send' => 'Send',
-			'serial.quick.empty' => 'No quick commands yet. Add one you send often.',
+			'serial.quick.empty' => 'No quick commands yet. Add one you send often, or add a folder to group them.',
 			'serial.quick.newTitle' => 'New quick command',
 			'serial.quick.editTitle' => 'Edit quick command',
 			'serial.quick.name' => 'Name',
@@ -704,6 +740,16 @@ extension on TranslationsEn {
 			'serial.quick.data' => 'Payload',
 			'serial.quick.key' => 'Shortcut',
 			'serial.quick.noKey' => 'None',
+			'serial.quick.folder' => 'Folder',
+			'serial.quick.root' => 'Top level',
+			'serial.quick.newFolder' => 'New folder',
+			'serial.quick.add' => 'Add',
+			'serial.quick.rename' => 'Rename',
+			'serial.quick.folderCount' => ({required Object count}) => '${count}',
+			'serial.quick.folderEmpty' => 'This folder is empty. Click Add to put a command here.',
+			'serial.quick.folderNewTitle' => 'New folder',
+			'serial.quick.folderEditTitle' => 'Rename folder',
+			'serial.quick.folderName' => 'Name',
 			'serial.batch.kNew' => 'New',
 			'serial.batch.edit' => 'Edit',
 			'serial.batch.delete' => 'Delete',
@@ -737,16 +783,27 @@ extension on TranslationsEn {
 			'serial.reply.editTitle' => 'Edit auto-reply rule',
 			'serial.reply.name' => 'Name',
 			'serial.reply.match' => 'Match',
+			'serial.reply.kind' => 'Syntax',
+			'serial.reply.template' => 'Template',
+			'serial.reply.regex' => 'Regex',
+			'serial.reply.format' => 'Format',
+			'serial.reply.ignoreCase' => 'Ignore case',
+			'serial.reply.ignoreCaseShort' => 'Aa',
 			'serial.reply.pattern' => 'Pattern',
 			'serial.reply.patternHint' => 'HEX, e.g. A5 5A 03',
+			'serial.reply.hintTemplateHex' => '?? matches any one byte, * matches any length; use \$1, \$2 in replies for the bytes they matched',
+			'serial.reply.hintTemplateAscii' => '? matches any one byte, * any length; \\? \\* \\r \\n \\xHH are literals; use \$1, \$2 in replies',
+			'serial.reply.hintRegexHex' => 'Matched against spaced uppercase HEX (e.g. A5 5A 03); write ^ and \$ yourself; use \$1, \$2 for groups',
+			'serial.reply.hintRegexAscii' => 'Matched against the raw bytes; write ^ and \$ yourself; use \$1, \$2 for groups',
 			'serial.reply.list' => 'Replies',
 			'serial.reply.addReply' => 'Add reply',
 			'serial.reply.enable' => 'Enable this rule',
 			'serial.reply.delayHint' => 'Delay ms',
-			'serial.reply.dataHint' => 'Reply HEX',
+			'serial.reply.dataHint' => 'Reply HEX, \$1 allowed',
 			'serial.reply.prefix' => 'Prefix',
 			'serial.reply.frame' => 'Full frame',
 			'serial.reply.contains' => 'Contains',
+			'serial.reply.suffix' => 'Suffix',
 			'serial.reply.toggleOn' => 'Enable / disable',
 			'serial.history.note' => 'Only data sent with the Send button is recorded',
 			'serial.history.clear' => 'Clear',
@@ -773,6 +830,8 @@ extension on TranslationsEn {
 			'serial.status.fileMeta' => ({required Object name, required Object count}) => '${name} · ${count} bytes',
 			'serial.dialog.deleteTitle' => 'Delete',
 			'serial.dialog.deleteQuick' => ({required Object name}) => 'Delete quick command "${name}"? This cannot be undone.',
+			'serial.dialog.deleteFolder' => ({required Object name}) => 'Delete folder "${name}"? This cannot be undone.',
+			'serial.dialog.deleteFolderWith' => ({required Object name, required Object count}) => 'Delete folder "${name}" and the ${count} commands in it? This cannot be undone.',
 			'serial.dialog.deleteRule' => ({required Object name}) => 'Delete rule "${name}"? This cannot be undone.',
 			'serial.dialog.deleteBatch' => ({required Object name}) => 'Delete batch "${name}"? This cannot be undone.',
 			'serial.dialog.deleteHistory' => ({required Object count}) => 'Delete all ${count} history entries? This cannot be undone.',
@@ -794,13 +853,25 @@ extension on TranslationsEn {
 			'serial.dialog.ctrlL' => 'Ctrl+L',
 			'serial.dialog.ctrlF' => 'Ctrl+F',
 			'serial.dialog.remove' => 'Remove',
+			'serial.dialog.fileTitle' => 'About data files',
+			'serial.dialog.fileRaw' => 'Any file type works (.bin, .dat, .txt, …). The file\'s raw bytes are sent as-is, with no encoding conversion.',
+			'serial.dialog.fileText' => 'Hex characters in a text file are not parsed: a .txt containing "01 02" sends the ASCII codes of those 5 characters. Use a binary file to send HEX data.',
+			'serial.dialog.fileAppend' => 'If "Append checksum" or "Append CR LF" is checked, it is added after the file data. Escape parsing and AT auto-CR do not apply to files.',
+			'serial.dialog.fileWhole' => 'The whole file is read into memory and written in one go, without splitting. Split large files yourself to avoid UI stalls while sending.',
+			'serial.dialog.filePreview' => ({required Object count}) => 'While a file is loaded the send box is read-only and previews only the first ${count} bytes. Click "Remove" or the send box\'s "Clear" to leave file mode.',
+			'serial.dialog.fileLoop' => 'With "Repeat every" checked, the whole file is resent on each period.',
 			'serial.validate.needName' => 'Enter a name',
 			'serial.validate.needData' => 'Enter the payload',
+			'serial.validate.needFolderName' => 'Enter a folder name',
+			'serial.validate.dupFolder' => 'A folder with this name already exists',
 			'serial.validate.badHex' => 'HEX must be pairs of hex characters',
 			'serial.validate.needRuleName' => 'Enter a rule name',
-			'serial.validate.badPattern' => 'Pattern must be HEX',
+			'serial.validate.badPattern' => 'Pattern must be HEX; characters other than ?? and * must come in pairs',
+			'serial.validate.badAsciiPattern' => 'Enter a pattern',
+			'serial.validate.badRegex' => 'Regular expression cannot be parsed',
 			'serial.validate.needReply' => 'Add at least one reply',
-			'serial.validate.badReply' => ({required Object n}) => 'Reply ${n} must be HEX',
+			'serial.validate.badReply' => ({required Object n}) => 'Reply ${n} must be HEX; \$1, \$2 may be inserted',
+			'serial.validate.badCapture' => ({required Object n, required Object ref, required Object count}) => 'Reply ${n} refers to capture ${ref}, but the pattern has only ${count} wildcards',
 			'serial.validate.badDelay' => ({required Object n}) => 'Delay ${n} must be zero or greater',
 			'serial.validate.needTask' => 'Enter a task name',
 			'serial.validate.needStep' => 'Add at least one command',
@@ -837,6 +908,7 @@ extension on TranslationsEn {
 			'serial.notice.ruleOff' => ({required Object name}) => '${name} disabled',
 			'serial.notice.deleted' => 'Deleted',
 			'serial.notice.quickSaved' => 'Quick command saved',
+			'serial.notice.folderSaved' => 'Folder saved',
 			'serial.notice.ruleSaved' => 'Rule saved',
 			'serial.notice.batchSaved' => 'Batch saved',
 			'serial.notice.checksumFilled' => ({required Object text}) => 'Filled the send box: ${text}',

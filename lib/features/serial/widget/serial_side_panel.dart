@@ -11,22 +11,21 @@ import '../cubit/serial_console_state.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
 import 'serial_chrome.dart';
+import 'serial_editors.dart';
 
 class SerialSidePanel extends StatelessWidget {
-  const SerialSidePanel({super.key, required this.onOpenTools});
-
-  final ValueChanged<ToolTab> onOpenTools;
+  const SerialSidePanel({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.only(right: 2),
-      children: [
-        const _PortGroup(),
-        const SizedBox(height: AppSpacing.xs + 2),
-        const _RxGroup(),
-        const SizedBox(height: AppSpacing.xs + 2),
-        _TxGroup(onOpenTools: onOpenTools),
+      children: const [
+        _PortGroup(),
+        SizedBox(height: AppSpacing.xs + 2),
+        _RxGroup(),
+        SizedBox(height: AppSpacing.xs + 2),
+        _TxGroup(),
       ],
     );
   }
@@ -37,9 +36,9 @@ class _PortGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-        final t = Translations.of(context);
-        final palette = SerialPalette.of(context);
-        return BlocBuilder<SerialConsoleCubit, SerialConsoleState>(
+    final t = Translations.of(context);
+    final palette = SerialPalette.of(context);
+    return BlocBuilder<SerialConsoleCubit, SerialConsoleState>(
       buildWhen: (a, b) =>
           a.ports != b.ports ||
           a.portName != b.portName ||
@@ -87,11 +86,13 @@ class _PortGroup extends StatelessWidget {
               ),
               _FieldRow(
                 label: port.baud,
-                child: _CommitField(
-                  value: '${state.baud}',
-                  mono: false,
-                  numeric: true,
-                  onCommit: (text) => cubit.setBaud(int.tryParse(text) ?? 0),
+                child: SerialDropdown<int>(
+                  value: state.baud,
+                  items: [
+                    for (final rate in _baudOptions(state.baud))
+                      (value: rate, label: '$rate'),
+                  ],
+                  onChanged: cubit.setBaud,
                 ),
               ),
               _FieldRow(
@@ -251,8 +252,9 @@ class _RxGroup extends StatelessWidget {
                   Expanded(
                     child: Text(
                       rx.timeout,
-                      style: AppTextStyles.body(Theme.of(context).colorScheme)
-                          .copyWith(color: SerialPalette.of(context).text),
+                      style: AppTextStyles.body(
+                        Theme.of(context).colorScheme,
+                      ).copyWith(color: SerialPalette.of(context).text),
                     ),
                   ),
                   SizedBox(
@@ -277,15 +279,20 @@ class _RxGroup extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
-              Row(
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
                 children: [
-                  SerialLinkButton(
+                  SerialButton(
                     label: rx.saveData,
+                    small: true,
+                    accent: true,
                     onPressed: cubit.saveLog,
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  SerialLinkButton(
+                  SerialButton(
                     label: rx.clear,
+                    small: true,
+                    accent: true,
                     onPressed: cubit.clearLog,
                   ),
                 ],
@@ -299,9 +306,7 @@ class _RxGroup extends StatelessWidget {
 }
 
 class _TxGroup extends StatelessWidget {
-  const _TxGroup({required this.onOpenTools});
-
-  final ValueChanged<ToolTab> onOpenTools;
+  const _TxGroup();
 
   @override
   Widget build(BuildContext context) {
@@ -379,28 +384,6 @@ class _TxGroup extends StatelessWidget {
                 value: state.clearAfterSend,
                 onChanged: cubit.setClearAfterSend,
               ),
-              SerialCheck(
-                label: tx.file,
-                value: state.fileBytes != null,
-                onChanged: cubit.setFileSource,
-              ),
-              if (state.fileName != null && state.fileBytes != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 22),
-                  child: Text(
-                    t.serial.status.fileMeta(
-                      name: state.fileName!,
-                      count: state.fileBytes!.length,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.mono(
-                      Theme.of(context).colorScheme,
-                      fontSize: 12,
-                      color: palette.muted,
-                    ),
-                  ),
-                ),
               Row(
                 children: [
                   Expanded(
@@ -431,18 +414,60 @@ class _TxGroup extends StatelessWidget {
                   ),
                 ],
               ),
+              if (state.fileName != null && state.fileBytes != null)
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        t.serial.status.fileMeta(
+                          name: state.fileName!,
+                          count: state.fileBytes!.length,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.mono(
+                          Theme.of(context).colorScheme,
+                          fontSize: 12,
+                          color: palette.muted,
+                        ),
+                      ),
+                    ),
+                    SerialLinkButton(
+                      label: t.serial.dialog.remove,
+                      danger: true,
+                      onPressed: () => cubit.setFileSource(false),
+                    ),
+                  ],
+                ),
               const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: AppSpacing.md,
-                runSpacing: AppSpacing.xs,
+              Row(
                 children: [
-                  SerialLinkButton(
-                    label: tx.quick,
-                    onPressed: () => onOpenTools(ToolTab.quick),
+                  Expanded(
+                    child: SerialButton(
+                      label: tx.file,
+                      small: true,
+                      accent: true,
+                      expand: true,
+                      onPressed: () => cubit.setFileSource(true),
+                    ),
                   ),
-                  SerialLinkButton(
-                    label: tx.history,
-                    onPressed: () => onOpenTools(ToolTab.history),
+                  const SizedBox(width: AppSpacing.xs),
+                  Tooltip(
+                    message: tx.fileHelp,
+                    child: InkWell(
+                      onTap: () => showFileSourceHelp(context),
+                      borderRadius: BorderRadius.circular(
+                        SerialMetrics.controlRadius,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.xs),
+                        child: Icon(
+                          Icons.help_outline,
+                          size: 16,
+                          color: palette.muted,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -471,8 +496,9 @@ class _FieldRow extends StatelessWidget {
             width: SerialMetrics.labelCol,
             child: Text(
               label,
-              style: AppTextStyles.caption(Theme.of(context).colorScheme)
-                  .copyWith(color: palette.muted, fontSize: 13),
+              style: AppTextStyles.caption(
+                Theme.of(context).colorScheme,
+              ).copyWith(color: palette.muted, fontSize: 13),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -488,14 +514,12 @@ class _CommitField extends StatefulWidget {
     required this.value,
     required this.onCommit,
     this.numeric = false,
-    this.mono = true,
     this.height = SerialMetrics.controlSm,
   });
 
   final String value;
   final ValueChanged<String> onCommit;
   final bool numeric;
-  final bool mono;
   final double height;
 
   @override
@@ -528,7 +552,7 @@ class _CommitFieldState extends State<_CommitField> {
     return SerialField(
       controller: _controller,
       focusNode: _focus,
-      mono: widget.mono,
+      mono: true,
       height: widget.height,
       keyboardType: widget.numeric ? TextInputType.number : null,
       inputFormatters: widget.numeric
@@ -599,10 +623,9 @@ class _Radio extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: AppTextStyles.body(Theme.of(context).colorScheme).copyWith(
-              color: palette.text,
-              fontWeight: FontWeight.w400,
-            ),
+            style: AppTextStyles.body(
+              Theme.of(context).colorScheme,
+            ).copyWith(color: palette.text, fontWeight: FontWeight.w400),
           ),
         ],
       ),
@@ -639,10 +662,9 @@ class _Signal extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs + 2),
           Text(
             label,
-            style: AppTextStyles.body(Theme.of(context).colorScheme).copyWith(
-              color: SerialPalette.of(context).text,
-              fontSize: 13,
-            ),
+            style: AppTextStyles.body(
+              Theme.of(context).colorScheme,
+            ).copyWith(color: SerialPalette.of(context).text, fontSize: 13),
           ),
         ],
       ),
@@ -680,20 +702,28 @@ class _Pin extends StatelessWidget {
   }
 }
 
+/// 已保存的非标准波特率也要出现在列表里，否则下拉显示为空。
+List<int> _baudOptions(int current) {
+  if (SerialMetrics.baudRates.contains(current) || current <= 0) {
+    return SerialMetrics.baudRates;
+  }
+  return [...SerialMetrics.baudRates, current]..sort();
+}
+
 String _parityLabel(Translations t, Parity parity) => switch (parity) {
-      Parity.none => t.serial.parityOpt.none,
-      Parity.odd => t.serial.parityOpt.odd,
-      Parity.even => t.serial.parityOpt.even,
-      Parity.mark => t.serial.parityOpt.mark,
-      Parity.space => t.serial.parityOpt.space,
-    };
+  Parity.none => t.serial.parityOpt.none,
+  Parity.odd => t.serial.parityOpt.odd,
+  Parity.even => t.serial.parityOpt.even,
+  Parity.mark => t.serial.parityOpt.mark,
+  Parity.space => t.serial.parityOpt.space,
+};
 
 String _checksum(Translations t, ChecksumKind kind) => switch (kind) {
-      ChecksumKind.none => t.serial.flowOpt.none,
-      ChecksumKind.sum => t.serial.checksum.sum,
-      ChecksumKind.xor => t.serial.checksum.xor,
-      ChecksumKind.lrc => t.serial.checksum.lrc,
-      ChecksumKind.crc8 => t.serial.checksum.crc8,
-      ChecksumKind.crc16 => t.serial.checksum.crc16,
-      ChecksumKind.crc32 => t.serial.checksum.crc32,
-    };
+  ChecksumKind.none => t.serial.flowOpt.none,
+  ChecksumKind.sum => t.serial.checksum.sum,
+  ChecksumKind.xor => t.serial.checksum.xor,
+  ChecksumKind.lrc => t.serial.checksum.lrc,
+  ChecksumKind.crc8 => t.serial.checksum.crc8,
+  ChecksumKind.crc16 => t.serial.checksum.crc16,
+  ChecksumKind.crc32 => t.serial.checksum.crc32,
+};

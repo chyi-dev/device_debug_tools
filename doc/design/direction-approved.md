@@ -39,6 +39,37 @@
 
 ---
 
+# 工具面板「脚本」页方向确认
+
+## 展示的三版初稿
+
+视觉沿用本稿，只换脚本区骨架；三版共用两个预置脚本、启用开关与运行日志。
+
+| 方向 | 文件 | 截图 |
+|---|---|---|
+| A · 窄栏内完成：六页签横滑，352px 内列表 + 编辑器 + 运行日志 | `script-demos/panel.html` | `script-demos/panel.png` |
+| B · 栏内启停，编辑进浮层：面板只管开关、运行、最近输出；编辑打开加宽对话框，左代码右日志 | `script-demos/dialog.html` | `script-demos/dialog.png`、`script-demos/dialog-edit.png` |
+| C · 借中间列：右栏只留列表，编辑器 + 运行日志停靠在数据日志下方 | `script-demos/workspace.html` | `script-demos/workspace.png` |
+
+## 用户选择（原话）
+
+第一次：
+
+> B+脚本应该使用lua，增加数据发送前的钩子，拦截发送数据处理后再发送
+
+调整：
+
+> 以workspace.html为最终版
+
+## 落地
+
+- 布局采用 C（借中间列）；Lua 与发送前拦截沿用第一次的要求。
+- 方向稿里的 JS 钩子改为 Lua：`on_receive(frame)`、`before_send(frame)`；`before_send` 返回处理后的帧再发出，返回 `nil` 则拦截不发。
+- 钩子放进 `src/engine.js` 的发送入口，发送按钮、快捷指令、批量、自动应答都经过。
+- 规则写入 `design.md` 工具面板一节。
+
+---
+
 # 应用图标方向确认
 
 ## 展示的三版初稿

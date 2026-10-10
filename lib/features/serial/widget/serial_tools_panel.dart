@@ -58,7 +58,8 @@ class _SerialToolsPanelState extends State<SerialToolsPanel> {
                     for (final tab in ToolTab.values)
                       Expanded(
                         child: InkWell(
-                          onTap: () => context.read<SerialConsoleCubit>().setTab(tab),
+                          onTap: () =>
+                              context.read<SerialConsoleCubit>().setTab(tab),
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               border: Border(
@@ -108,31 +109,31 @@ class _SerialToolsPanelState extends State<SerialToolsPanel> {
       ToolTab.reply => _ReplyTab(state: state),
       ToolTab.history => _HistoryTab(state: state),
       ToolTab.calc => _CalcTab(
-          format: _calcFormat,
-          controller: _calc,
-          onFormat: (format) => setState(() => _calcFormat = format),
-          onUseTx: () {
-            final file = state.fileBytes;
-            final text = file != null ? SerialBytes.toHex(file) : state.txText;
-            final format = file != null ? DataFormat.hex : state.txFormat;
-            setState(() {
-              _calcFormat = format;
-              _calc.text = text;
-            });
-          },
-          onEdited: () => setState(() {}),
-        ),
+        format: _calcFormat,
+        controller: _calc,
+        onFormat: (format) => setState(() => _calcFormat = format),
+        onUseTx: () {
+          final file = state.fileBytes;
+          final text = file != null ? SerialBytes.toHex(file) : state.txText;
+          final format = file != null ? DataFormat.hex : state.txFormat;
+          setState(() {
+            _calcFormat = format;
+            _calc.text = text;
+          });
+        },
+        onEdited: () => setState(() {}),
+      ),
     };
   }
 }
 
 String _tabLabel(Translations t, ToolTab tab) => switch (tab) {
-      ToolTab.quick => t.serial.tab.quick,
-      ToolTab.batch => t.serial.tab.batch,
-      ToolTab.reply => t.serial.tab.reply,
-      ToolTab.history => t.serial.tab.history,
-      ToolTab.calc => t.serial.tab.calc,
-    };
+  ToolTab.quick => t.serial.tab.quick,
+  ToolTab.batch => t.serial.tab.batch,
+  ToolTab.reply => t.serial.tab.reply,
+  ToolTab.history => t.serial.tab.history,
+  ToolTab.calc => t.serial.tab.calc,
+};
 
 class _Bar extends StatelessWidget {
   const _Bar({required this.note, required this.actions});
@@ -153,9 +154,9 @@ class _Bar extends StatelessWidget {
           Expanded(
             child: Text(
               note,
-              style: AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
-                color: palette.muted,
-              ),
+              style: AppTextStyles.caption(
+                Theme.of(context).colorScheme,
+              ).copyWith(color: palette.muted),
             ),
           ),
           for (final action in actions) ...[
@@ -176,12 +177,49 @@ class _QuickTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final q = t.serial.quick;
     final cubit = context.read<SerialConsoleCubit>();
+
+    Widget command(QuickCommand item, {bool indent = false}) => _ItemRow(
+      indent: indent,
+      leading: SerialButton(
+        label: q.send,
+        small: true,
+        primary: true,
+        onPressed: () => cubit.sendQuick(item.id),
+      ),
+      title: item.name,
+      detail: item.format == DataFormat.ascii
+          ? '${t.serial.mark.ascii} · ${item.data}'
+          : item.data,
+      trailing: [
+        if (item.key.isNotEmpty) _KeyChip(item.key),
+        SerialLinkButton(
+          label: t.common.edit,
+          onPressed: () => showQuickEditor(context, existing: item),
+        ),
+        SerialLinkButton(
+          label: t.common.delete,
+          danger: true,
+          onPressed: () => showSerialDelete(
+            context,
+            message: t.serial.dialog.deleteQuick(name: item.name),
+            onDelete: () => cubit.deleteQuick(item.id),
+          ),
+        ),
+      ],
+    );
+
     return Column(
       children: [
         _Bar(
-          note: t.serial.quick.note,
+          note: q.note,
           actions: [
+            SerialButton(
+              label: q.newFolder,
+              small: true,
+              onPressed: () => showFolderEditor(context),
+            ),
             SerialButton(
               label: t.common.add,
               small: true,
@@ -191,42 +229,106 @@ class _QuickTab extends StatelessWidget {
         ),
         Expanded(
           child: state.quick.isEmpty
-              ? _Explain(t.serial.quick.empty)
+              ? _Explain(q.empty)
               : ListView(
                   children: [
-                    for (final item in state.quick)
-                      _ItemRow(
-                        leading: SerialButton(
-                          label: t.serial.quick.send,
-                          small: true,
-                          primary: true,
-                          onPressed: () => cubit.sendQuick(item.id),
-                        ),
-                        title: item.name,
-                        detail: item.format == DataFormat.ascii
-                            ? '${t.serial.mark.ascii} · ${item.data}'
-                            : item.data,
-                        trailing: [
-                          if (item.key.isNotEmpty) _KeyChip(item.key),
-                          SerialLinkButton(
-                            label: t.common.edit,
-                            onPressed: () => showQuickEditor(context, existing: item),
-                          ),
-                          SerialLinkButton(
-                            label: t.common.delete,
-                            danger: true,
-                            onPressed: () => showSerialDelete(
-                              context,
-                              message: t.serial.dialog.deleteQuick(name: item.name),
-                              onDelete: () => cubit.deleteQuick(item.id),
-                            ),
-                          ),
+                    for (final node in state.quick)
+                      ...switch (node) {
+                        QuickCommand() => [command(node)],
+                        QuickFolder() => [
+                          _FolderRow(folder: node),
+                          if (node.expanded) ...[
+                            for (final item in node.commands)
+                              command(item, indent: true),
+                            if (node.commands.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: AppSpacing.lg,
+                                ),
+                                child: _Explain(q.folderEmpty),
+                              ),
+                          ],
                         ],
-                      ),
+                      },
                   ],
                 ),
         ),
       ],
+    );
+  }
+}
+
+class _FolderRow extends StatelessWidget {
+  const _FolderRow({required this.folder});
+
+  final QuickFolder folder;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final q = t.serial.quick;
+    final cubit = context.read<SerialConsoleCubit>();
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final count = folder.commands.length;
+    return HoverSurface(
+      onTap: () => cubit.toggleFolder(folder.id),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 2,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: palette.line2)),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              folder.expanded ? Icons.expand_more : Icons.chevron_right,
+              size: 18,
+              color: palette.muted,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                folder.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.body(
+                  cs,
+                ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
+              ),
+            ),
+            Text(
+              q.folderCount(count: count),
+              style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            SerialLinkButton(
+              label: q.add,
+              onPressed: () => showQuickEditor(context, folderId: folder.id),
+            ),
+            SerialLinkButton(
+              label: q.rename,
+              onPressed: () => showFolderEditor(context, existing: folder),
+            ),
+            SerialLinkButton(
+              label: t.common.delete,
+              danger: true,
+              onPressed: () => showSerialDelete(
+                context,
+                message: count == 0
+                    ? t.serial.dialog.deleteFolder(name: folder.name)
+                    : t.serial.dialog.deleteFolderWith(
+                        name: folder.name,
+                        count: count,
+                      ),
+                onDelete: () => cubit.deleteFolder(folder.id),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -317,24 +419,30 @@ class _BatchTab extends StatelessWidget {
                 children: [
                   Text(
                     t.serial.batch.repeat,
-                    style: AppTextStyles.caption(cs).copyWith(color: palette.muted, fontSize: 13),
+                    style: AppTextStyles.caption(
+                      cs,
+                    ).copyWith(color: palette.muted, fontSize: 13),
                   ),
                   const SizedBox(width: AppSpacing.xs + 2),
                   _RepeatBox(
                     value: selected.repeat,
-                    onCommit: (value) => cubit.setBatchRepeat(selected.id, value),
+                    onCommit: (value) =>
+                        cubit.setBatchRepeat(selected.id, value),
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
                     t.serial.batch.rounds,
-                    style: AppTextStyles.caption(cs).copyWith(color: palette.muted, fontSize: 13),
+                    style: AppTextStyles.caption(
+                      cs,
+                    ).copyWith(color: palette.muted, fontSize: 13),
                   ),
                 ],
               ),
               SerialCheck(
                 label: t.serial.batch.stopOnFail,
                 value: selected.stopOnFail,
-                onChanged: (value) => cubit.setBatchStopOnFail(selected.id, value),
+                onChanged: (value) =>
+                    cubit.setBatchStopOnFail(selected.id, value),
               ),
               Text(
                 run == null
@@ -345,7 +453,9 @@ class _BatchTab extends StatelessWidget {
                         step: run.step,
                         total: run.total,
                       ),
-                style: AppTextStyles.caption(cs).copyWith(color: palette.muted, fontSize: 13),
+                style: AppTextStyles.caption(
+                  cs,
+                ).copyWith(color: palette.muted, fontSize: 13),
               ),
               if (run == null)
                 SerialButton(
@@ -369,7 +479,8 @@ class _BatchTab extends StatelessWidget {
             minHeight: 3,
             value: (run.rounds * run.total) == 0
                 ? 0
-                : ((run.round - 1) * run.total + run.step) / (run.rounds * run.total),
+                : ((run.round - 1) * run.total + run.step) /
+                      (run.rounds * run.total),
             color: palette.accent,
             backgroundColor: palette.line2,
           ),
@@ -405,7 +516,10 @@ class _ReplyTab extends StatelessWidget {
     return Column(
       children: [
         _Bar(
-          note: t.serial.reply.note(enabled: enabled, total: state.rules.length),
+          note: t.serial.reply.note(
+            enabled: enabled,
+            total: state.rules.length,
+          ),
           actions: [
             SerialButton(
               label: t.serial.reply.add,
@@ -425,7 +539,7 @@ class _ReplyTab extends StatelessWidget {
                   ),
                   title: rule.name,
                   detail:
-                      '${matchModeLabel(t, rule.match)} ${rule.pattern} → ${rule.replies.map((reply) => '+${reply.delayMs}ms ${reply.data}').join('，')}',
+                      '${ruleMatchLabel(t, rule)} → ${rule.replies.map((reply) => '+${reply.delayMs}ms ${reply.data}').join('，')}',
                   trailing: [
                     Text(
                       t.serial.reply.hits(count: rule.hits),
@@ -483,12 +597,12 @@ class _HistoryTab extends StatelessWidget {
               onPressed: state.history.isEmpty
                   ? null
                   : () => showSerialDelete(
-                        context,
-                        message: t.serial.dialog.deleteHistory(
-                          count: state.history.length,
-                        ),
-                        onDelete: cubit.clearHistory,
+                      context,
+                      message: t.serial.dialog.deleteHistory(
+                        count: state.history.length,
                       ),
+                      onDelete: cubit.clearHistory,
+                    ),
             ),
           ],
         ),
@@ -502,7 +616,9 @@ class _HistoryTab extends StatelessWidget {
                         leading: SerialButton(
                           label: state.history[i].time == null
                               ? t.serial.history.beforeStart
-                              : clockStamp(state.history[i].time!).substring(0, 8),
+                              : clockStamp(
+                                  state.history[i].time!,
+                                ).substring(0, 8),
                           small: true,
                           onPressed: () => cubit.resendHistory(i),
                         ),
@@ -599,7 +715,9 @@ class _CalcTab extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         if (bytes == null || bytes.isEmpty)
           Text(
-            format == DataFormat.hex ? t.serial.calc.badHex : t.serial.calc.empty,
+            format == DataFormat.hex
+                ? t.serial.calc.badHex
+                : t.serial.calc.empty,
             style: AppTextStyles.caption(cs).copyWith(color: palette.off),
           )
         else ...[
@@ -610,16 +728,18 @@ class _CalcTab extends StatelessWidget {
               SerialBytes.toHex(SerialBytes.checksumBytes(bytes, algo.$1)),
               () {
                 context.read<SerialConsoleCubit>().appendChecksum(
-                      Uint8List.fromList(bytes),
-                      algo.$1,
-                    );
+                  Uint8List.fromList(bytes),
+                  algo.$1,
+                );
               },
             ),
         ],
         const SizedBox(height: AppSpacing.sm),
         Text(
           t.serial.calc.explain,
-          style: AppTextStyles.caption(cs).copyWith(color: palette.muted, height: 1.6),
+          style: AppTextStyles.caption(
+            cs,
+          ).copyWith(color: palette.muted, height: 1.6),
         ),
       ],
     );
@@ -647,7 +767,9 @@ class _CalcRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: AppTextStyles.body(cs).copyWith(color: palette.text, fontSize: 13),
+              style: AppTextStyles.body(
+                cs,
+              ).copyWith(color: palette.text, fontSize: 13),
             ),
           ),
           Text(
@@ -677,6 +799,7 @@ class _ItemRow extends StatelessWidget {
     required this.detail,
     required this.trailing,
     this.monoTitle = false,
+    this.indent = false,
   });
 
   final Widget leading;
@@ -684,6 +807,7 @@ class _ItemRow extends StatelessWidget {
   final String detail;
   final List<Widget> trailing;
   final bool monoTitle;
+  final bool indent;
 
   @override
   Widget build(BuildContext context) {
@@ -691,9 +815,11 @@ class _ItemRow extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return HoverSurface(
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm + 2,
-          vertical: AppSpacing.sm,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.sm + 2 + (indent ? AppSpacing.lg : 0),
+          AppSpacing.sm,
+          AppSpacing.sm + 2,
+          AppSpacing.sm,
         ),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: palette.line2)),
@@ -711,7 +837,11 @@ class _ItemRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: monoTitle
-                        ? AppTextStyles.mono(cs, fontSize: 13, color: palette.text)
+                        ? AppTextStyles.mono(
+                            cs,
+                            fontSize: 13,
+                            color: palette.text,
+                          )
                         : AppTextStyles.body(cs).copyWith(
                             color: palette.text,
                             fontWeight: FontWeight.w600,
@@ -721,7 +851,11 @@ class _ItemRow extends StatelessWidget {
                     detail,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.mono(cs, fontSize: 12, color: palette.muted),
+                    style: AppTextStyles.mono(
+                      cs,
+                      fontSize: 12,
+                      color: palette.muted,
+                    ),
                   ),
                 ],
               ),
@@ -773,10 +907,9 @@ class _Explain extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.sm + 2),
       child: Text(
         text,
-        style: AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
-          color: palette.muted,
-          height: 1.6,
-        ),
+        style: AppTextStyles.caption(
+          Theme.of(context).colorScheme,
+        ).copyWith(color: palette.muted, height: 1.6),
       ),
     );
   }
@@ -790,10 +923,9 @@ class _TableHead extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
-    final style = AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
-      color: palette.muted,
-      fontWeight: FontWeight.w600,
-    );
+    final style = AppTextStyles.caption(
+      Theme.of(context).colorScheme,
+    ).copyWith(color: palette.muted, fontWeight: FontWeight.w600);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm + 2,
@@ -804,10 +936,19 @@ class _TableHead extends StatelessWidget {
       ),
       child: Row(
         children: [
-          SizedBox(width: 28, child: Text(t.serial.batch.colIndex, style: style)),
-          SizedBox(width: 72, child: Text(t.serial.batch.colDelay, style: style)),
+          SizedBox(
+            width: 28,
+            child: Text(t.serial.batch.colIndex, style: style),
+          ),
+          SizedBox(
+            width: 72,
+            child: Text(t.serial.batch.colDelay, style: style),
+          ),
           Expanded(child: Text(t.serial.batch.colData, style: style)),
-          SizedBox(width: 88, child: Text(t.serial.batch.colNote, style: style)),
+          SizedBox(
+            width: 88,
+            child: Text(t.serial.batch.colNote, style: style),
+          ),
         ],
       ),
     );
@@ -843,7 +984,11 @@ class _StepLine extends StatelessWidget {
           SizedBox(width: 28, child: Text('$index', style: style)),
           SizedBox(width: 72, child: Text('${step.delayMs} ms', style: style)),
           Expanded(
-            child: Text(step.data, style: style, overflow: TextOverflow.ellipsis),
+            child: Text(
+              step.data,
+              style: style,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           SizedBox(
             width: 88,

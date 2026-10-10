@@ -70,6 +70,7 @@ class SerialButton extends StatelessWidget {
     this.primary = false,
     this.danger = false,
     this.alert = false,
+    this.accent = false,
     this.small = false,
     this.expand = false,
     this.height,
@@ -81,6 +82,7 @@ class SerialButton extends StatelessWidget {
   final bool primary;
   final bool danger;
   final bool alert;
+  final bool accent;
   final bool small;
   final bool expand;
   final double? height;
@@ -90,20 +92,40 @@ class SerialButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     final cs = Theme.of(context).colorScheme;
-    final h = height ?? (small ? SerialMetrics.buttonSm : SerialMetrics.control);
+    final h =
+        height ?? (small ? SerialMetrics.buttonSm : SerialMetrics.control);
     final bg = alert
         ? palette.off
         : primary
-            ? palette.accent
-            : palette.field;
+        ? palette.accent
+        : palette.field;
     final fg = alert
         ? Colors.white
         : primary
-            ? palette.accentInk
-            : danger
-                ? palette.off
-                : palette.text;
-    final border = alert || primary ? bg : palette.line;
+        ? palette.accentInk
+        : danger
+        ? palette.off
+        : accent
+        ? palette.accent
+        : palette.text;
+    final border = alert || primary
+        ? bg
+        : accent
+        ? palette.accent
+        : palette.line;
+    final text = Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: AppTextStyles.body(cs).copyWith(
+        color: fg,
+        fontWeight: primary || alert || accent
+            ? FontWeight.w600
+            : FontWeight.w400,
+        fontSize: small ? 13 : 14,
+        height: 1,
+      ),
+    );
     final button = DecoratedBox(
       decoration: BoxDecoration(
         color: onPressed == null ? bg.withValues(alpha: 0.6) : bg,
@@ -114,7 +136,9 @@ class SerialButton extends StatelessWidget {
         height: h,
         width: expand ? double.infinity : null,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: small ? AppSpacing.sm : AppSpacing.md),
+          padding: EdgeInsets.symmetric(
+            horizontal: small ? AppSpacing.sm : AppSpacing.md,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
@@ -123,21 +147,16 @@ class SerialButton extends StatelessWidget {
                 leading!,
                 const SizedBox(width: AppSpacing.sm),
               ],
-              Text(
-                label,
-                style: AppTextStyles.body(cs).copyWith(
-                  color: fg,
-                  fontWeight: primary || alert ? FontWeight.w600 : FontWeight.w400,
-                  fontSize: small ? 13 : 14,
-                ),
-              ),
+              if (expand) Flexible(child: text) else text,
             ],
           ),
         ),
       ),
     );
     return MouseRegion(
-      cursor: onPressed == null ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      cursor: onPressed == null
+          ? SystemMouseCursors.basic
+          : SystemMouseCursors.click,
       child: GestureDetector(onTap: onPressed, child: button),
     );
   }
@@ -206,46 +225,58 @@ class _SerialFieldState extends State<SerialField> {
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     final cs = Theme.of(context).colorScheme;
+    final single = !widget.expands && widget.maxLines == 1;
+    final lineHeight = single ? 1.0 : 1.4;
     final style = widget.mono
-        ? AppTextStyles.mono(cs, fontSize: 14, height: 1.4, color: palette.text)
-        : AppTextStyles.body(cs).copyWith(color: palette.text);
+        ? AppTextStyles.mono(
+            cs,
+            fontSize: 14,
+            height: lineHeight,
+            color: palette.text,
+          )
+        : AppTextStyles.body(
+            cs,
+          ).copyWith(color: palette.text, height: lineHeight);
+    final field = TextField(
+      controller: widget.controller,
+      focusNode: _focus,
+      enabled: widget.enabled,
+      onChanged: widget.onChanged,
+      onSubmitted: widget.onSubmitted,
+      maxLines: widget.expands ? null : widget.maxLines,
+      expands: widget.expands,
+      keyboardType: widget.keyboardType,
+      inputFormatters: widget.inputFormatters,
+      style: style,
+      cursorColor: palette.accent,
+      decoration: InputDecoration(
+        isCollapsed: true,
+        border: InputBorder.none,
+        hintText: widget.hint,
+        hintStyle: style.copyWith(color: palette.muted),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 6,
+          vertical: single ? 0 : 4,
+        ),
+      ),
+    );
     return DecoratedBox(
       decoration: BoxDecoration(
         color: widget.enabled ? palette.field : palette.panel,
-        border: Border.all(color: _focus.hasFocus ? palette.accent : palette.line),
+        border: Border.all(
+          color: _focus.hasFocus ? palette.accent : palette.line,
+        ),
         borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
       ),
       child: SizedBox(
         height: widget.expands ? null : widget.height,
-        child: TextField(
-          controller: widget.controller,
-          focusNode: _focus,
-          enabled: widget.enabled,
-          onChanged: widget.onChanged,
-          onSubmitted: widget.onSubmitted,
-          maxLines: widget.expands ? null : widget.maxLines,
-          expands: widget.expands,
-          keyboardType: widget.keyboardType,
-          inputFormatters: widget.inputFormatters,
-          style: style,
-          cursorColor: palette.accent,
-          decoration: InputDecoration(
-            isCollapsed: true,
-            border: InputBorder.none,
-            hintText: widget.hint,
-            hintStyle: style.copyWith(color: palette.muted),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 6,
-              vertical: 4,
-            ),
-          ),
-        ),
+        child: single ? Center(child: field) : field,
       ),
     );
   }
 }
 
-class SerialDropdown<T> extends StatelessWidget {
+class SerialDropdown<T> extends StatefulWidget {
   const SerialDropdown({
     super.key,
     required this.value,
@@ -262,43 +293,146 @@ class SerialDropdown<T> extends StatelessWidget {
   final double height;
 
   @override
+  State<SerialDropdown<T>> createState() => _SerialDropdownState<T>();
+}
+
+class _SerialDropdownState<T> extends State<SerialDropdown<T>> {
+  final MenuController _menu = MenuController();
+
+  @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     final cs = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: enabled ? palette.field : palette.panel,
-        border: Border.all(color: palette.line),
-        borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
-      ),
-      child: SizedBox(
-        height: height,
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<T>(
-            value: items.any((item) => item.value == value) ? value : null,
-            isExpanded: true,
-            isDense: true,
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            dropdownColor: palette.panel,
-            style: AppTextStyles.body(cs).copyWith(color: palette.text, fontSize: 13),
-            items: [
-              for (final item in items)
-                DropdownMenuItem(value: item.value, child: Text(item.label)),
-            ],
-            onChanged: enabled
-                ? (next) {
-                    if (next != null) onChanged?.call(next);
-                  }
-                : null,
+    final active = widget.enabled && widget.onChanged != null;
+    final style = AppTextStyles.body(cs).copyWith(
+      color: active ? palette.text : palette.muted,
+      fontSize: 13,
+      height: 1,
+    );
+    String label = '';
+    for (final item in widget.items) {
+      if (item.value == widget.value) label = item.label;
+    }
+    return LayoutBuilder(
+      builder: (context, box) {
+        final width = box.maxWidth.isFinite ? box.maxWidth : 0.0;
+        return MenuAnchor(
+          controller: _menu,
+          alignmentOffset: const Offset(0, 2),
+          style: MenuStyle(
+            backgroundColor: WidgetStatePropertyAll(palette.panel),
+            surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+            padding: const WidgetStatePropertyAll(
+              EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            ),
+            minimumSize: WidgetStatePropertyAll(Size(width, 0)),
+            maximumSize: WidgetStatePropertyAll(
+              Size(
+                width > SerialMetrics.menuMaxWidth
+                    ? width
+                    : SerialMetrics.menuMaxWidth,
+                SerialMetrics.menuMaxHeight,
+              ),
+            ),
+            shape: WidgetStatePropertyAll(
+              RoundedRectangleBorder(
+                side: BorderSide(color: palette.line),
+                borderRadius: BorderRadius.circular(
+                  SerialMetrics.controlRadius,
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+          menuChildren: [
+            for (final item in widget.items)
+              MenuItemButton(
+                onPressed: () => widget.onChanged?.call(item.value),
+                style: ButtonStyle(
+                  minimumSize: WidgetStatePropertyAll(
+                    Size(width, widget.height),
+                  ),
+                  padding: const WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  ),
+                  visualDensity: VisualDensity.compact,
+                  overlayColor: WidgetStatePropertyAll(palette.hover),
+                ),
+                child: Text(
+                  item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: style.copyWith(
+                    color: item.value == widget.value
+                        ? palette.accent
+                        : palette.text,
+                    fontWeight: item.value == widget.value
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                  ),
+                ),
+              ),
+          ],
+          builder: (context, controller, _) {
+            return MouseRegion(
+              cursor: active
+                  ? SystemMouseCursors.click
+                  : SystemMouseCursors.basic,
+              child: GestureDetector(
+                onTap: active
+                    ? () => controller.isOpen
+                          ? controller.close()
+                          : controller.open()
+                    : null,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: active ? palette.field : palette.panel,
+                    border: Border.all(
+                      color: controller.isOpen ? palette.accent : palette.line,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      SerialMetrics.controlRadius,
+                    ),
+                  ),
+                  child: SizedBox(
+                    height: widget.height,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 6, right: 2),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              label,
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.ellipsis,
+                              style: style,
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            size: 18,
+                            color: active ? palette.muted : palette.line,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
 
 class SerialLamp extends StatelessWidget {
-  const SerialLamp({super.key, required this.color, this.size = SerialMetrics.lamp});
+  const SerialLamp({
+    super.key,
+    required this.color,
+    this.size = SerialMetrics.lamp,
+  });
 
   final Color color;
   final double size;
@@ -416,9 +550,9 @@ class SerialLinkButton extends StatelessWidget {
         minimumSize: const Size(0, 24),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
-          fontSize: 13,
-        ),
+        textStyle: AppTextStyles.caption(
+          Theme.of(context).colorScheme,
+        ).copyWith(fontSize: 13),
       ),
       child: Text(label),
     );

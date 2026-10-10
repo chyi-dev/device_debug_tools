@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:device_debug_tools/core/exception/app_exception.dart';
@@ -13,14 +14,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   late _FakePorts ports;
+  late _FakeFiles files;
   late SerialConsoleCubit cubit;
 
   setUp(() async {
     ports = _FakePorts();
+    files = _FakeFiles();
     cubit = SerialConsoleCubit(
       repository: SerialConsoleRepository(
         ports: ports,
-        files: _FakeFiles(),
+        files: files,
         store: _MemoryStore(),
       ),
     );
@@ -84,6 +87,157 @@ void main() {
     expect(ports.written.map(SerialBytes.toHex), contains('A5 A1 01 A2'));
   });
 
+  test(r'应答里的 $1 换成帧中捕获的字节再发出', () async {
+    cubit.upsertRule(
+      const ReplyRule(
+        id: 'r2',
+        name: '序号回显',
+        match: MatchMode.prefix,
+        pattern: 'A5 10 ??',
+        enabled: true,
+        hits: 0,
+        replies: [ReplyStep(data: r'A5 90 $1', delayMs: 10)],
+      ),
+    );
+    await cubit.toggleOpen();
+    ports.emit(Uint8List.fromList([0xA5, 0x10, 0x3C, 0x00]));
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    expect(ports.written.map(SerialBytes.toHex), contains('A5 90 3C'));
+  });
+
+  group('快捷指令文件夹', () {
+    const read = QuickCommand(
+      id: 'q1',
+      name: '读取温湿度',
+      data: 'A5 01 00 00 01 07',
+      format: DataFormat.hex,
+      key: 'F1',
+    );
+    const stop = QuickCommand(
+      id: 'q2',
+      name: '停止采集',
+      data: 'A5 10 00 00 10',
+      format: DataFormat.hex,
+    );
+
+    String addFolder(String name) {
+      cubit.upsertFolder(null, name);
+      return cubit.state.quick.folders.last.id;
+    }
+
+    test('旧的平铺数据读入后留在根目录，重复 F 键保留先出现的', () {
+      final ws = SerialWorkspace.fromJson({
+        'quick': [
+          {'id': 'q1', 'name': 'A', 'data': '01', 'format': 'hex', 'key': 'F1'},
+          {'id': 'q2', 'name': 'B', 'data': '02', 'format': 'hex', 'key': 'F1'},
+        ],
+      })!;
+      expect(ws.quick, everyElement(isA<QuickCommand>()));
+      expect(ws.quick.commands.map((c) => c.key), ['F1', '']);
+    });
+
+    test('文件夹随工作区 JSON 往返', () {
+      cubit.upsertQuick(read);
+      final f = addFolder('采集');
+      cubit.upsertQuick(stop, folderId: f);
+      cubit.toggleFolder(f);
+      final json = jsonDecode(jsonEncode(cubit.state.toWorkspace().toJson()));
+      final back = SerialWorkspace.fromJson(json)!;
+      final folder = back.quick[1] as QuickFolder;
+      expect(back.quick.first, isA<QuickCommand>());
+      expect(folder.name, '采集');
+      expect(folder.expanded, isFalse);
+      expect(folder.commands.single.id, 'q2');
+    });
+
+    test('写入文件夹、跨文件夹移动并追加到末尾、快捷键全局互斥', () {
+      final a = addFolder('A');
+      final b = addFolder('B');
+      cubit.upsertQuick(read, folderId: a);
+      cubit.upsertQuick(stop, folderId: b);
+      expect(cubit.state.quick.folderIdOf('q1'), a);
+
+      cubit.upsertQuick(read, folderId: b);
+      final folderB = cubit.state.quick.folders.firstWhere((f) => f.id == b);
+      expect(folderB.commands.map((c) => c.id), ['q2', 'q1']);
+      expect(cubit.state.quick.folders.first.commands, isEmpty);
+
+      cubit.upsertQuick(
+        const QuickCommand(
+          id: 'q3',
+          name: '新',
+          data: '01',
+          format: DataFormat.hex,
+          key: 'F1',
+        ),
+      );
+      expect(cubit.state.quick.last.id, 'q3');
+      expect(cubit.state.quick.commandById('q1')!.key, '');
+    });
+
+    test('原文件夹内编辑保持位置', () {
+      final a = addFolder('A');
+      cubit.upsertQuick(read, folderId: a);
+      cubit.upsertQuick(stop, folderId: a);
+      cubit.upsertQuick(read.copyWith(key: 'F2'), folderId: a);
+      final folder = cubit.state.quick.folders.single;
+      expect(folder.commands.map((c) => c.id), ['q1', 'q2']);
+      expect(folder.commands.first.key, 'F2');
+    });
+
+    test('删除文件夹连带其中指令', () {
+      final a = addFolder('A');
+      cubit.upsertQuick(read, folderId: a);
+      cubit.upsertQuick(stop);
+      cubit.deleteFolder(a);
+      expect(cubit.state.quick.folders, isEmpty);
+      expect(cubit.state.quick.commands.map((c) => c.id), ['q2']);
+    });
+
+    test('文件夹内指令可由 F 键发送且不进历史', () async {
+      final a = addFolder('A');
+      cubit.upsertQuick(read, folderId: a);
+      cubit.toggleFolder(a);
+      expect(cubit.state.quick.folders.single.expanded, isFalse);
+      await cubit.toggleOpen();
+      await cubit.sendQuickByKey('F1');
+      expect(ports.written.map(SerialBytes.toHex), ['A5 01 00 00 01 07']);
+      expect(cubit.state.history, isEmpty);
+    });
+
+    test('导入新树按指令条数提示，旧数组也能导入', () async {
+      files.text = jsonEncode([
+        {
+          'type': 'command',
+          'id': 'q1',
+          'name': 'A',
+          'data': '01',
+          'format': 'hex',
+        },
+        {
+          'type': 'folder',
+          'id': 'f1',
+          'name': '组',
+          'commands': [
+            {'id': 'q2', 'name': 'B', 'data': '02', 'format': 'hex'},
+            {'id': 'q3', 'name': 'C', 'data': '03', 'format': 'hex'},
+          ],
+        },
+      ]);
+      await cubit.importQuick();
+      expect(cubit.state.quick.folders.single.commands, hasLength(2));
+      expect(cubit.state.toast?.kind, SerialNoticeKind.imported);
+      expect(cubit.state.toast?.args['count'], 3);
+
+      files.text = jsonEncode([
+        {'name': 'X', 'data': '01', 'format': 'HEX', 'key': 'F3'},
+      ]);
+      await cubit.importQuick();
+      expect(cubit.state.quick.single, isA<QuickCommand>());
+      expect(cubit.state.quick.commands.single.key, 'F3');
+    });
+  });
+
   test('降级打开成功时端口为打开并提示部分参数', () async {
     ports.openResult = SerialOpenResult.partial;
     await cubit.toggleOpen();
@@ -124,8 +278,8 @@ class _FakePorts implements SerialPortGateway {
 
   @override
   Future<List<SerialPortInfo>> listPorts() async => const [
-        SerialPortInfo(name: 'COM3', label: 'COM3 · test'),
-      ];
+    SerialPortInfo(name: 'COM3', label: 'COM3 · test'),
+  ];
 
   @override
   Future<SerialOpenResult> open(SerialLinkConfig config) async {
@@ -145,6 +299,8 @@ class _FakePorts implements SerialPortGateway {
 }
 
 class _FakeFiles implements SerialFileGateway {
+  String? text;
+
   @override
   Future<PickedBytes?> pickAny() async => null;
 
@@ -152,11 +308,10 @@ class _FakeFiles implements SerialFileGateway {
   Future<String?> pickSave({
     required String suggestedName,
     required String extension,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
-  Future<String?> pickText({required List<String> extensions}) async => null;
+  Future<String?> pickText({required List<String> extensions}) async => text;
 
   @override
   Future<void> writeText({required String path, required String text}) async {}

@@ -44,12 +44,14 @@ var Serial = (function () {
       { id: 'b2', name: '设备复位自检', interval: 800, stopOnFail: true,
         steps: ['A5 10 00 00 10', 'A5 02 00 00 02 08', 'A5 01 00 00 01 07', 'A5 10 01 00 11'] }
     ],
+    // Lua 脚本：on_receive 收到数据后运行；before_send 拦截每一帧发送，返回处理后的帧再发出，返回 nil 则不发
     scripts: [
-      { id: 's1', name: 'parseSensor.js', action: 'parse', enabled: true,
-        code: '// 收到 A5 5A 03 帧后解析温湿度\nonReceive(frame => {\n  if (frame.startsWith(0xA5, 0x5A, 0x03)) {\n    const t = frame.u16(3) / 10;\n    const h = frame.u16(5) / 10;\n    log(`temp=${t}℃ hum=${h}%`);\n  }\n});' },
-      { id: 's2', name: 'addChecksum.js', action: 'checksum', enabled: false,
-        code: '// 发送前在帧尾追加 SUM8\nbeforeSend(frame => frame.append(sum8(frame)));' }
-    ]
+      { id: 's1', name: 'parse_sensor.lua', action: 'parse', enabled: true, runs: 0, last: '',
+        code: '-- 收到 A5 5A 03 帧后解析温湿度\nfunction on_receive(frame)\n  if frame:starts_with(0xA5, 0x5A, 0x03) then\n    local t = frame:u16(4) / 10\n    local h = frame:u16(6) / 10\n    log(string.format("temp=%.1f℃ hum=%.1f%%", t, h))\n  end\nend' },
+      { id: 's2', name: 'add_checksum.lua', action: 'checksum', enabled: false, runs: 0, last: '',
+        code: '-- 发送前拦截：帧尾追加 SUM8 后再发出\n-- 返回 nil 表示拦截，这一帧不发送\nfunction before_send(frame)\n  return frame:append(sum8(frame))\nend' }
+    ],
+    scriptLog: []
   };
 
   function on(type, fn) { (listeners[type] = listeners[type] || []).push(fn); }
@@ -161,7 +163,7 @@ var Serial = (function () {
     if (dir === 'tx') state.tx += bytes.length;
     emit('line', line);
     emit('state', state);
-    if (dir === 'rx') matchRules(bytes);
+    if (dir === 'rx') { receiveHooks(line); matchRules(bytes); }
     return line;
   }
   function sys(text) { return push('sys', null, text); }
@@ -270,6 +272,9 @@ var Serial = (function () {
     if (!state.open) { emit('blocked', '串口未打开，发送已拦截'); return false; }
     var r = encode(text, opts.format || state.sendFormat, opts.checksum != null ? opts.checksum : state.checksum, opts.crlf != null ? opts.crlf : state.crlf, opts);
     if (r.error) { emit('blocked', r.error); return false; }
+    var out = sendHooks(r.bytes);
+    if (!out) return false;
+    r.bytes = out;
     push('tx', r.bytes);
     var h = text.trim();
     if (h && !opts.silentHistory) {
@@ -295,34 +300,119 @@ var Serial = (function () {
   function stopLoop() { if (loopTimer) { clearInterval(loopTimer); loopTimer = null; emit('loop', false); } }
 
   // ---------- 自动响应 ----------
-  function ruleMatches(rule, bytes) {
-    var p = parseHex(rule.pattern) || [];
-    if (!p.length) return false;
-    var h = hex(bytes), ph = hex(p);
-    if (rule.match === 'frame') return h === ph;
-    if (rule.match === 'prefix') return h.indexOf(ph) === 0;
-    return h.indexOf(ph) >= 0;
+  // 规则：kind 为 template（默认）或 regex，format 为 HEX（默认）或 ASCII，ignoreCase 只对 ASCII 生效。
+  // 模板记号：固定字节 { b }、任意一字节 { any }（HEX ?? / ASCII ?）、任意长度 { many }（*）
+  function parseTemplate(pattern, format) {
+    var out = [], i = 0;
+    if (format !== 'ASCII') {
+      var s = pattern.replace(/0x/gi, '').replace(/[^0-9a-fA-F?*]/g, '');
+      while (i < s.length) {
+        if (s[i] === '*') { out.push({ many: true }); i++; }
+        else if (s[i] === '?') { if (s[i + 1] !== '?') return null; out.push({ any: true }); i += 2; }
+        else { if (!/^[0-9a-fA-F]{2}$/.test(s.substr(i, 2))) return null; out.push({ b: parseInt(s.substr(i, 2), 16) }); i += 2; }
+      }
+      return out.length ? out : null;
+    }
+    var esc = { r: 13, n: 10, t: 9, '0': 0, '\\': 92, '?': 63, '*': 42 }, m;
+    while (i < pattern.length) {
+      var c = pattern[i], rest = pattern.slice(i);
+      if (c === '*') { out.push({ many: true }); i++; continue; }
+      if (c === '?') { out.push({ any: true }); i++; continue; }
+      if (c === '\\' && esc[pattern[i + 1]] != null) { out.push({ b: esc[pattern[i + 1]] }); i += 2; continue; }
+      if ((m = /^\\x([0-9a-fA-F]{2})/.exec(rest))) { out.push({ b: parseInt(m[1], 16) }); i += 4; continue; }
+      var ch = String.fromCodePoint(pattern.codePointAt(i));
+      Array.from(new TextEncoder().encode(ch)).forEach(function (b) { out.push({ b: b }); });
+      i += ch.length;
+    }
+    return out.length ? out : null;
+  }
+  function lower(b) { return b >= 0x41 && b <= 0x5A ? b + 0x20 : b; }
+  function matchFrom(toks, k, bytes, pos, endAnchored, fold, caps) {
+    if (k === toks.length) return !endAnchored || pos === bytes.length;
+    var t = toks[k];
+    if (t.many) {
+      for (var end = bytes.length; end >= pos; end--) {
+        caps.push(bytes.slice(pos, end));
+        if (matchFrom(toks, k + 1, bytes, end, endAnchored, fold, caps)) return true;
+        caps.pop();
+      }
+      return false;
+    }
+    if (pos >= bytes.length) return false;
+    if (t.any) {
+      caps.push([bytes[pos]]);
+      if (matchFrom(toks, k + 1, bytes, pos + 1, endAnchored, fold, caps)) return true;
+      caps.pop();
+      return false;
+    }
+    var same = fold ? lower(bytes[pos]) === lower(t.b) : bytes[pos] === t.b;
+    return same && matchFrom(toks, k + 1, bytes, pos + 1, endAnchored, fold, caps);
+  }
+  // 命中返回捕获数组（$1 起），未命中返回 null；正则 HEX 捕获到半个字节时该项为 null
+  function ruleCaptures(rule, bytes) {
+    var isHex = rule.format !== 'ASCII';
+    if (rule.kind === 'regex') {
+      var re;
+      try { re = new RegExp(rule.pattern, isHex || rule.ignoreCase ? 'i' : ''); } catch (e) { return null; }
+      var m = re.exec(isHex ? hex(bytes) : String.fromCharCode.apply(null, bytes));
+      if (!m) return null;
+      return m.slice(1).map(function (g) {
+        if (!g) return [];
+        return isHex ? parseHex(g) : Array.from(g, function (c) { return c.charCodeAt(0) & 0xFF; });
+      });
+    }
+    var toks = parseTemplate(rule.pattern, rule.format);
+    if (!toks) return null;
+    var fold = !isHex && rule.ignoreCase;
+    var startAnchored = rule.match === 'prefix' || rule.match === 'frame';
+    var endAnchored = rule.match === 'frame' || rule.match === 'suffix';
+    for (var s = 0; s <= (startAnchored ? 0 : bytes.length); s++) {
+      var caps = [];
+      if (matchFrom(toks, 0, bytes, s, endAnchored, fold, caps)) return caps;
+    }
+    return null;
+  }
+  function captureCount(pattern, format) {
+    var toks = parseTemplate(pattern, format);
+    return toks ? toks.filter(function (t) { return t.b == null; }).length : null;
+  }
+  // 应答里的 $n 换成捕获字节；引用不存在或结果不是 HEX 时返回 null
+  function expandReply(data, caps) {
+    var ok = true;
+    var out = data.replace(/\$(\d+)/g, function (_, n) {
+      var c = caps[Number(n) - 1];
+      if (!c) { ok = false; return ''; }
+      return ' ' + hex(c) + ' ';
+    });
+    return ok && parseHex(out) ? out.trim() : null;
   }
   function matchRules(bytes) {
     state.rules.forEach(function (rule) {
-      if (!rule.enabled || !ruleMatches(rule, bytes)) return;
+      if (!rule.enabled) return;
+      var caps = ruleCaptures(rule, bytes);
+      if (!caps) return;
       rule.hits++;
       emit('rule', rule);
-      runReplies(rule);
+      runReplies(rule, caps);
     });
   }
-  function runReplies(rule) {
+  function runReplies(rule, caps) {
     var wait = 0;
     sys('自动响应「' + rule.name + '」命中，按顺序回复 ' + rule.replies.length + ' 条');
-    rule.replies.forEach(function (r) {
+    rule.replies.forEach(function (r, i) {
       wait += Number(r.delay) || 0;
-      setTimeout(function () { if (state.open) send(r.data, { format: 'HEX', checksum: 'none', crlf: false, silentHistory: true }); }, wait);
+      setTimeout(function () {
+        if (!state.open) return;
+        var data = expandReply(r.data, caps);
+        if (data == null) return sys('自动响应「' + rule.name + '」第 ' + (i + 1) + ' 条应答引用的捕获不存在，已跳过');
+        send(data, { format: 'HEX', checksum: 'none', crlf: false, silentHistory: true });
+      }, wait);
     });
   }
   function fireRule(id) {
     var rule = byId(state.rules, id);
     if (!state.open) return emit('blocked', '串口未打开，规则不会执行');
-    rule.hits++; emit('rule', rule); runReplies(rule);
+    rule.hits++; emit('rule', rule); runReplies(rule, []);
   }
 
   // ---------- 批量 ----------
@@ -362,17 +452,58 @@ var Serial = (function () {
     batchRun = null; emit('batch', null);
   }
 
-  // ---------- 脚本（只运行两个固定动作） ----------
-  function runScript(id) {
-    var s = byId(state.scripts, id);
-    if (s.action === 'parse') {
-      var last = state.lines.slice().reverse().filter(function (l) { return l.dir === 'rx' && l.info.temp != null; })[0];
-      sys(last ? s.name + '：' + last.info.summary : s.name + '：还没有收到温湿度帧');
-    } else {
-      var sample = [0xA5, 0x01, 0x00, 0x00, 0x01];
-      sys(s.name + '：A5 01 00 00 01 → ' + hex(withChecksum(sample, 'sum')));
-    }
+  // ---------- Lua 脚本（设计稿只模拟预置脚本的效果，不执行 Lua） ----------
+  function scriptHook(s) { return /function\s+before_send\s*\(/.test(s.code) ? 'before_send' : 'on_receive'; }
+  function scriptOut(s, text, err) {
+    s.runs++; s.last = text;
+    state.scriptLog.push({ time: new Date(), name: s.name, text: text, err: !!err });
+    if (state.scriptLog.length > 200) state.scriptLog.shift();
+    emit('script', 'log');
   }
+  function lastSensor() { return state.lines.slice().reverse().filter(function (l) { return l.dir === 'rx' && l.info.temp != null; })[0]; }
+  function parseOut(s, line) {
+    if (!line) return scriptOut(s, '还没有收到 A5 5A 03 温湿度帧', true);
+    scriptOut(s, 'temp=' + line.info.temp.toFixed(1) + '℃ hum=' + line.info.hum.toFixed(1) + '%');
+  }
+  function receiveHooks(line) {
+    state.scripts.forEach(function (s) {
+      if (!s.enabled || scriptHook(s) !== 'on_receive') return;
+      if (s.action === 'parse') { if (line.info.temp != null) parseOut(s, line); }
+      else scriptOut(s, '收到 ' + line.bytes.length + ' 字节：' + hex(line.bytes));
+    });
+  }
+  // 按列表顺序串联：上一个脚本处理后的帧交给下一个；任一脚本返回 nil 则整帧不发
+  function sendHooks(bytes) {
+    var out = bytes;
+    for (var i = 0; i < state.scripts.length && out; i++) {
+      var s = state.scripts[i];
+      if (!s.enabled || scriptHook(s) !== 'before_send') continue;
+      var next = s.action === 'checksum' ? out.concat([sum8(out)]) : out;
+      scriptOut(s, hex(out) + ' → ' + hex(next));
+      out = next;
+    }
+    return out;
+  }
+  // 手动运行：on_receive 用最近一帧收包；before_send 拿发送框内容试算，不真正发出
+  function runScript(id, txText) {
+    var s = byId(state.scripts, id);
+    if (scriptHook(s) === 'on_receive') {
+      if (s.action === 'parse') return parseOut(s, lastSensor());
+      var rx = state.lines.slice().reverse().filter(function (l) { return l.dir === 'rx'; })[0];
+      return scriptOut(s, rx ? '手动运行 · 最近一帧 ' + hex(rx.bytes) : '手动运行 · 还没有收到数据');
+    }
+    var sample = parseHex(txText || '');
+    if (!sample) return scriptOut(s, '发送框不是 HEX，无法试算', true);
+    scriptOut(s, hex(sample) + ' → ' + hex(s.action === 'checksum' ? sample.concat([sum8(sample)]) : sample) + '（试算，未发送）');
+  }
+  function toggleScript(id) { var s = byId(state.scripts, id); s.enabled = !s.enabled; emit('script', 'list'); return s; }
+  function newScript() {
+    var s = { id: 's' + Date.now().toString(36), name: 'script' + (state.scripts.length + 1) + '.lua', action: 'custom', enabled: false, runs: 0, last: '',
+      code: '-- 新脚本：收到数据时运行\nfunction on_receive(frame)\n  log(frame:hex())\nend' };
+    state.scripts.push(s); emit('script', 'list');
+    return s;
+  }
+  function clearScriptLog() { state.scriptLog.length = 0; emit('script', 'log'); }
 
   // ---------- 杂项 ----------
   function byId(list, id) { return list.filter(function (x) { return x.id === id; })[0]; }
@@ -406,7 +537,8 @@ var Serial = (function () {
     PORTS: PORTS, state: state, on: on,
     open: open, close: close, toggle: toggle, configure: configure, portLabel: portLabel, frameFormat: frameFormat,
     send: send, sendRepeat: sendRepeat, stopLoop: stopLoop, encode: encode,
-    fireRule: fireRule, runBatch: runBatch, stopBatch: stopBatch, runScript: runScript,
+    fireRule: fireRule, captureCount: captureCount, runBatch: runBatch, stopBatch: stopBatch,
+    runScript: runScript, toggleScript: toggleScript, newScript: newScript, clearScriptLog: clearScriptLog, scriptHook: scriptHook,
     clear: clear, saveLog: saveLog, exportRules: exportRules, logText: logText, seed: seed,
     hex: hex, ascii: ascii, parseHex: parseHex, textBytes: textBytes, dissect: dissect, stamp: stamp,
     sum8: sum8, xor8: xor8, lrc: lrc, crc8: crc8, crc16: crc16, crc32: crc32,

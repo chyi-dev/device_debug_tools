@@ -80,7 +80,8 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
     if (route != null && !route.isCurrent) return false;
     final cubit = context.read<SerialConsoleCubit>();
     final key = event.logicalKey;
-    final shortcut = HardwareKeyboard.instance.isControlPressed ||
+    final shortcut =
+        HardwareKeyboard.instance.isControlPressed ||
         HardwareKeyboard.instance.isMetaPressed;
     if (shortcut && key == LogicalKeyboardKey.keyS) {
       cubit.saveLog();
@@ -135,7 +136,8 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
     return Scaffold(
       backgroundColor: palette.win,
       body: BlocListener<SerialConsoleCubit, SerialConsoleState>(
-        listenWhen: (previous, current) => previous.toast?.id != current.toast?.id,
+        listenWhen: (previous, current) =>
+            previous.toast?.id != current.toast?.id,
         listener: (context, state) {
           final toast = state.toast;
           if (toast != null) _showToast(toast);
@@ -160,7 +162,8 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                       onExportRules: cubit.exportRules,
                       onImportRules: cubit.importRules,
                       onCompact: () => cubit.setCompact(!chrome.compact),
-                      onTools: () => cubit.setToolsVisible(!chrome.toolsVisible),
+                      onTools: () =>
+                          cubit.setToolsVisible(!chrome.toolsVisible),
                       onTab: cubit.setTab,
                       onKeys: () => showShortcutHelp(context),
                       onAbout: () => showSerialAbout(context),
@@ -173,7 +176,7 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                             if (!chrome.compact) ...[
                               SizedBox(
                                 width: SerialMetrics.sidebar,
-                                child: SerialSidePanel(onOpenTools: cubit.setTab),
+                                child: const SerialSidePanel(),
                               ),
                               const SizedBox(width: AppSpacing.sm),
                             ],
@@ -181,26 +184,34 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                               child: Column(
                                 children: [
                                   Expanded(
-                                    child: BlocBuilder<SerialConsoleCubit,
-                                        SerialConsoleState>(
-                                      buildWhen: (previous, current) =>
-                                          previous.lines != current.lines ||
-                                          previous.rxFormat != current.rxFormat ||
-                                          previous.logMode != current.logMode ||
-                                          previous.wrap != current.wrap ||
-                                          previous.hideRx != current.hideRx ||
-                                          previous.autoScroll != current.autoScroll ||
-                                          previous.open != current.open,
-                                      builder: (context, state) {
-                                        return SerialLogView(
-                                          state: state,
-                                          search: _query,
-                                          searchFocus: _searchFocus,
-                                          onSearch: (value) =>
-                                              setState(() => _query = value),
-                                        );
-                                      },
-                                    ),
+                                    child:
+                                        BlocBuilder<
+                                          SerialConsoleCubit,
+                                          SerialConsoleState
+                                        >(
+                                          buildWhen: (previous, current) =>
+                                              previous.lines != current.lines ||
+                                              previous.rxFormat !=
+                                                  current.rxFormat ||
+                                              previous.logMode !=
+                                                  current.logMode ||
+                                              previous.wrap != current.wrap ||
+                                              previous.hideRx !=
+                                                  current.hideRx ||
+                                              previous.autoScroll !=
+                                                  current.autoScroll ||
+                                              previous.open != current.open,
+                                          builder: (context, state) {
+                                            return SerialLogView(
+                                              state: state,
+                                              search: _query,
+                                              searchFocus: _searchFocus,
+                                              onSearch: (value) => setState(
+                                                () => _query = value,
+                                              ),
+                                            );
+                                          },
+                                        ),
                                   ),
                                   const SizedBox(height: AppSpacing.sm),
                                   const SerialSendBox(),
@@ -237,7 +248,6 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
       ),
     );
   }
-
 }
 
 class _Toast extends StatelessWidget {
@@ -263,9 +273,9 @@ class _Toast extends StatelessWidget {
         ),
         child: Text(
           serialNoticeText(t, notice),
-          style: AppTextStyles.body(Theme.of(context).colorScheme).copyWith(
-            color: fg,
-          ),
+          style: AppTextStyles.body(
+            Theme.of(context).colorScheme,
+          ).copyWith(color: fg),
         ),
       ),
     );

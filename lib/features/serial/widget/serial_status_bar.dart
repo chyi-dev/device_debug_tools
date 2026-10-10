@@ -56,15 +56,13 @@ class SerialStatusBar extends StatelessWidget {
                             ],
                           ),
                         ),
-                        _Cell(
-                          child: _Count('RX', state.rxCount, palette, cs),
-                        ),
-                        _Cell(
-                          child: _Count('TX', state.txCount, palette, cs),
-                        ),
+                        _Cell(child: _Count('RX', state.rxCount, palette, cs)),
+                        _Cell(child: _Count('TX', state.txCount, palette, cs)),
                         _Cell(
                           child: TextButton(
-                            onPressed: context.read<SerialConsoleCubit>().resetCounters,
+                            onPressed: context
+                                .read<SerialConsoleCubit>()
+                                .resetCounters,
                             style: TextButton.styleFrom(
                               foregroundColor: palette.accent,
                               minimumSize: Size.zero,
@@ -81,9 +79,9 @@ class SerialStatusBar extends StatelessWidget {
                               enabled: enabled,
                               total: state.rules.length,
                             ),
-                            style: AppTextStyles.caption(cs).copyWith(
-                              color: palette.muted,
-                            ),
+                            style: AppTextStyles.caption(
+                              cs,
+                            ).copyWith(color: palette.muted),
                           ),
                         ),
                         if (state.saveActive)
@@ -93,9 +91,9 @@ class SerialStatusBar extends StatelessWidget {
                                 name: state.saveName,
                                 count: state.savedCount,
                               ),
-                              style: AppTextStyles.caption(cs).copyWith(
-                                color: palette.logSys,
-                              ),
+                              style: AppTextStyles.caption(
+                                cs,
+                              ).copyWith(color: palette.logSys),
                             ),
                           ),
                       ],
@@ -108,7 +106,9 @@ class SerialStatusBar extends StatelessWidget {
                     hint,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
+                    style: AppTextStyles.caption(
+                      cs,
+                    ).copyWith(color: palette.muted),
                   ),
                 ),
               ],

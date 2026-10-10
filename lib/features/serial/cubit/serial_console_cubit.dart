@@ -19,8 +19,8 @@ import 'serial_console_state.dart';
 
 class SerialConsoleCubit extends Cubit<SerialConsoleState> {
   SerialConsoleCubit({required SerialConsoleRepository repository})
-      : _repo = repository,
-        super(SerialConsoleState.initial());
+    : _repo = repository,
+      super(SerialConsoleState.initial());
 
   final SerialConsoleRepository _repo;
   final Debouncer _persistDebounce = Debouncer(
@@ -130,7 +130,12 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
 
   Future<void> setBaud(int baud) {
     if (baud <= 0) {
-      _notify(SerialNoticeKind.baudInvalid, toast: true, warn: true, hint: false);
+      _notify(
+        SerialNoticeKind.baudInvalid,
+        toast: true,
+        warn: true,
+        hint: false,
+      );
       return Future.value();
     }
     return _commit(state.copyWith(baud: baud), announce: true);
@@ -337,8 +342,9 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
       final head = picked.bytes.length > SerialMetrics.filePreviewBytes
           ? picked.bytes.sublist(0, SerialMetrics.filePreviewBytes)
           : picked.bytes;
-      final suffix =
-          picked.bytes.length > SerialMetrics.filePreviewBytes ? ' …' : '';
+      final suffix = picked.bytes.length > SerialMetrics.filePreviewBytes
+          ? ' …'
+          : '';
       _emit(
         state.copyWith(
           fileName: picked.name,
@@ -414,7 +420,8 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
 
   Future<void> saveLog() async {
     final path = await _repo.pickSave(
-      suggestedName: 'serial-${state.portName ?? 'port'}-${DateTime.now().millisecondsSinceEpoch}.log',
+      suggestedName:
+          'serial-${state.portName ?? 'port'}-${DateTime.now().millisecondsSinceEpoch}.log',
       extension: 'log',
     );
     if (path == null) return;
@@ -448,7 +455,7 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
   }
 
   Future<void> sendQuick(String id) async {
-    final command = _byId(state.quick, id);
+    final command = state.quick.commandById(id);
     if (command == null) return;
     await _transmit(
       command.data,
@@ -460,36 +467,108 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
   }
 
   Future<void> sendQuickByKey(String key) async {
-    final command = state.quick.where((item) => item.key == key);
+    final command = state.quick.commands.where((item) => item.key == key);
     if (command.isEmpty) return;
     await sendQuick(command.first.id);
   }
 
-  void upsertQuick(QuickCommand command) {
-    final quick = [
-      for (final item in state.quick)
-        if (command.key.isNotEmpty &&
+  /// [folderId] 为 null 或文件夹不存在时放在根目录；所在文件夹不变则原位替换，否则追加到目标末尾。
+  void upsertQuick(QuickCommand command, {String? folderId}) {
+    final target = state.quick.folders.any((f) => f.id == folderId)
+        ? folderId
+        : null;
+    final stay =
+        state.quick.commandById(command.id) != null &&
+        state.quick.folderIdOf(command.id) == target;
+    QuickCommand clean(QuickCommand item) =>
+        command.key.isNotEmpty &&
             item.key == command.key &&
-            item.id != command.id)
-          item.copyWith(key: '')
-        else
-          item,
-    ];
-    final index = quick.indexWhere((item) => item.id == command.id);
-    if (index >= 0) {
-      quick[index] = command;
-    } else {
-      quick.add(command);
+            item.id != command.id
+        ? item.copyWith(key: '')
+        : item;
+    final quick = <QuickNode>[];
+    for (final node in state.quick) {
+      switch (node) {
+        case QuickCommand():
+          if (node.id != command.id) {
+            quick.add(clean(node));
+          } else if (stay) {
+            quick.add(command);
+          }
+        case QuickFolder():
+          final commands = <QuickCommand>[
+            for (final item in node.commands)
+              if (item.id != command.id) clean(item) else if (stay) command,
+          ];
+          if (!stay && node.id == target) commands.add(command);
+          quick.add(node.copyWith(commands: commands));
+      }
     }
+    if (!stay && target == null) quick.add(command);
     _emit(state.copyWith(quick: quick));
     _persist();
     _notify(SerialNoticeKind.quickSaved, toast: true, hint: false);
   }
 
   void deleteQuick(String id) {
+    final quick = <QuickNode>[
+      for (final node in state.quick)
+        switch (node) {
+          QuickCommand() => node,
+          QuickFolder() => node.copyWith(
+            commands: node.commands.where((c) => c.id != id).toList(),
+          ),
+        },
+    ]..removeWhere((node) => node is QuickCommand && node.id == id);
+    _emit(state.copyWith(quick: quick));
+    _persist();
+    _notify(SerialNoticeKind.deleted, toast: true, hint: false);
+  }
+
+  /// 新文件夹追加到根目录末尾；已存在则只改名称。
+  void upsertFolder(String? id, String name) {
+    final folders = state.quick.folders;
+    final exists = id != null && folders.any((f) => f.id == id);
+    var newId = newSerialId('f');
+    while (folders.any((f) => f.id == newId)) {
+      newId = newSerialId('f');
+    }
+    final quick = exists
+        ? [
+            for (final node in state.quick)
+              if (node is QuickFolder && node.id == id)
+                node.copyWith(name: name)
+              else
+                node,
+          ]
+        : [...state.quick, QuickFolder(id: newId, name: name)];
+    _emit(state.copyWith(quick: quick));
+    _persist();
+    _notify(SerialNoticeKind.folderSaved, toast: true, hint: false);
+  }
+
+  void toggleFolder(String id) {
     _emit(
       state.copyWith(
-        quick: state.quick.where((item) => item.id != id).toList(),
+        quick: [
+          for (final node in state.quick)
+            if (node is QuickFolder && node.id == id)
+              node.copyWith(expanded: !node.expanded)
+            else
+              node,
+        ],
+      ),
+    );
+    _persist();
+  }
+
+  /// 连同文件夹内指令一起删除。
+  void deleteFolder(String id) {
+    _emit(
+      state.copyWith(
+        quick: state.quick
+            .where((node) => !(node is QuickFolder && node.id == id))
+            .toList(),
       ),
     );
     _persist();
@@ -498,11 +577,7 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
 
   Future<void> runBatch(String id) async {
     if (!state.open) {
-      _notify(
-        SerialNoticeKind.portClosedBatch,
-        toast: true,
-        warn: true,
-      );
+      _notify(SerialNoticeKind.portClosedBatch, toast: true, warn: true);
       return;
     }
     final job = _byId(state.batch, id);
@@ -642,11 +717,8 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     }
     final hit = rule.copyWith(hits: rule.hits + 1);
     _replaceRule(id, (_) => hit);
-    _sys(SysLogKind.autoReply, {
-      'name': hit.name,
-      'count': hit.replies.length,
-    });
-    _scheduleReplies(hit);
+    _sys(SysLogKind.autoReply, {'name': hit.name, 'count': hit.replies.length});
+    _scheduleReplies(hit, const []);
   }
 
   void upsertRule(ReplyRule rule) {
@@ -675,8 +747,9 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
   Future<void> resendHistory(int index) async {
     if (index < 0 || index >= state.history.length) return;
     final text = state.history[index].text;
-    final format =
-        SerialBytes.parseHex(text) != null ? DataFormat.hex : DataFormat.ascii;
+    final format = SerialBytes.parseHex(text) != null
+        ? DataFormat.hex
+        : DataFormat.ascii;
     await _transmit(text, format: format, recordHistory: true);
   }
 
@@ -706,26 +779,27 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
   }
 
   Future<void> exportQuick() => _exportJson(
-        suggestedName: 'quick-commands.json',
-        data: state.quick.map((item) => item.toJson()).toList(),
-        done: SerialNoticeKind.exportedQuick,
-      );
+    suggestedName: 'quick-commands.json',
+    data: state.quick.map((item) => item.toJson()).toList(),
+    done: SerialNoticeKind.exportedQuick,
+  );
 
   Future<void> exportRules() => _exportJson(
-        suggestedName: 'auto-reply-rules.json',
-        data: state.rules.map((item) => item.toJson()).toList(),
-        done: SerialNoticeKind.exportedRules,
-      );
+    suggestedName: 'auto-reply-rules.json',
+    data: state.rules.map((item) => item.toJson()).toList(),
+    done: SerialNoticeKind.exportedRules,
+  );
 
   Future<void> importQuick() => _importList(
-        parse: QuickCommand.fromJson,
-        apply: (items) => _emit(state.copyWith(quick: items)),
-      );
+    parse: QuickNode.fromJson,
+    apply: (items) => _emit(state.copyWith(quick: items.withUniqueKeys())),
+    count: (items) => items.commands.length,
+  );
 
   Future<void> importRules() => _importList(
-        parse: ReplyRule.fromJson,
-        apply: (items) => _emit(state.copyWith(rules: items)),
-      );
+    parse: ReplyRule.fromJson,
+    apply: (items) => _emit(state.copyWith(rules: items)),
+  );
 
   void appendChecksum(Uint8List raw, ChecksumKind kind) {
     final text = SerialBytes.toHex([
@@ -766,11 +840,7 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     _notify(SerialNoticeKind.loopStarted, args: {'period': period});
     _loop = Timer.periodic(Duration(milliseconds: period), (_) {
       unawaited(() async {
-        final ok = await _transmit(
-          text,
-          format: format,
-          recordHistory: false,
-        );
+        final ok = await _transmit(text, format: format, recordHistory: false);
         if (!ok) stopLoop();
       }());
     });
@@ -849,38 +919,46 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
   }
 
   void _matchRules(Uint8List bytes) {
-    final matched = <ReplyRule>[];
+    final matched = <(ReplyRule, List<Uint8List?>)>[];
     final next = <ReplyRule>[];
     for (final rule in state.rules) {
-      if (!rule.enabled || !SerialBytes.ruleMatches(rule, bytes)) {
+      final captures = rule.enabled
+          ? SerialBytes.ruleCaptures(rule, bytes)
+          : null;
+      if (captures == null) {
         next.add(rule);
         continue;
       }
       final hit = rule.copyWith(hits: rule.hits + 1);
       next.add(hit);
-      matched.add(hit);
+      matched.add((hit, captures));
     }
     if (matched.isEmpty) return;
     _emit(state.copyWith(rules: next));
     _persist();
-    for (final rule in matched) {
+    for (final (rule, captures) in matched) {
       _sys(SysLogKind.autoReply, {
         'name': rule.name,
         'count': rule.replies.length,
       });
-      _scheduleReplies(rule);
+      _scheduleReplies(rule, captures);
     }
   }
 
-  void _scheduleReplies(ReplyRule rule) {
+  void _scheduleReplies(ReplyRule rule, List<Uint8List?> captures) {
     var wait = 0;
-    for (final reply in rule.replies) {
+    for (var i = 0; i < rule.replies.length; i++) {
+      final reply = rule.replies[i];
       wait += reply.delayMs < 0 ? 0 : reply.delayMs;
-      final data = reply.data;
       late final Timer timer;
       timer = Timer(Duration(milliseconds: wait), () {
         _replies.remove(timer);
         if (!state.open || isClosed) return;
+        final data = SerialBytes.expandReply(reply.data, captures);
+        if (data == null) {
+          _sys(SysLogKind.replySkipped, {'name': rule.name, 'step': i + 1});
+          return;
+        }
         unawaited(
           _transmit(
             data,
@@ -1010,12 +1088,7 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
       tx += bytes.length;
     }
     _emit(
-      state.copyWith(
-        lines: lines,
-        rxCount: rx,
-        txCount: tx,
-        savedCount: saved,
-      ),
+      state.copyWith(lines: lines, rxCount: rx, txCount: tx, savedCount: saved),
     );
   }
 
@@ -1076,6 +1149,7 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
   Future<void> _importList<T>({
     required T? Function(Object? raw) parse,
     required void Function(List<T> items) apply,
+    int Function(List<T> items)? count,
   }) async {
     try {
       final text = await _repo.pickText(extensions: const ['json']);
@@ -1094,7 +1168,7 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
         SerialNoticeKind.imported,
         toast: true,
         hint: false,
-        args: {'count': items.length},
+        args: {'count': count?.call(items) ?? items.length},
       );
     } on AppException catch (error, stackTrace) {
       _logIo('导入失败', error, stackTrace);
@@ -1122,7 +1196,9 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
         buffer.writeln('[$stamp] SYS  ${line.sys?.name ?? ''}');
       } else {
         final tag = line.dir == LogDir.rx ? 'RX' : 'TX';
-        buffer.writeln('[$stamp] $tag  ${SerialBytes.toHex(line.bytes ?? const [])}');
+        buffer.writeln(
+          '[$stamp] $tag  ${SerialBytes.toHex(line.bytes ?? const [])}',
+        );
       }
     }
     return buffer.toString();
@@ -1215,7 +1291,6 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
 
 T? _byId<T>(List<T> items, String id) {
   for (final item in items) {
-    if (item is QuickCommand && item.id == id) return item;
     if (item is ReplyRule && item.id == id) return item;
     if (item is BatchJob && item.id == id) return item;
   }

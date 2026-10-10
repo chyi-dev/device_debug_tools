@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../../../app/cubit/app_cubit.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
+import '../../../core/widgets/app_window_caption.dart';
 import '../../../i18n/i18n.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
@@ -54,73 +56,112 @@ class SerialMenuBar extends StatelessWidget {
       child: SizedBox(
         height: SerialMetrics.menuBar,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          padding: const EdgeInsets.only(left: AppSpacing.sm),
           child: Row(
             children: [
+              // 左侧按内容宽度排布，剩余空间留给拖拽区；右侧开关与窗口按钮始终贴右。
               Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Row(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: AppSpacing.xs,
-                          right: AppSpacing.md,
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth,
                         ),
-                        child: Text(
-                          t.app.title,
-                          style: AppTextStyles.body(cs).copyWith(
-                            color: palette.text,
-                            fontWeight: FontWeight.w600,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              DragToMoveArea(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: AppSpacing.xs,
+                                    right: AppSpacing.md,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const AppWindowIcon(),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Text(
+                                        t.app.title,
+                                        style: AppTextStyles.body(cs).copyWith(
+                                          color: palette.text,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              _Menu(
+                                label: menu.file,
+                                items: [
+                                  _Item(
+                                    menu.saveRecv,
+                                    onSave,
+                                    kbd: t.serial.kbd.ctrlS,
+                                  ),
+                                  const _Item.gap(),
+                                  _Item(menu.exportQuick, onExportQuick),
+                                  _Item(menu.importQuick, onImportQuick),
+                                  _Item(menu.exportRules, onExportRules),
+                                  _Item(menu.importRules, onImportRules),
+                                ],
+                              ),
+                              _Menu(
+                                label: menu.settings,
+                                items: [
+                                  _Item(
+                                    menu.themeLight,
+                                    () => context.read<AppCubit>().setThemeMode(
+                                      ThemeMode.light,
+                                    ),
+                                    checked: light,
+                                  ),
+                                  _Item(
+                                    menu.themeDark,
+                                    () => context.read<AppCubit>().setThemeMode(
+                                      ThemeMode.dark,
+                                    ),
+                                    checked: !light,
+                                  ),
+                                  const _Item.gap(),
+                                  _Item(
+                                    menu.compact,
+                                    onCompact,
+                                    checked: compact,
+                                  ),
+                                  _Item(
+                                    menu.toolsPanel,
+                                    onTools,
+                                    checked: toolsOn,
+                                  ),
+                                ],
+                              ),
+                              _Menu(
+                                label: menu.tools,
+                                items: [
+                                  for (final tab in ToolTab.values)
+                                    _Item(_tabLabel(t, tab), () => onTab(tab)),
+                                ],
+                              ),
+                              _Menu(
+                                label: menu.help,
+                                items: [
+                                  _Item(
+                                    menu.keys,
+                                    onKeys,
+                                    kbd: t.serial.kbd.f12,
+                                  ),
+                                  _Item(menu.about, onAbout),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      _Menu(
-                        label: menu.file,
-                        items: [
-                          _Item(menu.saveRecv, onSave, kbd: t.serial.kbd.ctrlS),
-                          const _Item.gap(),
-                          _Item(menu.exportQuick, onExportQuick),
-                          _Item(menu.importQuick, onImportQuick),
-                          _Item(menu.exportRules, onExportRules),
-                          _Item(menu.importRules, onImportRules),
-                        ],
-                      ),
-                      _Menu(
-                        label: menu.settings,
-                        items: [
-                          _Item(
-                            menu.themeLight,
-                            () => context.read<AppCubit>().setThemeMode(
-                              ThemeMode.light,
-                            ),
-                            checked: light,
-                          ),
-                          _Item(
-                            menu.themeDark,
-                            () => context.read<AppCubit>().setThemeMode(
-                              ThemeMode.dark,
-                            ),
-                            checked: !light,
-                          ),
-                          const _Item.gap(),
-                          _Item(menu.compact, onCompact, checked: compact),
-                          _Item(menu.toolsPanel, onTools, checked: toolsOn),
-                        ],
-                      ),
-                      _Menu(
-                        label: menu.tools,
-                        items: [
-                          for (final tab in ToolTab.values)
-                            _Item(_tabLabel(t, tab), () => onTab(tab)),
-                        ],
-                      ),
-                      _Menu(
-                        label: menu.help,
-                        items: [
-                          _Item(menu.keys, onKeys, kbd: t.serial.kbd.f12),
-                          _Item(menu.about, onAbout),
-                        ],
+                      const Expanded(
+                        child: DragToMoveArea(child: SizedBox.expand()),
                       ),
                     ],
                   ),
@@ -138,6 +179,12 @@ class SerialMenuBar extends StatelessWidget {
                 tip: t.serial.toolsTip,
                 on: toolsOn,
                 onPressed: onTools,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              AppWindowButtons(
+                height: SerialMetrics.menuBar,
+                foreground: palette.text,
+                hover: palette.hover,
               ),
             ],
           ),

@@ -133,6 +133,13 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .it .lead{grid-row:1/span 2}
 .it .key{font:12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
 .it.active{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.it.in{padding-left:26px}
+.fd{display:flex;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line2);cursor:pointer}
+.fd:hover{background:var(--hover)}
+.fd .arw{width:12px;color:var(--muted);font-size:10px}
+.fd .nm{flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fd .cnt{font-size:12px;color:var(--muted);margin-right:4px}
+.explain.in{padding-left:26px}
 .link{border:0;background:none;color:var(--muted);font-size:13px;padding:2px 4px;border-radius:3px}
 .link:hover{color:var(--text);background:var(--line2)}
 .link.danger:hover{color:var(--off)}
@@ -161,6 +168,34 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .calc td{padding:7px 4px;border-bottom:1px solid var(--line2)}
 .calc td.v{font:600 14px var(--mono)}
 .calc td.a{text-align:right}
+/* 「脚本」会改动中间列，用竖线与其他页签隔开 */
+.tabs button{font-size:12px}
+.tabs .sctab{flex:none;padding:0 12px;margin-left:4px;position:relative}
+.tabs .sctab::before{content:"";position:absolute;left:-3px;top:10px;bottom:10px;border-left:1px solid var(--line)}
+.schook{font:12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px;white-space:nowrap}
+.it.sc{cursor:pointer}
+.it.sc .dt{display:flex;gap:6px;align-items:center}
+.it.sc.off .nm{color:var(--muted)}
+.scdock{display:none}
+.center.withdock{grid-template-rows:minmax(0,1fr) 312px auto}
+.center.withdock .scdock{display:grid;grid-template-rows:auto minmax(0,1fr);border:1px solid var(--line);border-radius:6px;background:var(--panel);overflow:hidden;min-height:0}
+.scdock>.schead{border-bottom:1px solid var(--line)}
+.scbody{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:0}
+.sclogbox{display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0}
+.schead{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line2);background:var(--panel)}
+.schead b{color:var(--text);font-weight:600;font-size:13px}
+.schead .grow{flex:1}
+.sclog{font:12px/1.55 var(--mono);overflow:auto;min-height:0;background:var(--log-bg)}
+.sclog-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:8px;padding:3px 10px;border-bottom:1px solid var(--line2)}
+.sclog-row .t{color:var(--log-prompt)}
+.sclog-row .n{color:var(--log-tx)}
+.sclog-row .o{color:var(--log-rx);word-break:break-all}
+.sclog-row.err .o{color:var(--off)}
+.sclog-empty{font:12px/1.6 var(--sans);color:var(--muted);padding:10px}
+.sced{display:grid;grid-template-columns:auto minmax(0,1fr);border-right:1px solid var(--line);background:var(--log-bg);overflow:hidden;min-height:0}
+.sced .gut{margin:0;padding:8px 6px 8px 10px;font:13px/1.55 var(--mono);color:var(--log-prompt);text-align:right;background:var(--panel);border-right:1px solid var(--line2);overflow:hidden;user-select:none;min-width:34px}
+.sced textarea{border:0;outline:none;resize:none;padding:8px 10px;font:13px/1.55 var(--mono);color:var(--log-rx);background:transparent;white-space:pre;overflow:auto;tab-size:2;min-height:0;height:100%}
+.sced:focus-within{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
 
 /* ---------- 状态栏 ---------- */
 .status{display:flex;align-items:center;gap:0;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
@@ -188,8 +223,7 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .dialog .line span{font:12px var(--mono);color:var(--muted);text-align:right}
 .dialog .line .inp{font-family:var(--mono)}
 .dialog .line .note{font-family:var(--sans)}
-.dialog .err{color:var(--off);font-size:13px;min-height:18px}
-.dialog .keys{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:14px}
+.dialog .err{color:var(--off);font-size:13px;min-height:18px}.dialog .keys{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:14px}
 .dialog .keys kbd{font:13px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--field);justify-self:start}
 .toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:var(--text);color:var(--win);padding:9px 16px;border-radius:6px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
 .toast.show{opacity:1}
@@ -226,6 +260,7 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
         <button data-cmd="tab:reply">自动应答</button>
         <button data-cmd="tab:history">历史发送</button>
         <button data-cmd="tab:calc">校验计算</button>
+        <button data-cmd="tab:script">脚本</button>
       </div>
     </div>
     <div class="menu"><button>帮助</button>
@@ -318,6 +353,7 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
         </div>
         <div class="log wrap" id="log"></div>
       </div>
+      <div class="scdock" id="scDock"></div>
       <div class="sendbox">
         <textarea id="txInput" spellcheck="false">A5 01 00 00 01 07</textarea>
         <div class="sendside">
@@ -336,6 +372,7 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
         <button data-tab="reply">自动应答</button>
         <button data-tab="history">历史发送</button>
         <button data-tab="calc">校验计算</button>
+        <button data-tab="script" class="sctab">脚本</button>
       </nav>
       <div class="tabbody" id="tabbody"></div>
     </section>
@@ -403,12 +440,14 @@ var Serial = (function () {
       { id: 'b2', name: '设备复位自检', interval: 800, stopOnFail: true,
         steps: ['A5 10 00 00 10', 'A5 02 00 00 02 08', 'A5 01 00 00 01 07', 'A5 10 01 00 11'] }
     ],
+    // Lua 脚本：on_receive 收到数据后运行；before_send 拦截每一帧发送，返回处理后的帧再发出，返回 nil 则不发
     scripts: [
-      { id: 's1', name: 'parseSensor.js', action: 'parse', enabled: true,
-        code: '// 收到 A5 5A 03 帧后解析温湿度\nonReceive(frame => {\n  if (frame.startsWith(0xA5, 0x5A, 0x03)) {\n    const t = frame.u16(3) / 10;\n    const h = frame.u16(5) / 10;\n    log(`temp=${t}℃ hum=${h}%`);\n  }\n});' },
-      { id: 's2', name: 'addChecksum.js', action: 'checksum', enabled: false,
-        code: '// 发送前在帧尾追加 SUM8\nbeforeSend(frame => frame.append(sum8(frame)));' }
-    ]
+      { id: 's1', name: 'parse_sensor.lua', action: 'parse', enabled: true, runs: 0, last: '',
+        code: '-- 收到 A5 5A 03 帧后解析温湿度\nfunction on_receive(frame)\n  if frame:starts_with(0xA5, 0x5A, 0x03) then\n    local t = frame:u16(4) / 10\n    local h = frame:u16(6) / 10\n    log(string.format("temp=%.1f℃ hum=%.1f%%", t, h))\n  end\nend' },
+      { id: 's2', name: 'add_checksum.lua', action: 'checksum', enabled: false, runs: 0, last: '',
+        code: '-- 发送前拦截：帧尾追加 SUM8 后再发出\n-- 返回 nil 表示拦截，这一帧不发送\nfunction before_send(frame)\n  return frame:append(sum8(frame))\nend' }
+    ],
+    scriptLog: []
   };
 
   function on(type, fn) { (listeners[type] = listeners[type] || []).push(fn); }
@@ -520,7 +559,7 @@ var Serial = (function () {
     if (dir === 'tx') state.tx += bytes.length;
     emit('line', line);
     emit('state', state);
-    if (dir === 'rx') matchRules(bytes);
+    if (dir === 'rx') { receiveHooks(line); matchRules(bytes); }
     return line;
   }
   function sys(text) { return push('sys', null, text); }
@@ -629,6 +668,9 @@ var Serial = (function () {
     if (!state.open) { emit('blocked', '串口未打开，发送已拦截'); return false; }
     var r = encode(text, opts.format || state.sendFormat, opts.checksum != null ? opts.checksum : state.checksum, opts.crlf != null ? opts.crlf : state.crlf, opts);
     if (r.error) { emit('blocked', r.error); return false; }
+    var out = sendHooks(r.bytes);
+    if (!out) return false;
+    r.bytes = out;
     push('tx', r.bytes);
     var h = text.trim();
     if (h && !opts.silentHistory) {
@@ -654,34 +696,119 @@ var Serial = (function () {
   function stopLoop() { if (loopTimer) { clearInterval(loopTimer); loopTimer = null; emit('loop', false); } }
 
   // ---------- 自动响应 ----------
-  function ruleMatches(rule, bytes) {
-    var p = parseHex(rule.pattern) || [];
-    if (!p.length) return false;
-    var h = hex(bytes), ph = hex(p);
-    if (rule.match === 'frame') return h === ph;
-    if (rule.match === 'prefix') return h.indexOf(ph) === 0;
-    return h.indexOf(ph) >= 0;
+  // 规则：kind 为 template（默认）或 regex，format 为 HEX（默认）或 ASCII，ignoreCase 只对 ASCII 生效。
+  // 模板记号：固定字节 { b }、任意一字节 { any }（HEX ?? / ASCII ?）、任意长度 { many }（*）
+  function parseTemplate(pattern, format) {
+    var out = [], i = 0;
+    if (format !== 'ASCII') {
+      var s = pattern.replace(/0x/gi, '').replace(/[^0-9a-fA-F?*]/g, '');
+      while (i < s.length) {
+        if (s[i] === '*') { out.push({ many: true }); i++; }
+        else if (s[i] === '?') { if (s[i + 1] !== '?') return null; out.push({ any: true }); i += 2; }
+        else { if (!/^[0-9a-fA-F]{2}$/.test(s.substr(i, 2))) return null; out.push({ b: parseInt(s.substr(i, 2), 16) }); i += 2; }
+      }
+      return out.length ? out : null;
+    }
+    var esc = { r: 13, n: 10, t: 9, '0': 0, '\\': 92, '?': 63, '*': 42 }, m;
+    while (i < pattern.length) {
+      var c = pattern[i], rest = pattern.slice(i);
+      if (c === '*') { out.push({ many: true }); i++; continue; }
+      if (c === '?') { out.push({ any: true }); i++; continue; }
+      if (c === '\\' && esc[pattern[i + 1]] != null) { out.push({ b: esc[pattern[i + 1]] }); i += 2; continue; }
+      if ((m = /^\\x([0-9a-fA-F]{2})/.exec(rest))) { out.push({ b: parseInt(m[1], 16) }); i += 4; continue; }
+      var ch = String.fromCodePoint(pattern.codePointAt(i));
+      Array.from(new TextEncoder().encode(ch)).forEach(function (b) { out.push({ b: b }); });
+      i += ch.length;
+    }
+    return out.length ? out : null;
+  }
+  function lower(b) { return b >= 0x41 && b <= 0x5A ? b + 0x20 : b; }
+  function matchFrom(toks, k, bytes, pos, endAnchored, fold, caps) {
+    if (k === toks.length) return !endAnchored || pos === bytes.length;
+    var t = toks[k];
+    if (t.many) {
+      for (var end = bytes.length; end >= pos; end--) {
+        caps.push(bytes.slice(pos, end));
+        if (matchFrom(toks, k + 1, bytes, end, endAnchored, fold, caps)) return true;
+        caps.pop();
+      }
+      return false;
+    }
+    if (pos >= bytes.length) return false;
+    if (t.any) {
+      caps.push([bytes[pos]]);
+      if (matchFrom(toks, k + 1, bytes, pos + 1, endAnchored, fold, caps)) return true;
+      caps.pop();
+      return false;
+    }
+    var same = fold ? lower(bytes[pos]) === lower(t.b) : bytes[pos] === t.b;
+    return same && matchFrom(toks, k + 1, bytes, pos + 1, endAnchored, fold, caps);
+  }
+  // 命中返回捕获数组（$1 起），未命中返回 null；正则 HEX 捕获到半个字节时该项为 null
+  function ruleCaptures(rule, bytes) {
+    var isHex = rule.format !== 'ASCII';
+    if (rule.kind === 'regex') {
+      var re;
+      try { re = new RegExp(rule.pattern, isHex || rule.ignoreCase ? 'i' : ''); } catch (e) { return null; }
+      var m = re.exec(isHex ? hex(bytes) : String.fromCharCode.apply(null, bytes));
+      if (!m) return null;
+      return m.slice(1).map(function (g) {
+        if (!g) return [];
+        return isHex ? parseHex(g) : Array.from(g, function (c) { return c.charCodeAt(0) & 0xFF; });
+      });
+    }
+    var toks = parseTemplate(rule.pattern, rule.format);
+    if (!toks) return null;
+    var fold = !isHex && rule.ignoreCase;
+    var startAnchored = rule.match === 'prefix' || rule.match === 'frame';
+    var endAnchored = rule.match === 'frame' || rule.match === 'suffix';
+    for (var s = 0; s <= (startAnchored ? 0 : bytes.length); s++) {
+      var caps = [];
+      if (matchFrom(toks, 0, bytes, s, endAnchored, fold, caps)) return caps;
+    }
+    return null;
+  }
+  function captureCount(pattern, format) {
+    var toks = parseTemplate(pattern, format);
+    return toks ? toks.filter(function (t) { return t.b == null; }).length : null;
+  }
+  // 应答里的 $n 换成捕获字节；引用不存在或结果不是 HEX 时返回 null
+  function expandReply(data, caps) {
+    var ok = true;
+    var out = data.replace(/\$(\d+)/g, function (_, n) {
+      var c = caps[Number(n) - 1];
+      if (!c) { ok = false; return ''; }
+      return ' ' + hex(c) + ' ';
+    });
+    return ok && parseHex(out) ? out.trim() : null;
   }
   function matchRules(bytes) {
     state.rules.forEach(function (rule) {
-      if (!rule.enabled || !ruleMatches(rule, bytes)) return;
+      if (!rule.enabled) return;
+      var caps = ruleCaptures(rule, bytes);
+      if (!caps) return;
       rule.hits++;
       emit('rule', rule);
-      runReplies(rule);
+      runReplies(rule, caps);
     });
   }
-  function runReplies(rule) {
+  function runReplies(rule, caps) {
     var wait = 0;
     sys('自动响应「' + rule.name + '」命中，按顺序回复 ' + rule.replies.length + ' 条');
-    rule.replies.forEach(function (r) {
+    rule.replies.forEach(function (r, i) {
       wait += Number(r.delay) || 0;
-      setTimeout(function () { if (state.open) send(r.data, { format: 'HEX', checksum: 'none', crlf: false, silentHistory: true }); }, wait);
+      setTimeout(function () {
+        if (!state.open) return;
+        var data = expandReply(r.data, caps);
+        if (data == null) return sys('自动响应「' + rule.name + '」第 ' + (i + 1) + ' 条应答引用的捕获不存在，已跳过');
+        send(data, { format: 'HEX', checksum: 'none', crlf: false, silentHistory: true });
+      }, wait);
     });
   }
   function fireRule(id) {
     var rule = byId(state.rules, id);
     if (!state.open) return emit('blocked', '串口未打开，规则不会执行');
-    rule.hits++; emit('rule', rule); runReplies(rule);
+    rule.hits++; emit('rule', rule); runReplies(rule, []);
   }
 
   // ---------- 批量 ----------
@@ -721,17 +848,58 @@ var Serial = (function () {
     batchRun = null; emit('batch', null);
   }
 
-  // ---------- 脚本（只运行两个固定动作） ----------
-  function runScript(id) {
-    var s = byId(state.scripts, id);
-    if (s.action === 'parse') {
-      var last = state.lines.slice().reverse().filter(function (l) { return l.dir === 'rx' && l.info.temp != null; })[0];
-      sys(last ? s.name + '：' + last.info.summary : s.name + '：还没有收到温湿度帧');
-    } else {
-      var sample = [0xA5, 0x01, 0x00, 0x00, 0x01];
-      sys(s.name + '：A5 01 00 00 01 → ' + hex(withChecksum(sample, 'sum')));
-    }
+  // ---------- Lua 脚本（设计稿只模拟预置脚本的效果，不执行 Lua） ----------
+  function scriptHook(s) { return /function\s+before_send\s*\(/.test(s.code) ? 'before_send' : 'on_receive'; }
+  function scriptOut(s, text, err) {
+    s.runs++; s.last = text;
+    state.scriptLog.push({ time: new Date(), name: s.name, text: text, err: !!err });
+    if (state.scriptLog.length > 200) state.scriptLog.shift();
+    emit('script', 'log');
   }
+  function lastSensor() { return state.lines.slice().reverse().filter(function (l) { return l.dir === 'rx' && l.info.temp != null; })[0]; }
+  function parseOut(s, line) {
+    if (!line) return scriptOut(s, '还没有收到 A5 5A 03 温湿度帧', true);
+    scriptOut(s, 'temp=' + line.info.temp.toFixed(1) + '℃ hum=' + line.info.hum.toFixed(1) + '%');
+  }
+  function receiveHooks(line) {
+    state.scripts.forEach(function (s) {
+      if (!s.enabled || scriptHook(s) !== 'on_receive') return;
+      if (s.action === 'parse') { if (line.info.temp != null) parseOut(s, line); }
+      else scriptOut(s, '收到 ' + line.bytes.length + ' 字节：' + hex(line.bytes));
+    });
+  }
+  // 按列表顺序串联：上一个脚本处理后的帧交给下一个；任一脚本返回 nil 则整帧不发
+  function sendHooks(bytes) {
+    var out = bytes;
+    for (var i = 0; i < state.scripts.length && out; i++) {
+      var s = state.scripts[i];
+      if (!s.enabled || scriptHook(s) !== 'before_send') continue;
+      var next = s.action === 'checksum' ? out.concat([sum8(out)]) : out;
+      scriptOut(s, hex(out) + ' → ' + hex(next));
+      out = next;
+    }
+    return out;
+  }
+  // 手动运行：on_receive 用最近一帧收包；before_send 拿发送框内容试算，不真正发出
+  function runScript(id, txText) {
+    var s = byId(state.scripts, id);
+    if (scriptHook(s) === 'on_receive') {
+      if (s.action === 'parse') return parseOut(s, lastSensor());
+      var rx = state.lines.slice().reverse().filter(function (l) { return l.dir === 'rx'; })[0];
+      return scriptOut(s, rx ? '手动运行 · 最近一帧 ' + hex(rx.bytes) : '手动运行 · 还没有收到数据');
+    }
+    var sample = parseHex(txText || '');
+    if (!sample) return scriptOut(s, '发送框不是 HEX，无法试算', true);
+    scriptOut(s, hex(sample) + ' → ' + hex(s.action === 'checksum' ? sample.concat([sum8(sample)]) : sample) + '（试算，未发送）');
+  }
+  function toggleScript(id) { var s = byId(state.scripts, id); s.enabled = !s.enabled; emit('script', 'list'); return s; }
+  function newScript() {
+    var s = { id: 's' + Date.now().toString(36), name: 'script' + (state.scripts.length + 1) + '.lua', action: 'custom', enabled: false, runs: 0, last: '',
+      code: '-- 新脚本：收到数据时运行\nfunction on_receive(frame)\n  log(frame:hex())\nend' };
+    state.scripts.push(s); emit('script', 'list');
+    return s;
+  }
+  function clearScriptLog() { state.scriptLog.length = 0; emit('script', 'log'); }
 
   // ---------- 杂项 ----------
   function byId(list, id) { return list.filter(function (x) { return x.id === id; })[0]; }
@@ -765,7 +933,8 @@ var Serial = (function () {
     PORTS: PORTS, state: state, on: on,
     open: open, close: close, toggle: toggle, configure: configure, portLabel: portLabel, frameFormat: frameFormat,
     send: send, sendRepeat: sendRepeat, stopLoop: stopLoop, encode: encode,
-    fireRule: fireRule, runBatch: runBatch, stopBatch: stopBatch, runScript: runScript,
+    fireRule: fireRule, captureCount: captureCount, runBatch: runBatch, stopBatch: stopBatch,
+    runScript: runScript, toggleScript: toggleScript, newScript: newScript, clearScriptLog: clearScriptLog, scriptHook: scriptHook,
     clear: clear, saveLog: saveLog, exportRules: exportRules, logText: logText, seed: seed,
     hex: hex, ascii: ascii, parseHex: parseHex, textBytes: textBytes, dissect: dissect, stamp: stamp,
     sum8: sum8, xor8: xor8, lrc: lrc, crc8: crc8, crc16: crc16, crc32: crc32,
@@ -785,14 +954,24 @@ function byId(list, id) { return list.filter(function (x) { return x.id === id; 
 function uid(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
 function fullStamp(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + Serial.stamp(d); }
 
-// 设计稿预置数据：快捷键 F1–F4、逐条延时的批量任务
+// 设计稿预置数据：快捷键 F1–F4、单层文件夹、逐条延时的批量任务
 S.quick = [
   { id: 'q1', name: '读取温湿度', data: 'A5 01 00 00 01 07', format: 'HEX', key: 'F1' },
   { id: 'q2', name: '读取设备信息', data: 'A5 02 00 00 02 08', format: 'HEX', key: 'F2' },
-  { id: 'q3', name: '启动采集（每 3 秒上报）', data: 'A5 10 01 00 11', format: 'HEX', key: 'F3' },
-  { id: 'q4', name: '停止采集', data: 'A5 10 00 00 10', format: 'HEX', key: 'F4' },
-  { id: 'q5', name: 'AT 测试', data: 'AT', format: 'ASCII', key: '' }
+  { type: 'folder', id: 'f1', name: '采集控制', expanded: true, commands: [
+    { id: 'q3', name: '启动采集（每 3 秒上报）', data: 'A5 10 01 00 11', format: 'HEX', key: 'F3' },
+    { id: 'q4', name: '停止采集', data: 'A5 10 00 00 10', format: 'HEX', key: 'F4' }] },
+  { type: 'folder', id: 'f2', name: 'AT 指令', expanded: false, commands: [
+    { id: 'q5', name: 'AT 测试', data: 'AT', format: 'ASCII', key: '' }] }
 ];
+function isFolder(x) { return x.type === 'folder'; }
+function quickFolders() { return S.quick.filter(isFolder); }
+function allQuick() { var out = []; S.quick.forEach(function (x) { if (isFolder(x)) out.push.apply(out, x.commands); else out.push(x); }); return out; }
+function quickFolderOf(id) { return quickFolders().filter(function (f) { return !!byId(f.commands, id); })[0] || null; }
+function removeQuick(id) {
+  S.quick = S.quick.filter(function (x) { return x.id !== id; });
+  quickFolders().forEach(function (f) { f.commands = f.commands.filter(function (x) { return x.id !== id; }); });
+}
 S.batch = [
   { id: 'b1', name: '传感器启动流程', repeat: 1, stopOnFail: true, steps: [
     { data: 'A5 02 00 00 02 08', delay: 0, note: '读取设备信息' },
@@ -859,8 +1038,17 @@ function importList(kind, txt) {
   try {
     var arr = JSON.parse(txt);
     if (!Array.isArray(arr)) throw new Error();
-    if (kind === 'quick') S.quick = arr.map(function (x) { return { id: uid('q'), name: String(x.name || '未命名'), data: String(x.data || ''), format: x.format === 'ASCII' ? 'ASCII' : 'HEX', key: x.key || '' }; });
-    else S.rules = arr.map(function (x) { return { id: uid('r'), name: String(x.name || '未命名'), match: x.match || 'prefix', pattern: String(x.pattern || ''), enabled: !!x.enabled, hits: 0, replies: (x.replies || []).map(function (r) { return { data: String(r.data || ''), delay: Number(r.delay) || 0 }; }) }; });
+    if (kind === 'quick') {
+      var used = {};
+      var cmd = function (x) { var k = x.key || ''; if (k && used[k]) k = ''; if (k) used[k] = 1; return { id: uid('q'), name: String(x.name || '未命名'), data: String(x.data || ''), format: x.format === 'ASCII' ? 'ASCII' : 'HEX', key: k }; };
+      S.quick = arr.map(function (x) {
+        if (x.type === 'folder' || Array.isArray(x.commands)) return { type: 'folder', id: uid('f'), name: String(x.name || '未命名'), expanded: x.expanded !== false, commands: (x.commands || []).map(cmd) };
+        return cmd(x);
+      });
+      renderTab(); renderStatus();
+      return toast('已导入 ' + allQuick().length + ' 条');
+    }
+    S.rules = arr.map(function (x) { return { id: uid('r'), name: String(x.name || '未命名'), match: x.match || 'prefix', kind: x.kind === 'regex' ? 'regex' : 'template', format: x.format === 'ASCII' ? 'ASCII' : 'HEX', ignoreCase: !!x.ignoreCase, pattern: String(x.pattern || ''), enabled: !!x.enabled, hits: 0, replies: (x.replies || []).map(function (r) { return { data: String(r.data || ''), delay: Number(r.delay) || 0 }; }) }; });
     renderTab(); renderStatus();
     toast('已导入 ' + arr.length + ' 条');
   } catch (e) { toast('文件格式不正确，需要导出的 JSON', true); }
@@ -1032,20 +1220,37 @@ function setTab(t) {
   renderTab();
 }
 function renderTab() {
-  var h = { quick: quickHtml, batch: batchHtml, reply: replyHtml, history: historyHtml, calc: calcHtml }[ui.tab]();
+  var h = { quick: quickHtml, batch: batchHtml, reply: replyHtml, history: historyHtml, calc: calcHtml, script: scriptHtml }[ui.tab]();
   $('tabbody').innerHTML = h;
   if (ui.tab === 'calc') calcUpdate();
+  renderDock();
 }
-var matchName = { prefix: '前缀', frame: '整帧', contains: '包含' };
+var matchName = { prefix: '前缀', frame: '整帧', contains: '包含', suffix: '结尾' };
+var matchHint = {
+  'template HEX': '?? 匹配任意一字节，* 匹配任意长度；应答里用 $1、$2 依次引用它们匹配到的字节',
+  'template ASCII': '? 匹配任意一字节，* 匹配任意长度，\\? \\* \\r \\n \\xHH 为字面量；应答里用 $1、$2 引用',
+  'regex HEX': '对空格分隔的大写 HEX（如 A5 5A 03）匹配，锚点自己写 ^ 和 $；应答里用 $1、$2 引用括号分组',
+  'regex ASCII': '对原始字节逐字匹配，锚点自己写 ^ 和 $；应答里用 $1、$2 引用括号分组'
+};
+function ruleLabel(r) {
+  var f = r.format === 'ASCII' ? 'ASCII' : 'HEX';
+  return (r.kind === 'regex' ? '正则' : matchName[r.match]) + ' ' + f + (f === 'ASCII' && r.ignoreCase ? ' Aa' : '') + ' ' + r.pattern;
+}
 
+function quickRow(q, inner) {
+  return '<div class="it' + (inner ? ' in' : '') + '"><button class="btn sm pri lead" data-act="quickSend" data-id="' + q.id + '">发送</button>' +
+    '<span class="nm">' + esc(q.name) + '</span><span class="dt">' + (q.format === 'ASCII' ? 'ASCII · ' : '') + esc(q.data) + '</span>' +
+    '<span class="ops">' + (q.key ? '<span class="key">' + q.key + '</span>' : '') + '<button class="link" data-act="quickEdit" data-id="' + q.id + '">编辑</button><button class="link danger" data-act="quickDel" data-id="' + q.id + '">删除</button></span></div>';
+}
 function quickHtml() {
-  return '<div class="bar"><span class="note">点「发送」立即发出，不进入历史</span><span class="grow"></span><button class="btn sm" data-act="quickNew">新增</button></div>' +
-    '<div class="list">' + S.quick.map(function (q) {
-      return '<div class="it"><button class="btn sm pri lead" data-act="quickSend" data-id="' + q.id + '">发送</button>' +
-        '<span class="nm">' + esc(q.name) + '</span><span class="dt">' + (q.format === 'ASCII' ? 'ASCII · ' : '') + esc(q.data) + '</span>' +
-        '<span class="ops">' + (q.key ? '<span class="key">' + q.key + '</span>' : '') + '<button class="link" data-act="quickEdit" data-id="' + q.id + '">编辑</button><button class="link danger" data-act="quickDel" data-id="' + q.id + '">删除</button></span></div>';
+  return '<div class="bar"><span class="note">点「发送」立即发出，不进入历史</span><span class="grow"></span><button class="btn sm" data-act="folderNew">新增文件夹</button><button class="btn sm" data-act="quickNew">新增</button></div>' +
+    '<div class="list">' + S.quick.map(function (x) {
+      if (!isFolder(x)) return quickRow(x, false);
+      return '<div class="fd" data-act="folderToggle" data-id="' + x.id + '"><span class="arw">' + (x.expanded ? '▼' : '▶') + '</span><span class="nm">' + esc(x.name) + '</span><span class="cnt">' + x.commands.length + ' 条</span>' +
+        '<button class="link" data-act="quickNewIn" data-id="' + x.id + '">新增</button><button class="link" data-act="folderEdit" data-id="' + x.id + '">重命名</button><button class="link danger" data-act="folderDel" data-id="' + x.id + '">删除</button></div>' +
+        (x.expanded ? (x.commands.length ? x.commands.map(function (q) { return quickRow(q, true); }).join('') : '<div class="explain in">文件夹为空。点「新增」在这里添加指令。</div>') : '');
     }).join('') + '</div>' +
-    (S.quick.length ? '' : '<div class="explain">还没有快捷指令。点「新增」保存常用的一条指令。</div>');
+    (S.quick.length ? '' : '<div class="explain">还没有快捷指令。点「新增」保存常用的一条指令，或点「新增文件夹」先分组。</div>');
 }
 function batchHtml() {
   var job = byId(S.batch, ui.batchSel) || S.batch[0];
@@ -1068,7 +1273,7 @@ function replyHtml() {
     '<div class="list">' + S.rules.map(function (r) {
       return '<div class="it"><button class="sw lead' + (r.enabled ? ' on' : '') + '" data-act="ruleToggle" data-id="' + r.id + '" title="启用 / 停用"></button>' +
         '<span class="nm">' + esc(r.name) + '</span>' +
-        '<span class="dt">' + matchName[r.match] + ' ' + esc(r.pattern) + ' → ' + r.replies.map(function (x) { return '+' + x.delay + 'ms ' + x.data; }).map(esc).join('，') + '</span>' +
+        '<span class="dt">' + esc(ruleLabel(r)) + ' → ' + r.replies.map(function (x) { return '+' + x.delay + 'ms ' + x.data; }).map(esc).join('，') + '</span>' +
         '<span class="ops"><span class="hits">' + r.hits + ' 次</span><button class="link" data-act="ruleFire" data-id="' + r.id + '">执行</button><button class="link" data-act="ruleEdit" data-id="' + r.id + '">编辑</button><button class="link danger" data-act="ruleDel" data-id="' + r.id + '">删除</button></span></div>';
     }).join('') + '</div>' +
     '<div class="explain">收到的数据与规则匹配后，按应答列表顺序依次发送；每条应答的延时从上一条发出后开始计算。</div>';
@@ -1108,10 +1313,18 @@ $('tabbody').addEventListener('change', function (e) {
 $('tabbody').onclick = function (e) {
   var b = e.target.closest('[data-act]'); if (!b) return;
   var id = b.dataset.id, i = Number(b.dataset.i), act = b.dataset.act;
-  if (act === 'quickSend') { var q = byId(S.quick, id); Serial.send(q.data, { format: q.format, checksum: 'none', crlf: false, silentHistory: true }); }
+  if (act === 'quickSend') { var q = byId(allQuick(), id); Serial.send(q.data, { format: q.format, checksum: 'none', crlf: false, silentHistory: true }); }
   if (act === 'quickNew') editQuick(null);
-  if (act === 'quickEdit') editQuick(byId(S.quick, id));
-  if (act === 'quickDel') confirmDel('快捷指令「' + byId(S.quick, id).name + '」', function () { S.quick = S.quick.filter(function (x) { return x.id !== id; }); renderTab(); });
+  if (act === 'quickNewIn') editQuick(null, id);
+  if (act === 'quickEdit') editQuick(byId(allQuick(), id));
+  if (act === 'quickDel') confirmDel('快捷指令「' + byId(allQuick(), id).name + '」', function () { removeQuick(id); renderTab(); });
+  if (act === 'folderToggle') { var f0 = byId(S.quick, id); f0.expanded = !f0.expanded; renderTab(); }
+  if (act === 'folderNew') editFolder(null);
+  if (act === 'folderEdit') editFolder(byId(S.quick, id));
+  if (act === 'folderDel') {
+    var fd = byId(S.quick, id);
+    confirmDel('文件夹「' + fd.name + '」' + (fd.commands.length ? '会一并删除其中 ' + fd.commands.length + ' 条指令，' : ''), function () { removeQuick(id); renderTab(); });
+  }
   if (act === 'batchRun') Serial.runBatch(ui.batchSel);
   if (act === 'batchStop') Serial.stopBatch();
   if (act === 'batchNew') editBatch(null);
@@ -1126,6 +1339,12 @@ $('tabbody').onclick = function (e) {
   if (act === 'histFill') { $('txInput').value = S.history[i]; preview(); $('txInput').focus(); }
   if (act === 'histDel') Serial.removeHistory(i);
   if (act === 'histClear') confirmDel('全部 ' + S.history.length + ' 条发送历史', function () { S.history.length = 0; renderTab(); });
+  if (act === 'scToggle') { var sc = Serial.toggleScript(id); hint(sc.name + (sc.enabled ? ' 已启用 · ' + Serial.scriptHook(sc) : ' 已停用')); }
+  if (act === 'scRun') Serial.runScript(id, $('txInput').value);
+  if (act === 'scSel' && !(scUi.dock && scUi.sel === id)) { scUi.sel = id; scUi.dock = true; renderTab(); }
+  if (act === 'scNew') { scUi.sel = Serial.newScript().id; scUi.dock = true; renderTab(); $('scCode').focus(); }
+  if (act === 'scFold') { scUi.dock = false; renderTab(); }
+  if (act === 'scClear') Serial.clearScriptLog();
   if (act === 'calcFromTx') { var p = currentPayload(); ui.calcFmt = p.format; renderTab(); $('calcInput').value = p.text; calcUpdate(); }
   if (act === 'calcAppend') {
     var raw = ui.calcFmt === 'HEX' ? Serial.parseHex($('calcInput').value) : Serial.textBytes($('calcInput').value, true);
@@ -1138,6 +1357,69 @@ $('tabbody').onclick = function (e) {
 Serial.on('history', function (h) { if (h[0]) ui.histTime[h[0]] = new Date(); if (ui.tab === 'history') renderTab(); });
 Serial.on('rule', function () { if (ui.tab === 'reply') renderTab(); renderStatus(); });
 Serial.on('batch', function (run) { ui.batchRun = run; if (ui.tab === 'batch') renderTab(); hint(run ? '批量发送中 · 第 ' + run.step + '/' + run.total + ' 条' : '批量发送结束'); });
+
+// ---------- 脚本（Lua） ----------
+function scriptLogHtml(max) {
+  var rows = max ? S.scriptLog.slice(-max) : S.scriptLog;
+  if (!rows.length) return '<div class="sclog-empty">还没有输出。启用脚本后，收到或发送数据时会写在这里。</div>';
+  return rows.map(function (e) {
+    return '<div class="sclog-row' + (e.err ? ' err' : '') + '"><span class="t">' + Serial.stamp(e.time) + '</span><span class="n">' + esc(e.name) + '</span><span class="o">' + esc(e.text) + '</span></div>';
+  }).join('');
+}
+// 右栏只放列表和开关；选中一行后，编辑器 + 运行日志停靠在数据日志下方
+var scUi = { sel: 's1', dock: true };
+function scriptSel() { return byId(S.scripts, scUi.sel) || S.scripts[0]; }
+function scriptRows() {
+  var cur = scriptSel();
+  return S.scripts.map(function (s) {
+    return '<div class="it sc' + (scUi.dock && s === cur ? ' active' : '') + (s.enabled ? '' : ' off') + '" data-act="scSel" data-id="' + s.id + '">' +
+      '<button class="sw lead' + (s.enabled ? ' on' : '') + '" data-act="scToggle" data-id="' + s.id + '" title="启用 / 停用"></button>' +
+      '<span class="nm">' + esc(s.name) + '</span>' +
+      '<span class="dt"><span class="schook">' + Serial.scriptHook(s) + '</span>' + (s.runs ? '已输出 ' + s.runs + ' 次' : (s.enabled ? '等待触发' : '已停用')) + '</span></div>';
+  }).join('');
+}
+function scriptNote() { return '已启用 ' + S.scripts.filter(function (s) { return s.enabled; }).length + ' / ' + S.scripts.length; }
+function scriptHtml() {
+  return '<div class="bar"><span class="note" id="scNote">' + scriptNote() + '</span><span class="grow"></span><button class="btn sm" data-act="scNew">新建</button></div>' +
+    '<div class="list" id="scList">' + scriptRows() + '</div>' +
+    '<div class="explain">Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。<br>点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。</div>';
+}
+function gutter(code) { var g = ''; for (var i = 1, n = code.split('\n').length; i <= n; i++) g += i + '\n'; return g; }
+function dockHead(s) {
+  return '<b>' + esc(s.name) + '</b><span class="schook">' + Serial.scriptHook(s) + '</span><span>' + (s.enabled ? '自动运行中' : '已停用，仅手动运行') + '</span>' +
+    '<span class="grow"></span><span>Lua · 输入即保存 · Tab 缩进两格</span><button class="btn sm pri" data-act="scRun" data-id="' + s.id + '">运行</button><button class="link" data-act="scFold">收起</button>';
+}
+function renderDock() {
+  var on = ui.tab === 'script' && scUi.dock, dock = $('scDock');
+  document.querySelector('.center').classList.toggle('withdock', on);
+  if (!on) { dock.innerHTML = ''; return; }
+  var s = scriptSel();
+  dock.innerHTML = '<div class="schead" id="scDockHead">' + dockHead(s) + '</div>' +
+    '<div class="scbody"><div class="sced"><pre class="gut" id="scGut">' + gutter(s.code) + '</pre><textarea id="scCode" spellcheck="false">' + esc(s.code) + '</textarea></div>' +
+    '<div class="sclogbox"><div class="schead"><b>运行日志</b><span id="scCount">' + S.scriptLog.length + ' 条</span><span class="grow"></span><button class="link" data-act="scClear">清空</button></div>' +
+    '<div class="sclog" id="scLog">' + scriptLogHtml() + '</div></div></div>';
+  var code = $('scCode'), l = $('scLog');
+  l.scrollTop = l.scrollHeight;
+  if (ui.scroll) $('log').scrollTop = $('log').scrollHeight;
+  code.oninput = function () {
+    s.code = code.value; $('scGut').textContent = gutter(code.value);
+    $('scDockHead').innerHTML = dockHead(s); $('scList').innerHTML = scriptRows();
+  };
+  code.onscroll = function () { $('scGut').scrollTop = code.scrollTop; };
+  code.onkeydown = function (e) { if (e.key === 'Tab') { e.preventDefault(); code.setRangeText('  ', code.selectionStart, code.selectionEnd, 'end'); code.oninput(); } };
+}
+$('scDock').onclick = function (e) { $('tabbody').onclick(e); };
+Serial.on('script', function (kind) {
+  if (ui.tab !== 'script') return;
+  $('scList').innerHTML = scriptRows(); $('scNote').textContent = scriptNote();
+  if (!$('scLog')) return;
+  if (kind === 'list') $('scDockHead').innerHTML = dockHead(scriptSel());
+  if (kind === 'log') {
+    var l = $('scLog'), stick = l.scrollTop + l.clientHeight >= l.scrollHeight - 4;
+    l.innerHTML = scriptLogHtml(); $('scCount').textContent = S.scriptLog.length + ' 条';
+    if (stick) l.scrollTop = l.scrollHeight;
+  }
+});
 
 // ---------- 对话框 ----------
 function dialog(title, body, buttons) {
@@ -1160,43 +1442,78 @@ function fail(msg) { $('dlgErr').textContent = msg; return false; }
 function confirmDel(what, run) { dialog('确认删除', '<p>删除' + esc(what) + '后无法恢复。</p>', [{ text: '取消' }, { text: '删除', pri: true, run: function () { run(); toast('已删除'); } }]); }
 function validHex(v) { return !!Serial.parseHex(v); }
 
-function editQuick(q) {
+function editQuick(q, folderId) {
   var isNew = !q; q = q || { name: '', data: '', format: 'HEX', key: '' };
   var keys = ['', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8'];
+  var folders = quickFolders();
+  var cur = isNew ? (folderId || '') : ((quickFolderOf(q.id) || {}).id || '');
   dialog(isNew ? '新增快捷指令' : '编辑快捷指令',
     '<div class="row"><label>名称</label><input class="inp" id="dName" value="' + esc(q.name) + '"></div>' +
     '<div class="row"><label>格式</label><select id="dFmt"><option' + (q.format === 'HEX' ? ' selected' : '') + '>HEX</option><option' + (q.format === 'ASCII' ? ' selected' : '') + '>ASCII</option></select></div>' +
     '<div class="row"><label>指令数据</label><input class="inp" id="dData" style="font-family:var(--mono)" value="' + esc(q.data) + '"></div>' +
     '<div class="row"><label>快捷键</label><select id="dKey">' + keys.map(function (k) { return '<option value="' + k + '"' + (k === q.key ? ' selected' : '') + '>' + (k || '无') + '</option>'; }).join('') + '</select></div>' +
+    (folders.length ? '<div class="row"><label>文件夹</label><select id="dFolder"><option value="">根目录</option>' + folders.map(function (f) { return '<option value="' + f.id + '"' + (f.id === cur ? ' selected' : '') + '>' + esc(f.name) + '</option>'; }).join('') + '</select></div>' : '') +
     '<div class="err" id="dlgErr"></div>',
     [{ text: '取消' }, { text: '保存', pri: true, run: function () {
       var v = { name: $('dName').value.trim(), data: $('dData').value.trim(), format: $('dFmt').value, key: $('dKey').value };
+      var target = $('dFolder') ? $('dFolder').value : '';
       if (!v.name) return fail('请填写名称');
       if (!v.data) return fail('请填写指令数据');
       if (v.format === 'HEX' && !validHex(v.data)) return fail('HEX 数据需为成对的十六进制字符');
-      if (v.key) S.quick.forEach(function (x) { if (x !== q && x.key === v.key) x.key = ''; });
-      if (isNew) S.quick.push(Object.assign({ id: uid('q') }, v)); else Object.assign(q, v);
+      if (v.key) allQuick().forEach(function (x) { if (x !== q && x.key === v.key) x.key = ''; });
+      if (isNew) q = Object.assign({ id: uid('q') }, v); else Object.assign(q, v);
+      if (isNew || target !== cur) {
+        removeQuick(q.id);
+        var dest = byId(S.quick, target);
+        (dest ? dest.commands : S.quick).push(q);
+      }
       renderTab(); toast('快捷指令已保存');
+    } }]);
+}
+function editFolder(f) {
+  dialog(f ? '重命名文件夹' : '新增文件夹',
+    '<div class="row"><label>名称</label><input class="inp" id="dName" value="' + esc(f ? f.name : '') + '"></div><div class="err" id="dlgErr"></div>',
+    [{ text: '取消' }, { text: '保存', pri: true, run: function () {
+      var name = $('dName').value.trim();
+      if (!name) return fail('请填写文件夹名称');
+      if (quickFolders().some(function (x) { return x !== f && x.name === name; })) return fail('已有同名文件夹');
+      if (f) f.name = name; else S.quick.push({ type: 'folder', id: uid('f'), name: name, expanded: true, commands: [] });
+      renderTab(); toast('文件夹已保存');
     } }]);
 }
 function editRule(r) {
   var isNew = !r; r = r || { name: '', match: 'prefix', pattern: '', enabled: true, hits: 0, replies: [{ data: '', delay: 50 }] };
   dialog(isNew ? '新增应答规则' : '编辑应答规则',
     '<div class="row"><label>规则名称</label><input class="inp" id="dName" value="' + esc(r.name) + '"></div>' +
-    '<div class="row"><label>匹配方式</label><select id="dMatch">' + Object.keys(matchName).map(function (k) { return '<option value="' + k + '"' + (k === r.match ? ' selected' : '') + '>' + matchName[k] + '</option>'; }).join('') + '</select></div>' +
-    '<div class="row"><label>匹配数据</label><input class="inp" id="dPattern" style="font-family:var(--mono)" placeholder="HEX，如 A5 5A 03" value="' + esc(r.pattern) + '"></div>' +
+    '<div class="row"><label>语法</label><select id="dKind"><option value="template">模板</option><option value="regex"' + (r.kind === 'regex' ? ' selected' : '') + '>正则</option></select></div>' +
+    '<div class="row"><label>格式</label><select id="dFormat"><option value="HEX">HEX</option><option value="ASCII"' + (r.format === 'ASCII' ? ' selected' : '') + '>ASCII</option></select></div>' +
+    '<div class="row" id="dMatchRow"><label>匹配方式</label><select id="dMatch">' + Object.keys(matchName).map(function (k) { return '<option value="' + k + '"' + (k === r.match ? ' selected' : '') + '>' + matchName[k] + '</option>'; }).join('') + '</select></div>' +
+    '<div class="row"><label>匹配数据</label><input class="inp" id="dPattern" style="font-family:var(--mono)" value="' + esc(r.pattern) + '"></div>' +
+    '<div class="explain" id="dHint"></div>' +
+    '<label id="dCaseRow" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="dCase"' + (r.ignoreCase ? ' checked' : '') + '>忽略大小写</label>' +
     '<div class="sub">应答列表 <button class="btn sm" id="dAdd">添加应答</button></div>' +
     '<div class="lines" id="dLines">' + r.replies.map(replyLine).join('') + '</div>' +
     '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="dOn"' + (r.enabled ? ' checked' : '') + '>启用此规则</label>' +
     '<div class="err" id="dlgErr"></div>',
     [{ text: '取消' }, { text: '保存', pri: true, run: function () {
       var replies = Array.from(document.querySelectorAll('#dLines .line')).map(function (l) { return { delay: Number(l.querySelector('.dl').value), data: l.querySelector('.dd').value.trim() }; });
-      var v = { name: $('dName').value.trim(), match: $('dMatch').value, pattern: $('dPattern').value.trim(), enabled: $('dOn').checked };
+      var kind = $('dKind').value, format = $('dFormat').value, raw = $('dPattern').value;
+      var v = { name: $('dName').value.trim(), kind: kind, format: format, ignoreCase: $('dCase').checked, match: $('dMatch').value,
+        pattern: kind === 'template' && format === 'ASCII' ? raw : raw.trim(), enabled: $('dOn').checked };
       if (!v.name) return fail('请填写规则名称');
-      if (!validHex(v.pattern)) return fail('匹配数据需为 HEX');
+      var wild = null;
+      if (kind === 'regex') {
+        try { if (!v.pattern) throw 0; new RegExp(v.pattern); } catch (e) { return fail('正则表达式无法解析'); }
+      } else {
+        wild = Serial.captureCount(v.pattern, format);
+        if (wild == null) return fail(format === 'HEX' ? '匹配数据需为 HEX，?? 和 * 之外的字符需成对' : '请填写匹配数据');
+      }
       if (!replies.length) return fail('至少需要一条应答');
       for (var i = 0; i < replies.length; i++) {
-        if (!validHex(replies[i].data)) return fail('第 ' + (i + 1) + ' 条应答数据需为 HEX');
+        var refs = (replies[i].data.match(/\$\d+/g) || []).map(function (x) { return Number(x.slice(1)); });
+        if (!validHex(replies[i].data.replace(/\$\d+/g, ' 00 ')) || refs.indexOf(0) >= 0) return fail('第 ' + (i + 1) + ' 条应答数据需为 HEX，可插入 $1、$2');
+        var top = Math.max.apply(null, [0].concat(refs));
+        if (wild != null && top > wild) return fail('第 ' + (i + 1) + ' 条应答引用了第 ' + top + ' 个捕获，但匹配数据只有 ' + wild + ' 个通配符');
         if (!(replies[i].delay >= 0)) return fail('第 ' + (i + 1) + ' 条延时需为非负数');
       }
       v.replies = replies;
@@ -1204,11 +1521,19 @@ function editRule(r) {
       renderTab(); renderStatus(); toast('应答规则已保存');
     } }]);
   renumber();
+  function syncMatch() {
+    var kind = $('dKind').value, format = $('dFormat').value;
+    $('dMatchRow').style.display = kind === 'regex' ? 'none' : '';
+    $('dCaseRow').style.display = format === 'ASCII' ? 'flex' : 'none';
+    $('dPattern').placeholder = format === 'HEX' ? 'HEX，如 A5 5A 03' : '';
+    $('dHint').textContent = matchHint[kind + ' ' + format];
+  }
+  $('dKind').onchange = syncMatch; $('dFormat').onchange = syncMatch; syncMatch();
   $('dAdd').onclick = function () { $('dLines').insertAdjacentHTML('beforeend', replyLine({ data: '', delay: 50 })); renumber(); };
   $('dLines').onclick = function (e) { if (e.target.dataset.rm != null) { e.target.parentNode.remove(); renumber(); } };
 }
 function replyLine(x) {
-  return '<div class="line"><span></span><input class="inp dl" value="' + x.delay + '" title="延时 ms"><input class="inp dd" value="' + esc(x.data) + '" placeholder="应答数据 HEX"><button class="link danger" data-rm title="移除">✕</button></div>';
+  return '<div class="line"><span></span><input class="inp dl" value="' + x.delay + '" title="延时 ms"><input class="inp dd" value="' + esc(x.data) + '" placeholder="应答数据 HEX，可写 $1"><button class="link danger" data-rm title="移除">✕</button></div>';
 }
 function renumber() { document.querySelectorAll('#dLines .line>span').forEach(function (s, i) { s.textContent = (i + 1); }); }
 function editBatch(job) {
@@ -1250,7 +1575,7 @@ document.addEventListener('keydown', function (e) {
   var fk = /^F([1-8])$/.exec(e.key);
   if (fk) {
     e.preventDefault();
-    var q = S.quick.filter(function (x) { return x.key === e.key; })[0];
+    var q = allQuick().filter(function (x) { return x.key === e.key; })[0];
     if (q) Serial.send(q.data, { format: q.format, checksum: 'none', crlf: false, silentHistory: true });
     return;
   }

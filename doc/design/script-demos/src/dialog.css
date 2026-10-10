@@ -1,0 +1,16 @@
+/* 版 B：页签按内容分宽，「脚本」两个字不挤占其他页签 */
+.tabs button{flex:1 1 auto;padding:0 4px;font-size:12px}
+.scB{flex:1;display:flex;flex-direction:column;min-height:0}
+.scB .list{flex:none}
+.scB .sclog{flex:1;min-height:120px}
+.scB .explain{flex:none;border-top:1px solid var(--line2)}
+.dialog.wide{width:min(1080px,94vw)}
+.dialog.wide .body{gap:10px}
+.scB-top{display:flex;align-items:center;gap:10px;font-size:13px}
+.scB-top .inp{width:220px;font-family:var(--mono)}
+.scB-top label{display:flex;align-items:center;gap:6px}
+.scB-top .note{font-size:12px;color:var(--muted)}
+.scB-top .grow{flex:1}
+.scB-split{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:10px;height:440px}
+.scB-split .sced{height:100%}
+.scB-log{display:grid;grid-template-rows:auto minmax(0,1fr);border:1px solid var(--line);border-radius:4px;overflow:hidden}

@@ -255,8 +255,8 @@ class Translations$serial$port$zh {
 	/// zh: '串口设置'
 	String get title => '串口设置';
 
-	/// zh: '串口号'
-	String get name => '串口号';
+	/// zh: '串口地址'
+	String get name => '串口地址';
 
 	/// zh: '波特率'
 	String get baud => '波特率';
@@ -432,11 +432,8 @@ class Translations$serial$tx$zh {
 	/// zh: '循环周期'
 	String get loop => '循环周期';
 
-	/// zh: '快捷指令'
-	String get quick => '快捷指令';
-
-	/// zh: '历史发送'
-	String get history => '历史发送';
+	/// zh: '数据文件说明'
+	String get fileHelp => '数据文件说明';
 }
 
 // Path: serial.checksum
@@ -503,6 +500,9 @@ class Translations$serial$log$zh {
 
 	/// zh: '自动响应「$name」命中，按顺序回复 $count 条'
 	String autoReply({required Object name, required Object count}) => '自动响应「${name}」命中，按顺序回复 ${count} 条';
+
+	/// zh: '自动响应「$name」第 $step 条应答引用的捕获不存在，已跳过'
+	String replySkipped({required Object name, required Object step}) => '自动响应「${name}」第 ${step} 条应答引用的捕获不存在，已跳过';
 
 	/// zh: '批量任务「$name」开始，共 $steps 步$extra'
 	String batchStart({required Object name, required Object steps, required Object extra}) => '批量任务「${name}」开始，共 ${steps} 步${extra}';
@@ -588,8 +588,8 @@ class Translations$serial$quick$zh {
 	/// zh: '发送'
 	String get send => '发送';
 
-	/// zh: '还没有快捷指令。点「新增」保存常用的一条指令。'
-	String get empty => '还没有快捷指令。点「新增」保存常用的一条指令。';
+	/// zh: '还没有快捷指令。点「新增」保存常用的一条指令，或点「新增文件夹」先分组。'
+	String get empty => '还没有快捷指令。点「新增」保存常用的一条指令，或点「新增文件夹」先分组。';
 
 	/// zh: '新增快捷指令'
 	String get newTitle => '新增快捷指令';
@@ -611,6 +611,36 @@ class Translations$serial$quick$zh {
 
 	/// zh: '无'
 	String get noKey => '无';
+
+	/// zh: '文件夹'
+	String get folder => '文件夹';
+
+	/// zh: '根目录'
+	String get root => '根目录';
+
+	/// zh: '新增文件夹'
+	String get newFolder => '新增文件夹';
+
+	/// zh: '新增'
+	String get add => '新增';
+
+	/// zh: '重命名'
+	String get rename => '重命名';
+
+	/// zh: '$count 条'
+	String folderCount({required Object count}) => '${count} 条';
+
+	/// zh: '文件夹为空。点「新增」在这里添加指令。'
+	String get folderEmpty => '文件夹为空。点「新增」在这里添加指令。';
+
+	/// zh: '新增文件夹'
+	String get folderNewTitle => '新增文件夹';
+
+	/// zh: '重命名文件夹'
+	String get folderEditTitle => '重命名文件夹';
+
+	/// zh: '名称'
+	String get folderName => '名称';
 }
 
 // Path: serial.batch
@@ -729,11 +759,41 @@ class Translations$serial$reply$zh {
 	/// zh: '匹配方式'
 	String get match => '匹配方式';
 
+	/// zh: '语法'
+	String get kind => '语法';
+
+	/// zh: '模板'
+	String get template => '模板';
+
+	/// zh: '正则'
+	String get regex => '正则';
+
+	/// zh: '格式'
+	String get format => '格式';
+
+	/// zh: '忽略大小写'
+	String get ignoreCase => '忽略大小写';
+
+	/// zh: 'Aa'
+	String get ignoreCaseShort => 'Aa';
+
 	/// zh: '匹配数据'
 	String get pattern => '匹配数据';
 
 	/// zh: 'HEX，如 A5 5A 03'
 	String get patternHint => 'HEX，如 A5 5A 03';
+
+	/// zh: '?? 匹配任意一字节，* 匹配任意长度；应答里用 \$1、\$2 依次引用它们匹配到的字节'
+	String get hintTemplateHex => '?? 匹配任意一字节，* 匹配任意长度；应答里用 \$1、\$2 依次引用它们匹配到的字节';
+
+	/// zh: '? 匹配任意一字节，* 匹配任意长度，\\? \\* \\r \\n \\xHH 为字面量；应答里用 \$1、\$2 引用'
+	String get hintTemplateAscii => '? 匹配任意一字节，* 匹配任意长度，\\? \\* \\r \\n \\xHH 为字面量；应答里用 \$1、\$2 引用';
+
+	/// zh: '对空格分隔的大写 HEX（如 A5 5A 03）匹配，锚点自己写 ^ 和 \$；应答里用 \$1、\$2 引用括号分组'
+	String get hintRegexHex => '对空格分隔的大写 HEX（如 A5 5A 03）匹配，锚点自己写 ^ 和 \$；应答里用 \$1、\$2 引用括号分组';
+
+	/// zh: '对原始字节逐字匹配，锚点自己写 ^ 和 \$；应答里用 \$1、\$2 引用括号分组'
+	String get hintRegexAscii => '对原始字节逐字匹配，锚点自己写 ^ 和 \$；应答里用 \$1、\$2 引用括号分组';
 
 	/// zh: '应答列表'
 	String get list => '应答列表';
@@ -747,8 +807,8 @@ class Translations$serial$reply$zh {
 	/// zh: '延时 ms'
 	String get delayHint => '延时 ms';
 
-	/// zh: '应答数据 HEX'
-	String get dataHint => '应答数据 HEX';
+	/// zh: '应答数据 HEX，可写 \$1'
+	String get dataHint => '应答数据 HEX，可写 \$1';
 
 	/// zh: '前缀'
 	String get prefix => '前缀';
@@ -758,6 +818,9 @@ class Translations$serial$reply$zh {
 
 	/// zh: '包含'
 	String get contains => '包含';
+
+	/// zh: '结尾'
+	String get suffix => '结尾';
 
 	/// zh: '启用 / 停用'
 	String get toggleOn => '启用 / 停用';
@@ -873,6 +936,12 @@ class Translations$serial$dialog$zh {
 	/// zh: '删除快捷指令「$name」后无法恢复。'
 	String deleteQuick({required Object name}) => '删除快捷指令「${name}」后无法恢复。';
 
+	/// zh: '删除文件夹「$name」后无法恢复。'
+	String deleteFolder({required Object name}) => '删除文件夹「${name}」后无法恢复。';
+
+	/// zh: '删除文件夹「$name」会一并删除其中 $count 条指令，删除后无法恢复。'
+	String deleteFolderWith({required Object name, required Object count}) => '删除文件夹「${name}」会一并删除其中 ${count} 条指令，删除后无法恢复。';
+
 	/// zh: '删除应答规则「$name」后无法恢复。'
 	String deleteRule({required Object name}) => '删除应答规则「${name}」后无法恢复。';
 
@@ -935,6 +1004,27 @@ class Translations$serial$dialog$zh {
 
 	/// zh: '移除'
 	String get remove => '移除';
+
+	/// zh: '数据文件说明'
+	String get fileTitle => '数据文件说明';
+
+	/// zh: '支持任意类型文件（.bin、.dat、.txt 等），按文件的原始字节发送，不做编码转换。'
+	String get fileRaw => '支持任意类型文件（.bin、.dat、.txt 等），按文件的原始字节发送，不做编码转换。';
+
+	/// zh: '文本文件里的十六进制字符不会被解析：内容为「01 02」的 .txt 实际发送的是这 5 个字符的 ASCII 码。需要发送 HEX 数据请使用二进制文件。'
+	String get fileText => '文本文件里的十六进制字符不会被解析：内容为「01 02」的 .txt 实际发送的是这 5 个字符的 ASCII 码。需要发送 HEX 数据请使用二进制文件。';
+
+	/// zh: '勾选「自动发送附加位」或「末尾追加回车换行」时，会追加到文件数据末尾；转义符解析和 AT 指令自动回车对文件不生效。'
+	String get fileAppend => '勾选「自动发送附加位」或「末尾追加回车换行」时，会追加到文件数据末尾；转义符解析和 AT 指令自动回车对文件不生效。';
+
+	/// zh: '文件整体读入内存后一次写出，不做分包。较大的文件请先自行拆分，避免发送期间界面卡顿。'
+	String get fileWhole => '文件整体读入内存后一次写出，不做分包。较大的文件请先自行拆分，避免发送期间界面卡顿。';
+
+	/// zh: '载入后发送框只读，仅预览前 $count 字节；点「移除」或发送框的「清除」可退出文件模式。'
+	String filePreview({required Object count}) => '载入后发送框只读，仅预览前 ${count} 字节；点「移除」或发送框的「清除」可退出文件模式。';
+
+	/// zh: '勾选「循环周期」时，按周期重复发送整个文件。'
+	String get fileLoop => '勾选「循环周期」时，按周期重复发送整个文件。';
 }
 
 // Path: serial.validate
@@ -951,20 +1041,35 @@ class Translations$serial$validate$zh {
 	/// zh: '请填写指令数据'
 	String get needData => '请填写指令数据';
 
+	/// zh: '请填写文件夹名称'
+	String get needFolderName => '请填写文件夹名称';
+
+	/// zh: '已有同名文件夹'
+	String get dupFolder => '已有同名文件夹';
+
 	/// zh: 'HEX 数据需为成对的十六进制字符'
 	String get badHex => 'HEX 数据需为成对的十六进制字符';
 
 	/// zh: '请填写规则名称'
 	String get needRuleName => '请填写规则名称';
 
-	/// zh: '匹配数据需为 HEX'
-	String get badPattern => '匹配数据需为 HEX';
+	/// zh: '匹配数据需为 HEX，?? 和 * 之外的字符需成对'
+	String get badPattern => '匹配数据需为 HEX，?? 和 * 之外的字符需成对';
+
+	/// zh: '请填写匹配数据'
+	String get badAsciiPattern => '请填写匹配数据';
+
+	/// zh: '正则表达式无法解析'
+	String get badRegex => '正则表达式无法解析';
 
 	/// zh: '至少需要一条应答'
 	String get needReply => '至少需要一条应答';
 
-	/// zh: '第 $n 条应答数据需为 HEX'
-	String badReply({required Object n}) => '第 ${n} 条应答数据需为 HEX';
+	/// zh: '第 $n 条应答数据需为 HEX，可插入 \$1、\$2'
+	String badReply({required Object n}) => '第 ${n} 条应答数据需为 HEX，可插入 \$1、\$2';
+
+	/// zh: '第 $n 条应答引用了第 $ref 个捕获，但匹配数据只有 $count 个通配符'
+	String badCapture({required Object n, required Object ref, required Object count}) => '第 ${n} 条应答引用了第 ${ref} 个捕获，但匹配数据只有 ${count} 个通配符';
 
 	/// zh: '第 $n 条延时需为非负数'
 	String badDelay({required Object n}) => '第 ${n} 条延时需为非负数';
@@ -1083,6 +1188,9 @@ class Translations$serial$notice$zh {
 	/// zh: '快捷指令已保存'
 	String get quickSaved => '快捷指令已保存';
 
+	/// zh: '文件夹已保存'
+	String get folderSaved => '文件夹已保存';
+
 	/// zh: '应答规则已保存'
 	String get ruleSaved => '应答规则已保存';
 
@@ -1154,7 +1262,7 @@ extension on Translations {
 			'serial.compactTip' => '收起或展开左侧设置栏',
 			'serial.toolsTip' => '显示或隐藏工具面板',
 			'serial.port.title' => '串口设置',
-			'serial.port.name' => '串口号',
+			'serial.port.name' => '串口地址',
 			'serial.port.baud' => '波特率',
 			'serial.port.parity' => '校验位',
 			'serial.port.dataBits' => '数据位',
@@ -1198,8 +1306,7 @@ extension on Translations {
 			'serial.tx.clear' => '发送完自动清空',
 			'serial.tx.file' => '打开文件数据源…',
 			'serial.tx.loop' => '循环周期',
-			'serial.tx.quick' => '快捷指令',
-			'serial.tx.history' => '历史发送',
+			'serial.tx.fileHelp' => '数据文件说明',
 			'serial.checksum.sum' => 'SUM8',
 			'serial.checksum.xor' => 'XOR/BCC',
 			'serial.checksum.lrc' => 'LRC',
@@ -1216,6 +1323,7 @@ extension on Translations {
 			'serial.log.opened' => ({required Object port, required Object baud, required Object frame}) => '${port} 已打开 · ${baud} ${frame}',
 			'serial.log.closedPort' => ({required Object port}) => '${port} 已关闭',
 			'serial.log.autoReply' => ({required Object name, required Object count}) => '自动响应「${name}」命中，按顺序回复 ${count} 条',
+			'serial.log.replySkipped' => ({required Object name, required Object step}) => '自动响应「${name}」第 ${step} 条应答引用的捕获不存在，已跳过',
 			'serial.log.batchStart' => ({required Object name, required Object steps, required Object extra}) => '批量任务「${name}」开始，共 ${steps} 步${extra}',
 			'serial.log.batchRounds' => ({required Object rounds}) => ' × ${rounds} 轮',
 			'serial.log.batchDone' => ({required Object name}) => '批量任务「${name}」完成',
@@ -1235,7 +1343,7 @@ extension on Translations {
 			'serial.tab.calc' => '校验计算',
 			'serial.quick.note' => '点「发送」立即发出，不进入历史',
 			'serial.quick.send' => '发送',
-			'serial.quick.empty' => '还没有快捷指令。点「新增」保存常用的一条指令。',
+			'serial.quick.empty' => '还没有快捷指令。点「新增」保存常用的一条指令，或点「新增文件夹」先分组。',
 			'serial.quick.newTitle' => '新增快捷指令',
 			'serial.quick.editTitle' => '编辑快捷指令',
 			'serial.quick.name' => '名称',
@@ -1243,6 +1351,16 @@ extension on Translations {
 			'serial.quick.data' => '指令数据',
 			'serial.quick.key' => '快捷键',
 			'serial.quick.noKey' => '无',
+			'serial.quick.folder' => '文件夹',
+			'serial.quick.root' => '根目录',
+			'serial.quick.newFolder' => '新增文件夹',
+			'serial.quick.add' => '新增',
+			'serial.quick.rename' => '重命名',
+			'serial.quick.folderCount' => ({required Object count}) => '${count} 条',
+			'serial.quick.folderEmpty' => '文件夹为空。点「新增」在这里添加指令。',
+			'serial.quick.folderNewTitle' => '新增文件夹',
+			'serial.quick.folderEditTitle' => '重命名文件夹',
+			'serial.quick.folderName' => '名称',
 			'serial.batch.kNew' => '新建',
 			'serial.batch.edit' => '编辑',
 			'serial.batch.delete' => '删除',
@@ -1276,16 +1394,27 @@ extension on Translations {
 			'serial.reply.editTitle' => '编辑应答规则',
 			'serial.reply.name' => '规则名称',
 			'serial.reply.match' => '匹配方式',
+			'serial.reply.kind' => '语法',
+			'serial.reply.template' => '模板',
+			'serial.reply.regex' => '正则',
+			'serial.reply.format' => '格式',
+			'serial.reply.ignoreCase' => '忽略大小写',
+			'serial.reply.ignoreCaseShort' => 'Aa',
 			'serial.reply.pattern' => '匹配数据',
 			'serial.reply.patternHint' => 'HEX，如 A5 5A 03',
+			'serial.reply.hintTemplateHex' => '?? 匹配任意一字节，* 匹配任意长度；应答里用 \$1、\$2 依次引用它们匹配到的字节',
+			'serial.reply.hintTemplateAscii' => '? 匹配任意一字节，* 匹配任意长度，\\? \\* \\r \\n \\xHH 为字面量；应答里用 \$1、\$2 引用',
+			'serial.reply.hintRegexHex' => '对空格分隔的大写 HEX（如 A5 5A 03）匹配，锚点自己写 ^ 和 \$；应答里用 \$1、\$2 引用括号分组',
+			'serial.reply.hintRegexAscii' => '对原始字节逐字匹配，锚点自己写 ^ 和 \$；应答里用 \$1、\$2 引用括号分组',
 			'serial.reply.list' => '应答列表',
 			'serial.reply.addReply' => '添加应答',
 			'serial.reply.enable' => '启用此规则',
 			'serial.reply.delayHint' => '延时 ms',
-			'serial.reply.dataHint' => '应答数据 HEX',
+			'serial.reply.dataHint' => '应答数据 HEX，可写 \$1',
 			'serial.reply.prefix' => '前缀',
 			'serial.reply.frame' => '整帧',
 			'serial.reply.contains' => '包含',
+			'serial.reply.suffix' => '结尾',
 			'serial.reply.toggleOn' => '启用 / 停用',
 			'serial.history.note' => '只记录用「发送」按钮发出的数据',
 			'serial.history.clear' => '清空',
@@ -1312,6 +1441,8 @@ extension on Translations {
 			'serial.status.fileMeta' => ({required Object name, required Object count}) => '${name} · ${count} 字节',
 			'serial.dialog.deleteTitle' => '确认删除',
 			'serial.dialog.deleteQuick' => ({required Object name}) => '删除快捷指令「${name}」后无法恢复。',
+			'serial.dialog.deleteFolder' => ({required Object name}) => '删除文件夹「${name}」后无法恢复。',
+			'serial.dialog.deleteFolderWith' => ({required Object name, required Object count}) => '删除文件夹「${name}」会一并删除其中 ${count} 条指令，删除后无法恢复。',
 			'serial.dialog.deleteRule' => ({required Object name}) => '删除应答规则「${name}」后无法恢复。',
 			'serial.dialog.deleteBatch' => ({required Object name}) => '删除批量任务「${name}」后无法恢复。',
 			'serial.dialog.deleteHistory' => ({required Object count}) => '删除全部 ${count} 条发送历史后无法恢复。',
@@ -1333,13 +1464,25 @@ extension on Translations {
 			'serial.dialog.ctrlL' => 'Ctrl+L',
 			'serial.dialog.ctrlF' => 'Ctrl+F',
 			'serial.dialog.remove' => '移除',
+			'serial.dialog.fileTitle' => '数据文件说明',
+			'serial.dialog.fileRaw' => '支持任意类型文件（.bin、.dat、.txt 等），按文件的原始字节发送，不做编码转换。',
+			'serial.dialog.fileText' => '文本文件里的十六进制字符不会被解析：内容为「01 02」的 .txt 实际发送的是这 5 个字符的 ASCII 码。需要发送 HEX 数据请使用二进制文件。',
+			'serial.dialog.fileAppend' => '勾选「自动发送附加位」或「末尾追加回车换行」时，会追加到文件数据末尾；转义符解析和 AT 指令自动回车对文件不生效。',
+			'serial.dialog.fileWhole' => '文件整体读入内存后一次写出，不做分包。较大的文件请先自行拆分，避免发送期间界面卡顿。',
+			'serial.dialog.filePreview' => ({required Object count}) => '载入后发送框只读，仅预览前 ${count} 字节；点「移除」或发送框的「清除」可退出文件模式。',
+			'serial.dialog.fileLoop' => '勾选「循环周期」时，按周期重复发送整个文件。',
 			'serial.validate.needName' => '请填写名称',
 			'serial.validate.needData' => '请填写指令数据',
+			'serial.validate.needFolderName' => '请填写文件夹名称',
+			'serial.validate.dupFolder' => '已有同名文件夹',
 			'serial.validate.badHex' => 'HEX 数据需为成对的十六进制字符',
 			'serial.validate.needRuleName' => '请填写规则名称',
-			'serial.validate.badPattern' => '匹配数据需为 HEX',
+			'serial.validate.badPattern' => '匹配数据需为 HEX，?? 和 * 之外的字符需成对',
+			'serial.validate.badAsciiPattern' => '请填写匹配数据',
+			'serial.validate.badRegex' => '正则表达式无法解析',
 			'serial.validate.needReply' => '至少需要一条应答',
-			'serial.validate.badReply' => ({required Object n}) => '第 ${n} 条应答数据需为 HEX',
+			'serial.validate.badReply' => ({required Object n}) => '第 ${n} 条应答数据需为 HEX，可插入 \$1、\$2',
+			'serial.validate.badCapture' => ({required Object n, required Object ref, required Object count}) => '第 ${n} 条应答引用了第 ${ref} 个捕获，但匹配数据只有 ${count} 个通配符',
 			'serial.validate.badDelay' => ({required Object n}) => '第 ${n} 条延时需为非负数',
 			'serial.validate.needTask' => '请填写任务名称',
 			'serial.validate.needStep' => '至少需要一条指令',
@@ -1376,6 +1519,7 @@ extension on Translations {
 			'serial.notice.ruleOff' => ({required Object name}) => '${name} 已停用',
 			'serial.notice.deleted' => '已删除',
 			'serial.notice.quickSaved' => '快捷指令已保存',
+			'serial.notice.folderSaved' => '文件夹已保存',
 			'serial.notice.ruleSaved' => '应答规则已保存',
 			'serial.notice.batchSaved' => '批量任务已保存',
 			'serial.notice.checksumFilled' => ({required Object text}) => '已填入发送框：${text}',
