@@ -200,6 +200,7 @@ String _tabLabel(Translations t, ToolTab tab) => switch (tab) {
   ToolTab.reply => t.serial.tab.reply,
   ToolTab.history => t.serial.tab.history,
   ToolTab.calc => t.serial.tab.calc,
+  ToolTab.script => t.serial.tab.script,
 };
 
 class _Item {

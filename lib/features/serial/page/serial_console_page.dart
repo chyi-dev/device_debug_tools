@@ -17,6 +17,7 @@ import '../widget/serial_editors.dart';
 import '../widget/serial_l10n.dart';
 import '../widget/serial_log_view.dart';
 import '../widget/serial_menu_bar.dart';
+import '../widget/serial_script_dock.dart';
 import '../widget/serial_send_box.dart';
 import '../widget/serial_side_panel.dart';
 import '../widget/serial_status_bar.dart';
@@ -146,7 +147,8 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
           buildWhen: (previous, current) =>
               previous.compact != current.compact ||
               previous.toolsVisible != current.toolsVisible ||
-              previous.tab != current.tab,
+              previous.tab != current.tab ||
+              previous.scriptDockVisible != current.scriptDockVisible,
           builder: (context, chrome) {
             final cubit = context.read<SerialConsoleCubit>();
             return Stack(
@@ -213,6 +215,13 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                                           },
                                         ),
                                   ),
+                                  if (chrome.scriptDockVisible) ...[
+                                    const SizedBox(height: AppSpacing.sm),
+                                    const SizedBox(
+                                      height: SerialMetrics.scriptDock,
+                                      child: SerialScriptDock(),
+                                    ),
+                                  ],
                                   const SizedBox(height: AppSpacing.sm),
                                   const SerialSendBox(),
                                 ],

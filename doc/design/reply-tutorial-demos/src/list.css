@@ -1,0 +1,9 @@
+/* 版 A：右侧是一份可展开的课表，说明嵌在被点开的那一行下面。 */
+.rscroll{flex:1;min-height:0;overflow:auto}
+.lrow{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line2);background:transparent;padding:8px 14px}
+.lrow:hover,.lrow.on{background:var(--hover)}
+.lrow .ti{display:flex;gap:8px;align-items:baseline;font-size:14px;font-weight:600}
+.lrow .no{flex:none;width:16px;font:600 12px var(--mono);color:var(--muted);text-align:right}
+.lrow .br{display:block;margin:2px 0 0 24px;font-size:12px;font-weight:400;color:var(--muted)}
+.lbody{display:flex;flex-direction:column;gap:10px;padding:2px 14px 14px 38px;border-bottom:1px solid var(--line2);background:var(--panel)}
+.lbody .acts{position:sticky;bottom:0;background:var(--panel);padding-top:8px}

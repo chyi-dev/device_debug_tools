@@ -131,7 +131,9 @@
       "batchRounds": " × $rounds rounds",
       "batchDone": "Batch \"$name\" finished",
       "batchFail": "Step $step failed, batch stopped",
-      "batchStopped": "Batch stopped"
+      "batchStopped": "Batch stopped",
+      "scriptBlocked": "Script \"$name\" returned nil; frame blocked, not sent",
+      "scriptFailed": "Script \"$name\" failed; frame not sent, see the script run log"
     },
     "sendBox": {
       "send": "Send",
@@ -147,7 +149,80 @@
       "batch": "Batch",
       "reply": "Auto-reply",
       "history": "History",
-      "calc": "Checksum"
+      "calc": "Checksum",
+      "script": "Script"
+    },
+    "script": {
+      "note": "$enabled / $total enabled",
+      "add": "New",
+      "waiting": "Waiting",
+      "off": "Disabled",
+      "outputs": "$count outputs",
+      "broken": "Error",
+      "noHook": "No hook",
+      "explain": "Lua scripts. on_receive runs after data arrives; before_send intercepts every outgoing frame (including quick commands, batch and auto reply) and sends what it returns, or nothing if it returns nil.\nClick a row to open the editor and run log below the data log; the log and send box stay visible. The switch only controls automatic runs; Run tries the script once at any time.\nNot sure how to write one? Open Tutorial: six lessons from reading frames to adding a CRC.",
+      "mine": "My scripts $count",
+      "tutorial": "Tutorial",
+      "lessonNew": "New script from lesson",
+      "lessonTry": "Try sample",
+      "lessonSample": "Sample frame $hex",
+      "tutorialNote": "Indexes start at 1; 0x literals work as usual; infinite loops are aborted automatically and dangerous functions such as os.execute are removed.\nTry sample feeds this lesson's sample frame to the code and writes the output to the run log; nothing is sent.",
+      "tried": "Sample run · $hook ← $hex",
+      "lessons": {
+        "hooks": {
+          "title": "When scripts run",
+          "brief": "Two hooks: after receiving, before sending",
+          "text": "Define a function named on_receive and it is called for every packet received; frame holds that packet's bytes. Define before_send and it is called before every outgoing frame (send button, quick commands, batch and auto reply), and only the frame it returns is sent. The switch only controls automatic runs; Run dry-runs with the last received frame or the send box, and never sends."
+        },
+        "print": {
+          "title": "Print a frame",
+          "brief": "log writes to the run log; frames show as HEX",
+          "text": "log writes to the run log, joining arguments with spaces; print is the same function. A frame passed directly shows as HEX, frame:sub(i, j) takes bytes i to j, and frame:str() turns it into ASCII text."
+        },
+        "parse": {
+          "title": "Match a header, read values",
+          "brief": "starts_with checks the header, u16 reads two bytes",
+          "text": "frame:starts_with(0xA5, 0x5A, 0x03) checks the header; return early for frames you don't want. Indexes start at 1: u8(i) reads byte i, u16(i) combines bytes i and i+1 big-endian, and u16le(i) reads little-endian."
+        },
+        "checksum": {
+          "title": "Add a checksum before sending",
+          "brief": "before_send returns the changed frame; append adds bytes",
+          "text": "before_send receives the frame about to go out and sends whatever it returns. frame:append(...) returns a new frame with bytes added at the end; sum8 is the additive sum and xor8 is XOR (BCC)."
+        },
+        "block": {
+          "title": "Block frames you don't want sent",
+          "brief": "Return nil and the frame is not sent",
+          "text": "When before_send returns nil the frame is not sent and the data log records the block. Pass every other frame through with return frame."
+        },
+        "modbus": {
+          "title": "Modbus CRC16",
+          "brief": "crc16 returns the low byte, then the high byte",
+          "text": "crc16(frame) uses the Modbus algorithm and returns two values, low byte then high byte, which is the order Modbus RTU appends them. frame(...) builds a new frame from numbers, strings or other frames."
+        }
+      },
+      "empty": "No scripts yet. Click New to write one.",
+      "toggle": "Enable / disable",
+      "autoOn": "Running automatically",
+      "autoOff": "Disabled, manual runs only",
+      "editorHint": "Lua · saved as you type · Tab inserts two spaces",
+      "run": "Run",
+      "fold": "Collapse",
+      "rename": "Rename",
+      "renameTitle": "Rename script",
+      "name": "Name",
+      "logTitle": "Run log",
+      "logCount": "$count entries",
+      "clear": "Clear",
+      "logEmpty": "No output yet. Enabled scripts write here when data is received or sent.",
+      "changed": "$from → $to",
+      "blocked": "$from → nil, blocked, not sent",
+      "dryRun": "Dry run $from → $to (not sent)",
+      "dryBlocked": "Dry run $from → nil, this frame would be blocked (not sent)",
+      "manualRx": "Manual run · last frame $hex",
+      "noRx": "Manual run · nothing received yet",
+      "badTx": "Send box is empty or not valid HEX; cannot dry-run before_send",
+      "noHookLog": "Neither on_receive nor before_send is defined",
+      "tooLong": "Instruction limit exceeded, possibly an infinite loop; aborted"
     },
     "quick": {
       "note": "Send now. These do not enter history",
@@ -228,7 +303,73 @@
       "frame": "Full frame",
       "contains": "Contains",
       "suffix": "Suffix",
-      "toggleOn": "Enable / disable"
+      "toggleOn": "Enable / disable",
+      "tutor": "Tutorial",
+      "tutorNote": "Four template lessons, three regex lessons. Open one to fill the form.",
+      "tutorFill": "Fill editor",
+      "tutorWrote": "Written on the left. Save to add it to the rule list.",
+      "tutorRx": "Received",
+      "tutorTx": "Will send",
+      "tutorFrom": "from $from",
+      "tutorHit": "yes",
+      "tutorMiss": "no",
+      "tutorWay": "Where",
+      "tagFixed": "fixed",
+      "tagIgnore": "skip",
+      "tagMatch": "match",
+      "tagBefore": "before",
+      "tagLiteral": "literal",
+      "lessons": {
+        "order": {
+          "title": "Nothing is sent until a packet arrives",
+          "brief": "Replies go out in list order",
+          "name": "Handshake reply",
+          "text": "While the port is open, every received packet is compared with each enabled rule. A hit sends the reply list in order. Each delay starts after the previous reply, not from the moment the packet arrived. Two matching rules both reply. Nothing runs while the port is closed.",
+          "rxNote": "Prefix only looks at the leading A5 5A. The last two bytes are not compared."
+        },
+        "place": {
+          "title": "Prefix, full frame, contains, suffix",
+          "brief": "Only templates have these four",
+          "name": "Reply when it appears",
+          "text": "The same pattern A5 5A hits or misses depending on where you look. Full frame must be exactly those bytes. Prefix checks the start, suffix the end, contains anywhere in the middle. Regex has no such menu: write ^ and \\$ yourself.",
+          "rxNote": "This packet starts with 00. Prefix misses; contains hits."
+        },
+        "wild": {
+          "title": "?? takes one byte, * takes a span",
+          "brief": "Wildcards become \\$1, \\$2 from left to right",
+          "name": "Echo captured bytes",
+          "text": "In a HEX template, ?? is any one byte and must be written as two question marks; a single ? will not save. * is any length, including empty. They become \\$1 and \\$2 from left to right, and writing \\$1 in a reply substitutes the captured bytes. Templates are checked on save: \\$3 is rejected when there is no third wildcard.",
+          "rxNote": "Full frame. ?? takes 11, * takes the remaining 22 33."
+        },
+        "ascii": {
+          "title": "In ASCII, one ? is one byte",
+          "brief": "The reply box is still HEX",
+          "name": "Echo the byte after OK",
+          "text": "With ASCII, one ? is any single byte and * is still any length. To match a question mark itself, write a backslash before it; the same for star, carriage return and line feed. A specific byte is backslash, x, and two hex digits, for example \\\\x0D. Ignore case exists only for ASCII. Replies are always HEX: the character 7 comes back as byte 37.",
+          "rxNote": "Ignore case is on, so ok,7 matches OK,?. The question mark captures the character 7."
+        },
+        "reword": {
+          "title": "Regex sees a line of HEX text",
+          "brief": "* here does not mean any length",
+          "name": "Byte after the header",
+          "text": "Choosing regex removes the match menu. A HEX regex is not compared byte by byte; it is compared with the spaced hex text, such as A5 5A 03. * means “repeat the previous item”, and ?? is not “any one byte”. To capture one byte, wrap two hex digits: ([0-9A-F]{2}). Write ^ and \\$ yourself.",
+          "rxNote": "The engine matches the text “A5 5A 03”. Without \\$, extra bytes afterward still hit."
+        },
+        "groups": {
+          "title": "Only parentheses become \\$1",
+          "brief": "A missing \\$n skips that reply",
+          "name": "Split two bytes",
+          "text": "A template’s ?? and * are numbered automatically. In a regex only parentheses become \\$1 and \\$2, in the order the opening parentheses appear. This lesson anchors the whole frame with \\$. If a reply uses \\$3 but there are only two groups, that reply is not sent and the log says the capture is missing. A group that catches only one hex digit is skipped the same way. A template would have blocked this at save time.",
+          "rxNote": "Two groups, \\$1 then \\$2. The final \\$ means the frame ends there."
+        },
+        "reascii": {
+          "title": "ASCII regex matches characters",
+          "brief": "Compared as text, not as HEX words",
+          "name": "After the comma",
+          "text": "An ASCII regex walks the received characters, not the spaced hex text. Characters caught by parentheses are filled into the reply as bytes. Ignore case is available only for ASCII. Anchors are still ^ and \\$, written by you.",
+          "rxNote": "The characters are OK,42. (.+) puts both characters into the same \\$1."
+        }
+      }
     },
     "history": {
       "note": "Only data sent with the Send button is recorded",
@@ -267,6 +408,7 @@
       "deleteRule": "Delete rule \"$name\"? This cannot be undone.",
       "deleteBatch": "Delete batch \"$name\"? This cannot be undone.",
       "deleteHistory": "Delete all $count history entries? This cannot be undone.",
+      "deleteScript": "Delete script \"$name\"? This cannot be undone.",
       "keysTitle": "Keyboard shortcuts",
       "know": "OK",
       "aboutTitle": "About",
@@ -347,6 +489,9 @@
       "folderSaved": "Folder saved",
       "ruleSaved": "Rule saved",
       "batchSaved": "Batch saved",
+      "scriptSaved": "Script renamed",
+      "lessonCreated": "Created $name from \"$title\"",
+      "lessonTried": "Sample run written to the run log",
       "checksumFilled": "Filled the send box: $text",
       "exportedQuick": "Quick commands exported",
       "exportedRules": "Rules exported",

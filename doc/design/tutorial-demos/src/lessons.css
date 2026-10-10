@@ -1,0 +1,7 @@
+.tutcode{margin:0;font:12px/1.55 var(--mono);color:var(--log-rx);background:var(--log-bg);border:1px solid var(--line2);border-radius:4px;padding:8px 10px;white-space:pre;overflow:auto}
+.tutno{font:600 12px var(--mono);color:var(--muted);min-width:18px;text-align:right}
+.tuttext{font-size:13px;line-height:1.6;color:var(--text)}
+.tutnotes{font-size:12px;line-height:1.6;color:var(--muted)}
+.tutacts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tutsample{font:12px var(--mono);color:var(--muted)}
+.tutout{font:12px/1.55 var(--mono);color:var(--log-rx);background:var(--log-bg);border:1px dashed var(--line);border-radius:4px;padding:6px 10px;white-space:pre-wrap}

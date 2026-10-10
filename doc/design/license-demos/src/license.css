@@ -1,0 +1,15 @@
+/* ---------- 授权：状态栏读数 + 对话框（三版共用） ---------- */
+.status .last{border-right:0}
+.status .lic{border-right:0;border-left:1px solid var(--line2)}
+.status .lic button{font:600 12px var(--sans)}
+.status .lic.trial button{color:var(--text);font-weight:400}
+.status .lic.expired button{color:var(--off)}
+.status .lic.licensed button{color:var(--muted);font-weight:400}
+.lic-lead{font-size:14px;line-height:1.6}
+.lic-mc{display:flex;align-items:center;gap:8px}
+.lic-mc code,.lic-mono{font:600 15px var(--mono);letter-spacing:.06em;color:var(--text)}
+.lic-mc code{flex:1;height:28px;display:flex;align-items:center;padding:0 8px;border:1px dashed var(--line);border-radius:4px;background:var(--win);user-select:all}
+.lic-mc.big code{height:36px;font-size:16px;justify-content:center}
+.lic-code{font:600 15px var(--mono);letter-spacing:.06em;width:100%}
+.lic-code::placeholder{color:var(--lamp-idle);font-weight:400}
+.lic-ok{color:var(--on);font-weight:600}

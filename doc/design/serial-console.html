@@ -196,6 +196,19 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .sced .gut{margin:0;padding:8px 6px 8px 10px;font:13px/1.55 var(--mono);color:var(--log-prompt);text-align:right;background:var(--panel);border-right:1px solid var(--line2);overflow:hidden;user-select:none;min-width:34px}
 .sced textarea{border:0;outline:none;resize:none;padding:8px 10px;font:13px/1.55 var(--mono);color:var(--log-rx);background:transparent;white-space:pre;overflow:auto;tab-size:2;min-height:0;height:100%}
 .sced:focus-within{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+/* 脚本页「我的脚本 / 教程」切换与课表 */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{border:0;background:var(--field);height:24px;padding:0 10px;font-size:13px;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.it.tut{cursor:pointer}
+.it.tut .dt{display:flex;gap:6px;align-items:center;font-family:var(--sans)}
+.tutno{font:600 12px var(--mono);color:var(--muted);min-width:18px;text-align:right}
+.tutopen{display:flex;flex-direction:column;gap:8px;padding:10px 10px 12px 38px;border-bottom:1px solid var(--line2)}
+.tuttext{font-size:13px;line-height:1.6}
+.tutcode{margin:0;font:12px/1.55 var(--mono);color:var(--log-rx);background:var(--log-bg);border:1px solid var(--line2);border-radius:4px;padding:8px 10px;white-space:pre;overflow:auto}
+.tutsample{font:12px var(--mono);color:var(--muted)}
+.tutacts{display:flex;gap:6px;align-items:center}
 
 /* ---------- 状态栏 ---------- */
 .status{display:flex;align-items:center;gap:0;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
@@ -211,7 +224,7 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .modal{position:fixed;inset:0;background:rgba(10,14,20,.38);display:none;align-items:center;justify-content:center;z-index:50}
 .modal.show{display:flex}
 .dialog{width:min(640px,92vw);max-height:86vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 20px 48px rgba(0,0,0,.25)}
-.dialog h3{font-size:15px;padding:14px 18px;border-bottom:1px solid var(--line2)}
+.dialog h3{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;padding:14px 18px;border-bottom:1px solid var(--line2)}
 .dialog .body{padding:14px 18px;overflow:auto;display:flex;flex-direction:column;gap:10px}
 .dialog .foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line2)}
 .dialog .row{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;align-items:center}
@@ -223,7 +236,47 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .dialog .line span{font:12px var(--mono);color:var(--muted);text-align:right}
 .dialog .line .inp{font-family:var(--mono)}
 .dialog .line .note{font-family:var(--sans)}
-.dialog .err{color:var(--off);font-size:13px;min-height:18px}.dialog .keys{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:14px}
+.dialog .err{color:var(--off);font-size:13px;min-height:18px}
+.dialog.wide{width:min(1040px,96vw);height:min(800px,92vh);max-height:min(800px,92vh)}
+.dialog .body.split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:0;padding:0;overflow:hidden}
+.ruleform{min-width:0;min-height:0;overflow:auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.rail{min-width:0;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--win)}
+.railhead{padding:12px 14px 10px;border-bottom:1px solid var(--line2)}
+.railhead b{display:block;font-size:14px;font-weight:600}
+.railhead span{display:block;margin-top:2px;font-size:12px;line-height:1.5;color:var(--muted)}
+.rscroll{flex:1;min-height:0;overflow:auto}
+.glab{padding:10px 14px 4px;font-size:12px;font-weight:600;color:var(--muted)}
+.lrow{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line2);background:transparent;padding:8px 14px}
+.lrow:hover,.lrow.on{background:var(--hover)}
+.lrow .ti{display:flex;gap:8px;align-items:baseline;font-size:14px;font-weight:600}
+.lrow .no{flex:none;width:16px;font:600 12px var(--mono);color:var(--muted);text-align:right}
+.lrow .br{display:block;margin:2px 0 0 24px;font-size:12px;font-weight:400;color:var(--muted)}
+.lbody{display:flex;flex-direction:column;gap:10px;padding:2px 14px 14px 38px;border-bottom:1px solid var(--line2);background:var(--panel)}
+.lbody .acts{position:sticky;bottom:0;background:var(--panel);padding-top:8px}
+.rttext{margin:0;font-size:14px;line-height:1.6;text-wrap:pretty}
+.recipe{font:13px/1.5 var(--mono);color:var(--text);overflow-wrap:anywhere}
+.strip{display:flex;flex-direction:column;gap:6px}
+.slab{font-size:12px;color:var(--muted)}
+.bytes{display:flex;flex-wrap:wrap;gap:4px}
+.bytes span{min-width:40px;padding:4px 6px 3px;background:var(--field);border:1px solid var(--line);border-radius:4px;font:600 13px/1.2 var(--mono);text-align:center;color:var(--text)}
+.bytes span small{display:block;margin-top:3px;font:400 12px/1.2 var(--sans);color:var(--muted)}
+.bytes span.cap{background:var(--mark);border-color:transparent}
+.bytes span.cap small{color:var(--text)}
+.bytes span.dim{color:var(--muted);font-weight:500}
+.snote{margin:0;font-size:12px;line-height:1.5;color:var(--muted);text-wrap:pretty}
+.tx{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:8px;align-items:baseline}
+.tx code{font:600 13px var(--mono);color:var(--log-tx)}
+.tx .ms{font:12px var(--mono);color:var(--muted)}
+.tx .from{grid-column:2;font-size:12px;color:var(--muted)}
+.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.cmp th,.cmp td{text-align:left;padding:4px 6px 4px 0;border-bottom:1px solid var(--line2);font-weight:400}
+.cmp th{font-size:12px;color:var(--muted);font-weight:600}
+.cmp th.hex{font-family:var(--mono);font-weight:500}
+.cmp td.yes{font-weight:600}
+.cmp td.no{color:var(--muted)}
+.wrote{margin:0;font-size:12px;line-height:1.5;color:var(--accent)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dialog .keys{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:14px}
 .dialog .keys kbd{font:13px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--field);justify-self:start}
 .toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:var(--text);color:var(--win);padding:9px 16px;border-radius:6px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
 .toast.show{opacity:1}
@@ -893,11 +946,17 @@ var Serial = (function () {
     scriptOut(s, hex(sample) + ' → ' + hex(s.action === 'checksum' ? sample.concat([sum8(sample)]) : sample) + '（试算，未发送）');
   }
   function toggleScript(id) { var s = byId(state.scripts, id); s.enabled = !s.enabled; emit('script', 'list'); return s; }
-  function newScript() {
-    var s = { id: 's' + Date.now().toString(36), name: 'script' + (state.scripts.length + 1) + '.lua', action: 'custom', enabled: false, runs: 0, last: '',
-      code: '-- 新脚本：收到数据时运行\nfunction on_receive(frame)\n  log(frame:hex())\nend' };
+  function newScript(name, code) {
+    var s = { id: 's' + Date.now().toString(36), name: name || 'script' + (state.scripts.length + 1) + '.lua', action: 'custom', enabled: false, runs: 0, last: '',
+      code: code || '-- 新脚本：收到数据时运行\nfunction on_receive(frame)\n  log(frame:hex())\nend' };
     state.scripts.push(s); emit('script', 'list');
     return s;
+  }
+  // 教程样例试跑等不属于某个脚本的输出
+  function logScript(name, text, err) {
+    state.scriptLog.push({ time: new Date(), name: name, text: text, err: !!err });
+    if (state.scriptLog.length > 200) state.scriptLog.shift();
+    emit('script', 'log');
   }
   function clearScriptLog() { state.scriptLog.length = 0; emit('script', 'log'); }
 
@@ -934,7 +993,7 @@ var Serial = (function () {
     open: open, close: close, toggle: toggle, configure: configure, portLabel: portLabel, frameFormat: frameFormat,
     send: send, sendRepeat: sendRepeat, stopLoop: stopLoop, encode: encode,
     fireRule: fireRule, captureCount: captureCount, runBatch: runBatch, stopBatch: stopBatch,
-    runScript: runScript, toggleScript: toggleScript, newScript: newScript, clearScriptLog: clearScriptLog, scriptHook: scriptHook,
+    runScript: runScript, toggleScript: toggleScript, newScript: newScript, logScript: logScript, clearScriptLog: clearScriptLog, scriptHook: scriptHook,
     clear: clear, saveLog: saveLog, exportRules: exportRules, logText: logText, seed: seed,
     hex: hex, ascii: ascii, parseHex: parseHex, textBytes: textBytes, dissect: dissect, stamp: stamp,
     sum8: sum8, xor8: xor8, lrc: lrc, crc8: crc8, crc16: crc16, crc32: crc32,
@@ -1345,6 +1404,19 @@ $('tabbody').onclick = function (e) {
   if (act === 'scNew') { scUi.sel = Serial.newScript().id; scUi.dock = true; renderTab(); $('scCode').focus(); }
   if (act === 'scFold') { scUi.dock = false; renderTab(); }
   if (act === 'scClear') Serial.clearScriptLog();
+  if (act === 'tutView') { tutUi.view = id; renderTab(); }
+  if (act === 'tutOpen') { tutUi.open = tutUi.open === id ? null : id; renderTab(); }
+  if (act === 'tutNew') {
+    var ls = byId(LESSONS, id), ns = Serial.newScript(ls.name, ls.code);
+    scUi.sel = ns.id; scUi.dock = true; tutUi.view = 'mine'; renderTab(); hint('已用「' + ls.title + '」新建 ' + ns.name);
+  }
+  if (act === 'tutTry') {
+    var lt = byId(LESSONS, id);
+    if (!scUi.dock && S.scripts.length) { scUi.dock = true; renderTab(); }
+    Serial.logScript(lt.name, '样例试跑 · ' + lt.hook + ' ← ' + lt.sample);
+    lt.out.forEach(function (t) { Serial.logScript(lt.name, t); });
+    hint('样例试跑结果已写入运行日志');
+  }
   if (act === 'calcFromTx') { var p = currentPayload(); ui.calcFmt = p.format; renderTab(); $('calcInput').value = p.text; calcUpdate(); }
   if (act === 'calcAppend') {
     var raw = ui.calcFmt === 'HEX' ? Serial.parseHex($('calcInput').value) : Serial.textBytes($('calcInput').value, true);
@@ -1379,10 +1451,58 @@ function scriptRows() {
   }).join('');
 }
 function scriptNote() { return '已启用 ' + S.scripts.filter(function (s) { return s.enabled; }).length + ' / ' + S.scripts.length; }
+// 教程：六课，每课一段可直接运行的代码和一帧样例；out 是样例在真实引擎里的输出，设计稿直接回放
+var LESSONS = [
+  { id: 'l1', name: 'lesson1_hooks.lua', title: '脚本什么时候运行', hook: 'on_receive', brief: '两个钩子：收到数据后、发送数据前',
+    text: '写一个叫 on_receive 的函数，每收到一包数据就会调用它，frame 是这一包的字节。写 before_send 则在每一帧发出前调用（发送、快捷指令、批量、自动应答都算），返回的帧才会真正发出。开关只控制自动运行；「运行」是用最近一帧或发送框内容试算，不会发数据。',
+    code: '-- 收到一包数据后运行，frame 是这一包的字节\nfunction on_receive(frame)\n  log("收到", frame:len(), "字节")\nend\n',
+    sample: 'A5 81 00 00 81', out: ['收到 5 字节'] },
+  { id: 'l2', name: 'lesson2_print.lua', title: '把一帧打印出来', hook: 'on_receive', brief: 'log 输出到运行日志，帧会显示成 HEX',
+    text: 'log 把内容写到右侧运行日志，多个参数用空格连起来；print 和 log 是同一个函数。直接传入帧会显示成 HEX，frame:sub(i, j) 取第 i 到第 j 字节，frame:str() 按 ASCII 转成文字。',
+    code: 'function on_receive(frame)\n  log(frame)                     -- 整帧 HEX\n  log("帧头", frame:sub(1, 2))   -- 第 1~2 字节\n  log("末字节", frame:u8(frame:len()))\nend\n',
+    sample: 'A5 5A 03 00 F6 02 09 03', out: ['A5 5A 03 00 F6 02 09 03', '帧头 A5 5A', '末字节 3'] },
+  { id: 'l3', name: 'lesson3_parse.lua', title: '认帧头、取数值', hook: 'on_receive', brief: 'starts_with 判断帧头，u16 读两字节整数',
+    text: 'frame:starts_with(0xA5, 0x5A, 0x03) 判断帧头；不是要的帧就 return 跳过。下标从 1 开始：u8(i) 读第 i 字节，u16(i) 把第 i、i+1 字节按大端拼成整数，小端用 u16le(i)。',
+    code: '-- 温湿度帧：A5 5A 03 温度(2) 湿度(2) 校验\nfunction on_receive(frame)\n  if not frame:starts_with(0xA5, 0x5A, 0x03) then return end\n  local t = frame:u16(4) / 10\n  local h = frame:u16(6) / 10\n  log(string.format("温度 %.1f℃ 湿度 %.1f%%", t, h))\nend\n',
+    sample: 'A5 5A 03 00 F6 02 09 03', out: ['温度 24.6℃ 湿度 52.1%'] },
+  { id: 'l4', name: 'lesson4_checksum.lua', title: '发送前补校验', hook: 'before_send', brief: 'before_send 返回改过的帧，append 追加字节',
+    text: 'before_send 收到即将发出的帧，返回什么就发什么。frame:append(...) 返回在末尾追加字节后的新帧；sum8 是累加和，xor8 是异或（BCC）。',
+    code: '-- 发出前在帧尾补 SUM8\nfunction before_send(frame)\n  return frame:append(sum8(frame))\n  -- 改用异或校验：return frame:append(xor8(frame))\nend\n',
+    sample: 'A5 01 00 00 01', out: ['A5 01 00 00 01 → A5 01 00 00 01 A7（试算，未发送）'] },
+  { id: 'l5', name: 'lesson5_block.lua', title: '拦截不想发的帧', hook: 'before_send', brief: '返回 nil，这一帧就不发',
+    text: 'before_send 返回 nil 时这一帧不会发出，系统日志会记一条拦截。其他帧要原样放行，记得 return frame。',
+    code: '-- 不让「停止采集」发出去，其余照常\nfunction before_send(frame)\n  if frame:starts_with(0xA5, 0x10, 0x00) then\n    log("已拦截停止采集")\n    return nil\n  end\n  return frame\nend\n',
+    sample: 'A5 10 00 00 10', out: ['已拦截停止采集', 'A5 10 00 00 10 → nil，这一帧会被拦截（试算，未发送）'] },
+  { id: 'l6', name: 'lesson6_modbus.lua', title: 'Modbus 补 CRC16', hook: 'before_send', brief: 'crc16 返回低字节、高字节',
+    text: 'crc16(frame) 按 Modbus 算法返回两个值：低字节、高字节，正好按 Modbus RTU 的顺序追加。frame(...) 可以从数字、字符串或别的帧拼出一个新帧。',
+    code: '-- Modbus RTU：帧尾追加 CRC16，低字节在前\nfunction before_send(frame)\n  local lo, hi = crc16(frame)\n  return frame:append(lo, hi)\nend\n',
+    sample: '01 03 00 00 00 01', out: ['01 03 00 00 00 01 → 01 03 00 00 00 01 84 0A（试算，未发送）'] }
+];
+var tutUi = { view: 'mine', open: 'l1' };
+function segHtml() {
+  return '<span class="seg"><button data-act="tutView" data-id="mine"' + (tutUi.view === 'mine' ? ' class="on"' : '') + '>我的脚本 ' + S.scripts.length + '</button>' +
+    '<button data-act="tutView" data-id="tut"' + (tutUi.view === 'tut' ? ' class="on"' : '') + '>教程</button></span>';
+}
+function lessonRow(l, i) {
+  var open = tutUi.open === l.id;
+  var head = '<div class="it tut' + (open ? ' active' : '') + '" data-act="tutOpen" data-id="' + l.id + '">' +
+    '<span class="tutno lead">' + (i + 1) + '</span><span class="nm">' + esc(l.title) + '</span>' +
+    '<span class="dt"><span class="schook">' + l.hook + '</span>' + esc(l.brief) + '</span></div>';
+  if (!open) return head;
+  return head + '<div class="tutopen"><p class="tuttext">' + esc(l.text) + '</p><pre class="tutcode">' + esc(l.code.replace(/\n$/, '')) + '</pre>' +
+    '<div class="tutsample">样例帧 ' + l.sample + '</div>' +
+    '<div class="tutacts"><button class="btn sm pri" data-act="tutNew" data-id="' + l.id + '">用这课新建脚本</button><button class="btn sm" data-act="tutTry" data-id="' + l.id + '">样例试跑</button></div></div>';
+}
 function scriptHtml() {
-  return '<div class="bar"><span class="note" id="scNote">' + scriptNote() + '</span><span class="grow"></span><button class="btn sm" data-act="scNew">新建</button></div>' +
+  if (tutUi.view === 'tut') {
+    return '<div class="bar">' + segHtml() + '<span class="grow"></span><span class="note" id="scNote">' + scriptNote() + '</span></div>' +
+      '<div class="list" id="scList" hidden></div>' +
+      '<div class="list">' + LESSONS.map(lessonRow).join('') + '</div>' +
+      '<div class="explain">下标从 1 开始；0x 写法可以直接用；死循环会被自动中止，os.execute 等危险函数已移除。<br>「样例试跑」把这课的样例帧交给代码，输出写进运行日志，不会发数据。</div>';
+  }
+  return '<div class="bar">' + segHtml() + '<span class="note" id="scNote">' + scriptNote() + '</span><span class="grow"></span><button class="btn sm" data-act="scNew">新建</button></div>' +
     '<div class="list" id="scList">' + scriptRows() + '</div>' +
-    '<div class="explain">Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。<br>点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。</div>';
+    '<div class="explain">Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。<br>点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。<br>不会写？切到「教程」，六课从收数据讲到补 CRC。</div>';
 }
 function gutter(code) { var g = ''; for (var i = 1, n = code.split('\n').length; i <= n; i++) g += i + '\n'; return g; }
 function dockHead(s) {
@@ -1615,6 +1735,297 @@ setCompact(false); setTools(true);
 renderTab(); renderStatus(); renderOpen(); renderLog(); preview();
 Serial.seed();
 setTimeout(function () { Serial.send('A5 01 00 00 01 07', { format: 'HEX' }); }, 900);
+</script>
+<script>
+/* 应答教程三版共用的课与「填进左边」。
+   假设：教程只长在「新增 / 编辑应答规则」右侧；左边仍是现在的表单。
+   课按现有引擎来写：模板的 ?? / *、四种位置、ASCII 转义；
+   正则 HEX 比的是空格分隔的十六进制文字，只有括号才捕获。
+   「填入」只改左边，不保存；保存仍走原来的校验。
+   视觉母题：一帧拆成字节格，被抓进 $n 的格子用搜索高亮色。 */
+var RT = {
+  id: 'wild',
+  open: 'wild',
+  step: 'see',
+  wrote: '',
+  paint: function () {},
+  onClick: function () {}
+};
+
+RT.lessons = [
+  {
+    id: 'order', group: 'template', short: '收到才发',
+    title: '收到之后才发',
+    brief: '命中后按应答列表一条条发',
+    text: '串口打开后，每一包收到的数据都会跟已启用的规则比。命中的按应答列表顺序发送，每条延时从上一包发出之后算，不是从收到的时刻重算。列表里两条都命中，就会都回，不是中了一条就停。串口关着时，规则不执行。',
+    rule: { name: '握手应答', kind: 'template', format: 'HEX', match: 'prefix', pattern: 'A5 5A', replies: [{ delay: 20, data: 'A5 81' }, { delay: 50, data: 'A5 5A 00' }] },
+    rxNote: '前缀只认开头的 A5 5A，后面两字节不参与。',
+    rx: [{ t: 'A5', tag: '前缀' }, { t: '5A', tag: '前缀' }, { t: '01', tag: '忽略', dim: true }, { t: '02', tag: '忽略', dim: true }],
+    tx: [{ delay: 20, data: 'A5 81', from: 'A5 81' }, { delay: 50, data: 'A5 5A 00', from: 'A5 5A 00' }],
+    steps: [
+      { id: 'see', title: '看收到的这一包', text: '这一包以 A5 5A 开头。前缀规则只看开头，后面的 01 02 不参与比较。' },
+      { id: 'match', title: '写入匹配', text: '语法选模板，格式 HEX，匹配方式选前缀，匹配数据写 A5 5A。' },
+      { id: 'reply', title: '写入应答', text: '先等 20ms 发 A5 81，再等 50ms 发 A5 5A 00。第二段是从第一包发出后算的。' }
+    ]
+  },
+  {
+    id: 'place', group: 'template', short: '四种位置',
+    title: '前缀、整帧、包含、结尾',
+    brief: '这四项只有模板有',
+    text: '同一条匹配数据 A5 5A，换匹配方式，中不中完全不同。整帧必须整包一模一样；前缀只看开头；结尾只看末尾；包含只要中间出现过。正则没有这个下拉，位置要自己写 ^ 和 $。',
+    rule: { name: '帧里出现就回', kind: 'template', format: 'HEX', match: 'contains', pattern: 'A5 5A', replies: [{ delay: 0, data: 'A5 90' }] },
+    table: {
+      head: ['方式', 'A5 5A 03 00', '00 A5 5A'],
+      rows: [['前缀', '中', '不中'], ['包含', '中', '中'], ['整帧', '不中', '不中'], ['结尾', '不中', '中']]
+    },
+    rxNote: '这一包开头是 00。前缀不中，包含能中。',
+    rx: [{ t: '00', tag: '在前', dim: true }, { t: 'A5', tag: '匹配' }, { t: '5A', tag: '匹配' }],
+    tx: [{ delay: 0, data: 'A5 90', from: 'A5 90' }],
+    steps: [
+      { id: 'see', title: '看同一条数据的四种结果', text: '匹配数据都是 A5 5A。整帧两包都不中，因为都不是正好这两个字节。' },
+      { id: 'match', title: '写入匹配', text: '下面填进去的是「包含」。00 A5 5A 这种开头不对的包，前缀不中，包含能中。' },
+      { id: 'reply', title: '写入应答', text: '命中后立刻发 A5 90。延时 0 表示上一条（这里是收到）之后马上发。' }
+    ]
+  },
+  {
+    id: 'wild', group: 'template', short: '?? 和 *',
+    title: '?? 抓一字节，* 抓一段',
+    brief: '通配符从左到右就是 $1、$2',
+    text: 'HEX 模板里 ?? 是任意一字节，必须写成两个问号，只写一个问号存不进去。* 是任意长度，可以是空。它们按从左到右变成 $1、$2，应答里写 $1 就会换成抓到的字节。模板在保存时就检查：没有第三个通配符却写了 $3，不许存。',
+    rule: { name: '回传抓到的字节', kind: 'template', format: 'HEX', match: 'frame', pattern: 'A5 ?? *', replies: [{ delay: 10, data: 'B0 $1' }, { delay: 10, data: '$2' }] },
+    rxNote: '整帧。?? 吃掉 11，* 吃掉剩下的 22 33。',
+    rx: [{ t: 'A5', tag: '固定' }, { t: '11', tag: '$1', cap: true }, { t: '22', tag: '$2', cap: true }, { t: '33', tag: '$2', cap: true }],
+    tx: [{ delay: 10, data: 'B0 11', from: 'B0 $1' }, { delay: 10, data: '22 33', from: '$2' }],
+    steps: [
+      { id: 'see', title: '看收到的这一包', text: '整帧 A5 11 22 33。?? 只占一个字节，* 把剩下的都拿走，可以是空。' },
+      { id: 'match', title: '写入匹配', text: '语法模板，格式 HEX，匹配方式整帧，匹配数据 A5 ?? *。?? 是 $1，* 是 $2。' },
+      { id: 'reply', title: '写入应答', text: '10ms 后 B0 $1 发出 B0 11。再过 10ms，$2 发出 22 33。' }
+    ]
+  },
+  {
+    id: 'ascii', group: 'template', short: 'ASCII 问号',
+    title: 'ASCII 里一个 ? 是一字节',
+    brief: '应答框仍然写 HEX',
+    text: '格式改成 ASCII 之后，一个 ? 就是任意一字节，* 仍是任意长度。想匹配问号本身，写成反斜杠加问号；星号、回车、换行同样加反斜杠。指定某个字节用反斜杠 x 加两位，例如 \\x0D。忽略大小写只在 ASCII 下有。应答框永远写 HEX：字符 7 抓进来是字节 37。',
+    rule: { name: '回传 OK 后一字节', kind: 'template', format: 'ASCII', match: 'prefix', pattern: 'OK,?', ignoreCase: true, replies: [{ delay: 30, data: '$1' }] },
+    rxNote: '忽略大小写，所以 ok,7 也能对上 OK,?。问号抓到字符 7。',
+    rx: [{ t: 'o', tag: '固定' }, { t: 'k', tag: '固定' }, { t: ',', tag: '固定' }, { t: '7', tag: '$1', cap: true }],
+    tx: [{ delay: 30, data: '37', from: '$1' }],
+    steps: [
+      { id: 'see', title: '看收到的这一包', text: '收到的是字符 ok,7。ASCII 模板按字符比，一个 ? 只吃一个字节。' },
+      { id: 'match', title: '写入匹配', text: '格式选 ASCII，匹配方式前缀，匹配数据 OK,?，并勾上忽略大小写。' },
+      { id: 'reply', title: '写入应答', text: '应答仍是 HEX。$1 换成字符 7 的字节，发出 37。' }
+    ]
+  },
+  {
+    id: 'reword', group: 'regex', short: '正则不是模板',
+    title: '正则看的是一行 HEX 文字',
+    brief: '这里的 * 不是任意长度',
+    text: '语法改成正则后，没有「匹配方式」这一栏。HEX 正则不按字节格子比，而是去比空格分隔的十六进制文字，例如 A5 5A 03。表达式里的 * 是「前一个东西重复」，?? 也不再表示任意一字节。要抓一个字节，写括号包住两位：([0-9A-F]{2})。开头用 ^，结尾用 $，自己写。',
+    rule: { name: '取帧头后一字节', kind: 'regex', format: 'HEX', match: 'prefix', pattern: '^A5 5A ([0-9A-F]{2})', replies: [{ delay: 40, data: 'A5 $1' }] },
+    rxNote: '引擎拿去匹配的文字是「A5 5A 03」。这条没写 $，后面再跟字节也会中。',
+    rx: [{ t: 'A5', tag: '字面' }, { t: '5A', tag: '字面' }, { t: '03', tag: '$1', cap: true }],
+    tx: [{ delay: 40, data: 'A5 03', from: 'A5 $1' }],
+    steps: [
+      { id: 'see', title: '看它实际在比什么', text: '字节会先变成文字 A5 5A 03。正则比的是这行字，不是左边这种格子本身。' },
+      { id: 'match', title: '写入匹配', text: '语法选正则，匹配方式会消失。匹配数据写 ^A5 5A ([0-9A-F]{2})。不要把模板的 * 原样搬过来。' },
+      { id: 'reply', title: '写入应答', text: '括号里的 03 是 $1。应答 A5 $1 发出 A5 03。' }
+    ]
+  },
+  {
+    id: 'groups', group: 'regex', short: '括号才捕获',
+    title: '只有括号才是 $1',
+    brief: '写了不存在的 $n，那一条会跳过',
+    text: '模板的 ?? 和 * 会自动占编号。正则只有圆括号里的内容才变成 $1、$2，按左括号出现的顺序。这条用 $ 锚住整帧，两对括号各抓一个字节。应答里如果写了 $3，而只有两组括号，这一条不发送，系统日志记「引用的捕获不存在，已跳过」。括号若只抓到一个十六进制字符，同样跳过。模板则会在点保存时就拦住。',
+    rule: { name: '拆开两个字节', kind: 'regex', format: 'HEX', match: 'frame', pattern: '^A5 5A ([0-9A-F]{2}) ([0-9A-F]{2})$', replies: [{ delay: 20, data: 'B1 $1' }, { delay: 20, data: 'B2 $2' }] },
+    rxNote: '两对括号，按从左到右是 $1、$2。末尾的 $ 表示整帧到此结束。',
+    rx: [{ t: 'A5', tag: '字面' }, { t: '5A', tag: '字面' }, { t: '11', tag: '$1', cap: true }, { t: '22', tag: '$2', cap: true }],
+    tx: [{ delay: 20, data: 'B1 11', from: 'B1 $1' }, { delay: 20, data: 'B2 22', from: 'B2 $2' }],
+    steps: [
+      { id: 'see', title: '看两组括号各抓什么', text: '文字是 A5 5A 11 22。第一对括号是 11，第二对是 22。没有括号的 A5、5A 不会变成 $n。' },
+      { id: 'match', title: '写入匹配', text: '正则 HEX，匹配数据 ^A5 5A ([0-9A-F]{2}) ([0-9A-F]{2})$。最后的 $ 把整帧锚死。' },
+      { id: 'reply', title: '写入应答', text: 'B1 $1 发出 B1 11，B2 $2 发出 B2 22。若写成 $3，这一条会被跳过，规则仍算命中。' }
+    ]
+  },
+  {
+    id: 'reascii', group: 'regex', short: 'ASCII 逐字',
+    title: 'ASCII 正则逐字匹配',
+    brief: '对着字符比，不是对着 HEX 文字',
+    text: 'ASCII 正则对着收到的原始字符匹配，一个字符一个字符比，不是「A5 5A」那种十六进制文字。括号抓到的字符按字节填进应答。忽略大小写同样只在 ASCII 时可选。锚点还是自己写 ^ 和 $。',
+    rule: { name: '取逗号后面', kind: 'regex', format: 'ASCII', match: 'prefix', pattern: '^OK,(.+)$', replies: [{ delay: 20, data: '$1' }] },
+    rxNote: '收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 $1。',
+    rx: [{ t: 'O', tag: '字面' }, { t: 'K', tag: '字面' }, { t: ',', tag: '字面' }, { t: '4', tag: '$1', cap: true }, { t: '2', tag: '$1', cap: true }],
+    tx: [{ delay: 20, data: '34 32', from: '$1' }],
+    steps: [
+      { id: 'see', title: '看收到的字符', text: 'OK,42 是五个字符。括号把逗号后面的 4 和 2 收成一个 $1，发出时是两个字节。' },
+      { id: 'match', title: '写入匹配', text: '语法正则，格式 ASCII，匹配数据 ^OK,(.+)$。没有匹配方式这一栏。' },
+      { id: 'reply', title: '写入应答', text: '$1 换成 4 和 2 的字节，发出 34 32。' }
+    ]
+  }
+];
+
+RT.groups = [{ id: 'template', label: '模板' }, { id: 'regex', label: '正则' }];
+
+RT.byId = function (id) {
+  for (var i = 0; i < RT.lessons.length; i++) if (RT.lessons[i].id === id) return RT.lessons[i];
+};
+RT.no = function (l) { return RT.lessons.indexOf(l) + 1; };
+RT.recipe = function (l) {
+  var r = l.rule;
+  var fmt = r.format === 'ASCII' ? 'ASCII' : 'HEX';
+  if (r.kind === 'regex') return '正则 ' + fmt + ' · ' + r.pattern;
+  return matchName[r.match] + ' ' + fmt + (r.ignoreCase ? ' Aa' : '') + ' · ' + r.pattern;
+};
+
+RT.strip = function (l) {
+  return '<div class="strip"><div class="slab">收到</div><div class="bytes">' + l.rx.map(function (b) {
+    return '<span class="' + (b.cap ? 'cap' : '') + (b.dim ? ' dim' : '') + '">' + esc(b.t) + '<small>' + esc(b.tag) + '</small></span>';
+  }).join('') + '</div>' + (l.rxNote ? '<p class="snote">' + esc(l.rxNote) + '</p>' : '') + '</div>';
+};
+RT.tx = function (l) {
+  return '<div class="strip"><div class="slab">将发出</div>' + l.tx.map(function (x) {
+    return '<div class="tx"><span class="ms">+' + x.delay + ' ms</span><code>' + esc(x.data) + '</code><span class="from">由 ' + esc(x.from) + '</span></div>';
+  }).join('') + '</div>';
+};
+RT.table = function (l) {
+  if (!l.table) return '';
+  return '<table class="cmp"><thead><tr>' + l.table.head.map(function (h, i) {
+    return '<th' + (i ? ' class="hex"' : '') + '>' + esc(h) + '</th>';
+  }).join('') + '</tr></thead><tbody>' + l.table.rows.map(function (row) {
+    return '<tr>' + row.map(function (c, i) {
+      var cls = c === '中' ? 'yes' : (c === '不中' ? 'no' : '');
+      return '<td' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(c) + '</td>';
+    }).join('') + '</tr>';
+  }).join('') + '</tbody></table>';
+};
+RT.block = function (l) {
+  return '<p class="rttext">' + esc(l.text) + '</p>' + RT.table(l) +
+    '<div class="recipe">' + esc(RT.recipe(l)) + '</div>' + RT.strip(l) + RT.tx(l);
+};
+
+RT.fill = function (l, part) {
+  var rule = l.rule;
+  var all = !part || part === 'all';
+  if (all || part === 'match') {
+    $('dName').value = rule.name;
+    $('dKind').value = rule.kind;
+    $('dFormat').value = rule.format;
+    $('dMatch').value = rule.match || 'prefix';
+    $('dPattern').value = rule.pattern;
+    $('dCase').checked = !!rule.ignoreCase;
+    $('dKind').dispatchEvent(new Event('change'));
+  }
+  if (all || part === 'reply') {
+    $('dLines').innerHTML = rule.replies.map(replyLine).join('');
+    renumber();
+    $('dOn').checked = true;
+  }
+};
+RT.hot = function (part) {
+  document.querySelectorAll('.ruleform .hot').forEach(function (n) { n.classList.remove('hot'); });
+  if (part === 'match') {
+    ['dName', 'dKind', 'dFormat', 'dMatch', 'dPattern'].forEach(function (id) {
+      var el = $(id);
+      if (!el) return;
+      var row = el.closest('.row');
+      if (row && row.style.display !== 'none') row.classList.add('hot');
+    });
+    var caseRow = $('dCaseRow');
+    if (caseRow && caseRow.style.display !== 'none') caseRow.classList.add('hot');
+  }
+  if (part === 'reply') {
+    var sub = document.querySelector('.ruleform .sub');
+    var lines = document.querySelector('.ruleform .lines');
+    if (sub) sub.classList.add('hot');
+    if (lines) lines.classList.add('hot');
+  }
+};
+RT.wroteLine = function (key) {
+  if (RT.wrote !== key) return '';
+  return '<p class="wrote">已写入左边，点「保存」才会出现在规则列表里。</p>';
+};
+
+RT.mount = function () {
+  var body = $('dlgBody');
+  var form = document.createElement('div');
+  form.className = 'ruleform';
+  while (body.firstChild) form.appendChild(body.firstChild);
+  body.classList.add('split');
+  body.appendChild(form);
+  var rail = document.createElement('aside');
+  rail.id = 'rail';
+  rail.className = 'rail';
+  body.appendChild(rail);
+  document.querySelector('.dialog').classList.add('wide');
+  rail.onclick = function (e) {
+    var t = e.target.closest('[data-rt]');
+    if (!t) return;
+    RT.onClick(t.dataset.rt, t.dataset.id);
+  };
+  RT.paint();
+};
+RT.unmount = function () {
+  var body = $('dlgBody');
+  var form = body.querySelector('.ruleform');
+  if (form) {
+    while (form.firstChild) body.insertBefore(form.firstChild, form);
+    form.remove();
+  }
+  var rail = $('rail');
+  if (rail) rail.remove();
+  body.classList.remove('split');
+  var d = document.querySelector('.dialog');
+  if (d) d.classList.remove('wide');
+};
+RT.toggle = function () {
+  var on = !$('rail');
+  if (on) RT.mount(); else RT.unmount();
+  $('rtToggle').classList.toggle('pri', on);
+};
+
+var baseEditRule = editRule;
+editRule = function (rule) {
+  baseEditRule(rule);
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'rtToggle';
+  btn.className = 'btn sm';
+  btn.textContent = '教程';
+  btn.onclick = RT.toggle;
+  $('dlgTitle').appendChild(btn);
+};
+var baseCloseDialog = closeDialog;
+closeDialog = function () {
+  RT.unmount();
+  var btn = $('rtToggle');
+  if (btn) btn.remove();
+  baseCloseDialog();
+};
+
+/* 版 A · 课表：点一课就在列表里展开，对照左边的空表单。 */
+RT.open = 'wild';
+RT.paint = function () {
+  var html = '<div class="railhead"><b>教程</b><span>模板四课，正则三课。点开一课，可填进左边。</span></div><div class="rscroll">';
+  RT.groups.forEach(function (g) {
+    html += '<div class="glab">' + g.label + '</div>';
+    RT.lessons.forEach(function (l) {
+      if (l.group !== g.id) return;
+      var on = RT.open === l.id;
+      html += '<button type="button" class="lrow' + (on ? ' on' : '') + '" data-rt="open" data-id="' + l.id + '">' +
+        '<span class="ti"><span class="no">' + RT.no(l) + '</span><span>' + esc(l.title) + '</span></span>' +
+        '<span class="br">' + esc(l.brief) + '</span></button>';
+      if (!on) return;
+      html += '<div class="lbody">' + RT.block(l) +
+        '<div class="acts"><button type="button" class="btn sm pri" data-rt="fill" data-id="' + l.id + '">填入编辑器</button></div>' +
+        RT.wroteLine(l.id) + '</div>';
+    });
+  });
+  $('rail').innerHTML = html + '</div>';
+};
+RT.onClick = function (act, id) {
+  if (act === 'open') { RT.open = RT.open === id ? '' : id; RT.paint(); return; }
+  if (act === 'fill') { RT.fill(RT.byId(id)); RT.wrote = id; RT.hot(''); RT.paint(); }
+};
 </script>
 </body>
 </html>

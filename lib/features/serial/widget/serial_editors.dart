@@ -7,11 +7,13 @@ import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../cubit/serial_console_cubit.dart';
 import '../data/serial_bytes.dart';
+import '../model/reply_lessons.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
 import 'serial_chrome.dart';
 import 'serial_dialog.dart';
 import 'serial_l10n.dart';
+import 'serial_reply_tutor.dart';
 
 /// [folderId] 为新增指令时预选的文件夹；编辑已有指令时取其所在文件夹。
 Future<void> showQuickEditor(
@@ -41,6 +43,17 @@ Future<void> showFolderEditor(BuildContext context, {QuickFolder? existing}) {
     builder: (dialogContext) => BlocProvider.value(
       value: cubit,
       child: _FolderEditor(existing: existing),
+    ),
+  );
+}
+
+Future<void> showScriptRename(BuildContext context, LuaScript script) {
+  final cubit = context.read<SerialConsoleCubit>();
+  return showSerialDialog<void>(
+    context: context,
+    builder: (dialogContext) => BlocProvider.value(
+      value: cubit,
+      child: _ScriptRename(script: script),
     ),
   );
 }
@@ -457,6 +470,65 @@ class _FolderEditorState extends State<_FolderEditor> {
   }
 }
 
+class _ScriptRename extends StatefulWidget {
+  const _ScriptRename({required this.script});
+
+  final LuaScript script;
+
+  @override
+  State<_ScriptRename> createState() => _ScriptRenameState();
+}
+
+class _ScriptRenameState extends State<_ScriptRename> {
+  late final TextEditingController _name = TextEditingController(
+    text: widget.script.name,
+  );
+  String _error = '';
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final name = _name.text.trim();
+    if (name.isEmpty) {
+      setState(
+        () => _error = Translations.of(context).serial.validate.needName,
+      );
+      return;
+    }
+    context.read<SerialConsoleCubit>().renameScript(widget.script.id, name);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final s = t.serial.script;
+    return SerialDialogFrame(
+      title: s.renameTitle,
+      body: Column(
+        children: [
+          _Row(
+            label: s.name,
+            child: SerialField(controller: _name, onSubmitted: (_) => _save()),
+          ),
+          SerialDialogError(message: _error),
+        ],
+      ),
+      actions: [
+        SerialButton(
+          label: t.common.cancel,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        SerialButton(label: t.common.save, primary: true, onPressed: _save),
+      ],
+    );
+  }
+}
+
 class _RuleEditor extends StatefulWidget {
   const _RuleEditor({this.existing});
 
@@ -478,6 +550,9 @@ class _RuleEditorState extends State<_RuleEditor> {
   late DataFormat _format = widget.existing?.format ?? DataFormat.hex;
   late bool _ignoreCase = widget.existing?.ignoreCase ?? false;
   late bool _enabled = widget.existing?.enabled ?? true;
+  bool _tutorOpen = false;
+  String? _openLesson = 'wild';
+  String? _wroteLesson;
   late final List<_Pair> _rows = [
     for (final reply
         in widget.existing?.replies ?? const [ReplyStep(data: '', delayMs: 50)])
@@ -565,6 +640,31 @@ class _RuleEditorState extends State<_RuleEditor> {
       ),
     );
     Navigator.of(context).pop();
+  }
+
+  void _fillLesson(ReplyLesson lesson) {
+    final name = replyLessonCopy(Translations.of(context), lesson.key).name;
+    setState(() {
+      _name.text = name;
+      _kind = lesson.kind;
+      _format = lesson.format;
+      _match = lesson.match;
+      _ignoreCase = lesson.ignoreCase;
+      _pattern.text = lesson.pattern;
+      for (final row in _rows) {
+        row.dispose();
+      }
+      _rows
+        ..clear()
+        ..addAll([
+          for (final reply in lesson.replies)
+            _Pair('${reply.delayMs}', reply.data),
+        ]);
+      _enabled = true;
+      _wroteLesson = lesson.key;
+      _openLesson = lesson.key;
+      _error = '';
+    });
   }
 
   @override
@@ -689,6 +789,22 @@ class _RuleEditorState extends State<_RuleEditor> {
         ),
         SerialButton(label: t.common.save, primary: true, onPressed: _save),
       ],
+      titleTrailing: SerialButton(
+        label: r.tutor,
+        small: true,
+        primary: _tutorOpen,
+        onPressed: () => setState(() => _tutorOpen = !_tutorOpen),
+      ),
+      side: _tutorOpen
+          ? ReplyTutorRail(
+              openKey: _openLesson,
+              wroteKey: _wroteLesson,
+              onToggle: (key) => setState(() {
+                _openLesson = _openLesson == key ? null : key;
+              }),
+              onFill: _fillLesson,
+            )
+          : null,
     );
   }
 }

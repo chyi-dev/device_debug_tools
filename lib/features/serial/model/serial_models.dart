@@ -14,7 +14,10 @@ enum MatchMode { prefix, frame, contains, suffix }
 
 enum MatchKind { template, regex }
 
-enum ToolTab { quick, batch, reply, history, calc }
+enum ToolTab { quick, batch, reply, history, calc, script }
+
+/// 脚本钩子：收到一包数据后 / 数据发出前。
+enum ScriptHook { onReceive, beforeSend }
 
 enum LogDir { rx, tx, sys }
 
@@ -27,6 +30,8 @@ enum SysLogKind {
   batchDone,
   batchFail,
   batchStopped,
+  scriptBlocked,
+  scriptFailed,
 }
 
 enum EncodeError { empty, badHex }
@@ -63,6 +68,10 @@ enum SerialNoticeKind {
   batchRunning,
   batchEnded,
   ruleToggled,
+  scriptToggled,
+  scriptSaved,
+  lessonCreated,
+  lessonTried,
   deleted,
   quickSaved,
   folderSaved,
@@ -551,6 +560,137 @@ class HistoryEntry {
   }
 }
 
+class LuaScript {
+  const LuaScript({
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.enabled,
+  });
+
+  final String id;
+  final String name;
+  final String code;
+
+  /// 只控制自动运行；停用时仍可手动运行。
+  final bool enabled;
+
+  LuaScript copyWith({String? name, String? code, bool? enabled}) => LuaScript(
+    id: id,
+    name: name ?? this.name,
+    code: code ?? this.code,
+    enabled: enabled ?? this.enabled,
+  );
+
+  Map<String, Object> toJson() => {
+    'id': id,
+    'name': name,
+    'code': code,
+    'enabled': enabled,
+  };
+
+  static LuaScript? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final name = raw['name']?.toString().trim() ?? '';
+    if (name.isEmpty) return null;
+    return LuaScript(
+      id: _id(raw['id'], 's'),
+      name: name,
+      code: raw['code']?.toString() ?? '',
+      enabled: raw['enabled'] == true,
+    );
+  }
+
+  static const presets = [
+    LuaScript(
+      id: 's1',
+      name: 'parse_sensor.lua',
+      enabled: true,
+      code:
+          '-- 收到 A5 5A 03 帧后解析温湿度\n'
+          'function on_receive(frame)\n'
+          '  if frame:starts_with(0xA5, 0x5A, 0x03) then\n'
+          '    local t = frame:u16(4) / 10\n'
+          '    local h = frame:u16(6) / 10\n'
+          '    log(string.format("temp=%.1f℃ hum=%.1f%%", t, h))\n'
+          '  end\n'
+          'end\n',
+    ),
+    LuaScript(
+      id: 's2',
+      name: 'add_checksum.lua',
+      enabled: false,
+      code:
+          '-- 发送前拦截：帧尾追加 SUM8 后再发出\n'
+          '-- 返回 nil 表示拦截，这一帧不发送\n'
+          'function before_send(frame)\n'
+          '  return frame:append(sum8(frame))\n'
+          'end\n',
+    ),
+  ];
+
+  static const template =
+      '-- 新脚本：收到数据时运行\n'
+      'function on_receive(frame)\n'
+      '  log(frame:hex())\n'
+      'end\n';
+}
+
+/// 脚本编译结果与输出次数，不持久化。
+class ScriptMeta {
+  const ScriptMeta({this.hooks = const {}, this.error, this.outputs = 0});
+
+  final Set<ScriptHook> hooks;
+  final String? error;
+  final int outputs;
+
+  ScriptMeta copyWith({int? outputs}) =>
+      ScriptMeta(hooks: hooks, error: error, outputs: outputs ?? this.outputs);
+}
+
+enum ScriptLogKind {
+  /// 脚本里 log() 的原样输出。
+  output,
+  error,
+
+  /// before_send 改写了帧。
+  changed,
+  blocked,
+  dryRun,
+  dryBlocked,
+  manualRx,
+  noRx,
+  badTx,
+  noHook,
+  tooLong,
+
+  /// 教程「样例试跑」的起始行，后面跟这段代码的输出。
+  lessonTry,
+}
+
+class ScriptLogEntry {
+  const ScriptLogEntry({
+    required this.time,
+    required this.name,
+    required this.kind,
+    this.text = '',
+    this.from = '',
+    this.to = '',
+  });
+
+  final DateTime time;
+  final String name;
+  final ScriptLogKind kind;
+  final String text;
+  final String from;
+  final String to;
+
+  bool get isError =>
+      kind == ScriptLogKind.error ||
+      kind == ScriptLogKind.tooLong ||
+      kind == ScriptLogKind.badTx;
+}
+
 class PickedBytes {
   const PickedBytes({required this.name, required this.bytes});
 
@@ -600,6 +740,7 @@ class SerialWorkspace {
     required this.batch,
     required this.selectedBatchId,
     required this.history,
+    required this.scripts,
   });
 
   final String? portName;
@@ -633,6 +774,7 @@ class SerialWorkspace {
   final List<BatchJob> batch;
   final String? selectedBatchId;
   final List<HistoryEntry> history;
+  final List<LuaScript> scripts;
 
   static SerialWorkspace defaults() => SerialWorkspace(
     portName: null,
@@ -666,6 +808,7 @@ class SerialWorkspace {
     batch: const [],
     selectedBatchId: null,
     history: const [],
+    scripts: LuaScript.presets,
   );
 
   Map<String, Object?> toJson() => {
@@ -700,6 +843,7 @@ class SerialWorkspace {
     'batch': batch.map((b) => b.toJson()).toList(),
     'selectedBatchId': selectedBatchId,
     'history': history.map((h) => h.toJson()).toList(),
+    'scripts': scripts.map((s) => s.toJson()).toList(),
   };
 
   static SerialWorkspace? fromJson(Object? raw) {
@@ -714,6 +858,7 @@ class SerialWorkspace {
     final rules = listOf(raw['rules'], ReplyRule.fromJson);
     final batch = listOf(raw['batch'], BatchJob.fromJson);
     final history = listOf(raw['history'], HistoryEntry.fromJson);
+    final scripts = listOf(raw['scripts'], LuaScript.fromJson);
     return SerialWorkspace(
       portName: raw['portName']?.toString(),
       baud: _int(raw['baud'], fallback: base.baud),
@@ -748,6 +893,7 @@ class SerialWorkspace {
       selectedBatchId:
           raw['selectedBatchId']?.toString() ?? base.selectedBatchId,
       history: history,
+      scripts: raw.containsKey('scripts') ? scripts : base.scripts,
     );
   }
 }

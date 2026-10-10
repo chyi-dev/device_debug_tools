@@ -6,7 +6,9 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const engine = readFileSync(join(root, 'src', 'engine.js'), 'utf8');
+const tutor = readFileSync(join(root, 'src', 'reply-tutor.js'), 'utf8');
 const html = readFileSync(join(root, 'src', 'serial-console.html'), 'utf8')
-  .replace('<!-- @engine -->', () => `<script>\n${engine}</script>`);
+  .replace('<!-- @engine -->', () => `<script>\n${engine}</script>`)
+  .replace('<!-- @reply-tutor -->', () => `<script>\n${tutor}</script>`);
 writeFileSync(join(root, 'serial-console.html'), html);
 console.log('built', join(root, 'serial-console.html'));

@@ -1,0 +1,10 @@
+/* 版 C：上面只留课名，下面固定一块「收到 → 将发出」，不在列表里展开。 */
+.rscroll{overflow:auto;max-height:42%;border-bottom:1px solid var(--line)}
+.rail .glab{padding:6px 14px 2px}
+.lrow{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line2);background:transparent;padding:4px 14px}
+.lrow:hover,.lrow.on{background:var(--hover)}
+.lrow .ti{display:flex;gap:8px;align-items:baseline;font-size:14px}
+.lrow.on .ti{font-weight:600}
+.lrow .no{flex:none;width:16px;font:600 12px var(--mono);color:var(--muted);text-align:right}
+.detail{flex:1;min-height:0;overflow:auto;padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;background:var(--panel)}
+.detail h4{font-size:14px;font-weight:600}

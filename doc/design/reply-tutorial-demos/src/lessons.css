@@ -1,0 +1,33 @@
+/* 规则编辑器加宽：左表单，右教程。颜色只用调试台已有 token。 */
+.dialog.wide{width:min(1040px,96vw);height:min(800px,92vh)}
+.dialog .body.split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:0;padding:0;overflow:hidden}
+.ruleform{min-width:0;min-height:0;overflow:auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.ruleform .hot{outline:1px solid var(--accent);outline-offset:1px;border-radius:4px}
+.rail{min-width:0;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--win)}
+.railhead{padding:12px 14px 10px;border-bottom:1px solid var(--line2)}
+.railhead b{display:block;font-size:14px;font-weight:600}
+.railhead span{display:block;margin-top:2px;font-size:12px;line-height:1.5;color:var(--muted)}
+.glab{padding:10px 14px 4px;font-size:12px;font-weight:600;color:var(--muted)}
+.tuttext{margin:0;font-size:14px;line-height:1.6;text-wrap:pretty}
+.recipe{font:13px/1.5 var(--mono);color:var(--text);overflow-wrap:anywhere}
+.strip{display:flex;flex-direction:column;gap:6px}
+.slab{font-size:12px;color:var(--muted)}
+.bytes{display:flex;flex-wrap:wrap;gap:4px}
+.bytes span{min-width:40px;padding:4px 6px 3px;background:var(--field);border:1px solid var(--line);border-radius:4px;font:600 13px/1.2 var(--mono);text-align:center;color:var(--text)}
+.bytes span small{display:block;margin-top:3px;font:400 12px/1.2 var(--sans);color:var(--muted)}
+.bytes span.cap{background:var(--mark);border-color:transparent}
+.bytes span.cap small{color:var(--text)}
+.bytes span.dim{color:var(--muted);font-weight:500}
+.snote{margin:0;font-size:12px;line-height:1.5;color:var(--muted);text-wrap:pretty}
+.tx{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:8px;align-items:baseline}
+.tx code{font:600 13px var(--mono);color:var(--log-tx)}
+.tx .ms{font:12px var(--mono);color:var(--muted)}
+.tx .from{grid-column:2;font-size:12px;color:var(--muted)}
+.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.cmp th,.cmp td{text-align:left;padding:4px 6px 4px 0;border-bottom:1px solid var(--line2);font-weight:400}
+.cmp th{font-size:12px;color:var(--muted);font-weight:600}
+.cmp th.hex{font-family:var(--mono);font-weight:500}
+.cmp td.yes{font-weight:600}
+.cmp td.no{color:var(--muted)}
+.wrote{margin:0;font-size:12px;line-height:1.5;color:var(--accent)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}

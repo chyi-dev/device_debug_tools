@@ -88,3 +88,50 @@
 
 - 源文件：`icon/app_icon.svg`（≥32px）、`icon/app_icon_small.svg`（16、24px，波形简化为单个脉冲）。
 - 导出：`icon/export.mjs` → `windows/runner/resources/app_icon.ico` 与 `macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_*.png`。
+
+---
+
+# 脚本页「Lua 教程」方向确认
+
+## 展示的三版初稿
+
+六课内容相同（钩子、打印、认帧头、补校验、拦截、Modbus CRC），只换教程的位置与操作。源文件 `tutorial-demos/src/`，`tutorial-demos/build.mjs` 生成，`tutorial-demos/shoot.mjs` 截图。
+
+| 方向 | 文件 | 截图 |
+|---|---|---|
+| A · 课表：脚本页顶部切「我的脚本 / 教程」，点课展开，「用这课新建脚本」「样例试跑」 | `tutorial-demos/list.html` | `tutorial-demos/list.png` |
+| B · 课本：停靠区运行日志旁加「教程」，一页一课，可插入编辑器 | `tutorial-demos/book.html` | `tutorial-demos/book.png` |
+| C · 选题新建：「新建」选课卡片；右栏说明换成可插入的片段 | `tutorial-demos/pick.html` | `tutorial-demos/pick.png`、`tutorial-demos/pick-new.png` |
+
+## 用户选择
+
+在「A 课表 / B 课本 / C 选题新建 / B+C 混搭」中选了 **A 课表**。
+
+## 落地
+
+- 课表并入主稿脚本页；样例试跑把该课样例帧交给脚本引擎，不往串口写。
+- 规则写入 `design.md` 工具面板一节。
+
+---
+
+# 自动应答「规则教程」方向确认
+
+## 展示的三版初稿
+
+七课内容相同（模板四课、正则三课），只换教程在规则对话框右侧的展开方式。源文件 `reply-tutorial-demos/src/`，`reply-tutorial-demos/build.mjs` 生成，`reply-tutorial-demos/shoot.mjs` 截图。
+
+| 方向 | 文件 | 截图 |
+|---|---|---|
+| A · 课表：右侧列表点一课就地展开说明、字节格和将发出的 HEX，可填入左边表单 | `reply-tutorial-demos/list.html` | `reply-tutorial-demos/list.png` |
+| B · 分步：课名索引加三步（看收到、写入匹配、写入应答） | `reply-tutorial-demos/steps.html` | `reply-tutorial-demos/steps.png` |
+| C · 对照：课名索引加固定的收到 / 将发出对照条 | `reply-tutorial-demos/trace.html` | `reply-tutorial-demos/trace.png` |
+
+## 用户选择
+
+> 按照A · 课表实现
+
+## 落地
+
+- 新增 / 编辑应答规则对话框左右分栏：左表单、右课表。课在 `lib/features/serial/model/reply_lessons.dart`，文案走 slang `serial.reply.lessons.<key>`。
+- 「填入编辑器」只写表单，不保存。设计稿由 `src/reply-tutor.js` 在打开规则对话框时挂上同一课表。
+- 规则写入 `design.md` 工具面板「自动应答」一行。

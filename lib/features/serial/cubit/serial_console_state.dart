@@ -50,6 +50,13 @@ class SerialConsoleState {
     required this.selectedBatchId,
     required this.batchRun,
     required this.history,
+    required this.scripts,
+    required this.scriptMeta,
+    required this.scriptLog,
+    required this.selectedScriptId,
+    required this.scriptDock,
+    required this.scriptTutorial,
+    required this.openLesson,
     required this.hint,
     required this.toast,
   });
@@ -101,6 +108,13 @@ class SerialConsoleState {
       selectedBatchId: ws.selectedBatchId,
       batchRun: null,
       history: ws.history,
+      scripts: ws.scripts,
+      scriptMeta: const {},
+      scriptLog: const [],
+      selectedScriptId: ws.scripts.isEmpty ? null : ws.scripts.first.id,
+      scriptDock: true,
+      scriptTutorial: false,
+      openLesson: 'hooks',
       hint: const SerialNotice(id: 0, kind: SerialNoticeKind.ready),
       toast: null,
     );
@@ -150,8 +164,31 @@ class SerialConsoleState {
   final String? selectedBatchId;
   final BatchProgress? batchRun;
   final List<HistoryEntry> history;
+  final List<LuaScript> scripts;
+  final Map<String, ScriptMeta> scriptMeta;
+  final List<ScriptLogEntry> scriptLog;
+  final String? selectedScriptId;
+
+  /// 用户是否展开了中间列的脚本编辑区；仅在脚本页签下生效。
+  final bool scriptDock;
+
+  /// 脚本页签显示「教程」课表而不是脚本列表。
+  final bool scriptTutorial;
+
+  /// 课表里展开的那一课（`ScriptLesson.key`），null 表示全部收起。
+  final String? openLesson;
   final SerialNotice hint;
   final SerialNotice? toast;
+
+  LuaScript? get selectedScript {
+    for (final script in scripts) {
+      if (script.id == selectedScriptId) return script;
+    }
+    return scripts.isEmpty ? null : scripts.first;
+  }
+
+  bool get scriptDockVisible =>
+      toolsVisible && tab == ToolTab.script && scriptDock && scripts.isNotEmpty;
 
   /// 状态栏固定英文标记：`COM3 OPENED, 115200, N, 8, 1, NONE`。
   String get connectionLabel {
@@ -206,6 +243,7 @@ class SerialConsoleState {
     batch: batch,
     selectedBatchId: selectedBatchId,
     history: history,
+    scripts: scripts,
   );
 
   SerialConsoleState copyWith({
@@ -253,6 +291,13 @@ class SerialConsoleState {
     Object? selectedBatchId = _keep,
     Object? batchRun = _keep,
     List<HistoryEntry>? history,
+    List<LuaScript>? scripts,
+    Map<String, ScriptMeta>? scriptMeta,
+    List<ScriptLogEntry>? scriptLog,
+    Object? selectedScriptId = _keep,
+    bool? scriptDock,
+    bool? scriptTutorial,
+    Object? openLesson = _keep,
     SerialNotice? hint,
     Object? toast = _keep,
   }) {
@@ -303,6 +348,15 @@ class SerialConsoleState {
           : selectedBatchId as String?,
       batchRun: batchRun == _keep ? this.batchRun : batchRun as BatchProgress?,
       history: history ?? this.history,
+      scripts: scripts ?? this.scripts,
+      scriptMeta: scriptMeta ?? this.scriptMeta,
+      scriptLog: scriptLog ?? this.scriptLog,
+      selectedScriptId: selectedScriptId == _keep
+          ? this.selectedScriptId
+          : selectedScriptId as String?,
+      scriptDock: scriptDock ?? this.scriptDock,
+      scriptTutorial: scriptTutorial ?? this.scriptTutorial,
+      openLesson: openLesson == _keep ? this.openLesson : openLesson as String?,
       hint: hint ?? this.hint,
       toast: toast == _keep ? this.toast : toast as SerialNotice?,
     );

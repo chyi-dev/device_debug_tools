@@ -8,6 +8,7 @@ import 'package:device_debug_tools/features/serial/data/serial_bytes.dart';
 import 'package:device_debug_tools/features/serial/data/serial_file_gateway.dart';
 import 'package:device_debug_tools/features/serial/data/serial_port_gateway.dart';
 import 'package:device_debug_tools/features/serial/data/serial_workspace_store.dart';
+import 'package:device_debug_tools/features/serial/model/script_lessons.dart';
 import 'package:device_debug_tools/features/serial/model/serial_models.dart';
 import 'package:device_debug_tools/features/serial/repository/serial_console_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -235,6 +236,162 @@ void main() {
       await cubit.importQuick();
       expect(cubit.state.quick.single, isA<QuickCommand>());
       expect(cubit.state.quick.commands.single.key, 'F3');
+    });
+  });
+
+  group('Lua 脚本', () {
+    String idOf(String name) =>
+        cubit.state.scripts.firstWhere((s) => s.name == name).id;
+
+    test('预置脚本：on_receive 解析温湿度写入运行日志', () async {
+      expect(cubit.state.scripts.map((s) => s.name), [
+        'parse_sensor.lua',
+        'add_checksum.lua',
+      ]);
+      final meta = cubit.state.scriptMeta[idOf('parse_sensor.lua')]!;
+      expect(meta.hooks, {ScriptHook.onReceive});
+      await cubit.toggleOpen();
+      ports.emit(
+        Uint8List.fromList([0xA5, 0x5A, 0x03, 0x00, 0xF6, 0x02, 0x09]),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      final log = cubit.state.scriptLog.single;
+      expect(log.kind, ScriptLogKind.output);
+      expect(log.text, 'temp=24.6℃ hum=52.1%');
+      expect(cubit.state.scriptMeta[idOf('parse_sensor.lua')]!.outputs, 1);
+    });
+
+    test('before_send 改写所有发送路径的帧', () async {
+      cubit.toggleScript(idOf('add_checksum.lua'));
+      await cubit.toggleOpen();
+      cubit.setTxText('A5 01 00 00 01');
+      await cubit.sendFromEditor();
+      expect(SerialBytes.toHex(ports.written.single), 'A5 01 00 00 01 A7');
+      final tx = cubit.state.lines.lastWhere((l) => l.dir == LogDir.tx);
+      expect(SerialBytes.toHex(tx.bytes!), 'A5 01 00 00 01 A7');
+      expect(cubit.state.history.first.text, 'A5 01 00 00 01');
+      expect(cubit.state.scriptLog.last.kind, ScriptLogKind.changed);
+    });
+
+    test('before_send 返回 nil 拦截，出错也拦截', () async {
+      cubit.newScript();
+      final id = cubit.state.selectedScriptId!;
+      cubit.setScriptCode(
+        id,
+        'function before_send(f)\n'
+        '  if f:u8(1) == 0xFF then return nil end\n'
+        '  if f:u8(1) == 0xEE then error("bad") end\n'
+        '  return f\n'
+        'end',
+      );
+      cubit.toggleScript(id);
+      await cubit.toggleOpen();
+      cubit.setTxText('FF 01');
+      await cubit.sendFromEditor();
+      cubit.setTxText('EE 01');
+      await cubit.sendFromEditor();
+      cubit.setTxText('01 02');
+      await cubit.sendFromEditor();
+      expect(ports.written.map(SerialBytes.toHex), ['01 02']);
+      final sys = cubit.state.lines
+          .where((l) => l.dir == LogDir.sys)
+          .map((l) => l.sys)
+          .toList();
+      expect(sys, contains(SysLogKind.scriptBlocked));
+      expect(sys, contains(SysLogKind.scriptFailed));
+      expect(
+        cubit.state.scriptLog.where((e) => e.kind == ScriptLogKind.error),
+        hasLength(1),
+      );
+    });
+
+    test('手动运行 before_send 只试算不发送', () async {
+      await cubit.toggleOpen();
+      cubit.setTxText('A5 01 00 00 01');
+      cubit.runScript(idOf('add_checksum.lua'));
+      expect(ports.written, isEmpty);
+      final log = cubit.state.scriptLog.last;
+      expect(log.kind, ScriptLogKind.dryRun);
+      expect(log.to, 'A5 01 00 00 01 A7');
+    });
+
+    test('脚本随工作区 JSON 往返，旧数据补预置脚本', () {
+      final ws = cubit.state.toWorkspace();
+      final back = SerialWorkspace.fromJson(
+        jsonDecode(jsonEncode(ws.toJson())),
+      )!;
+      expect(back.scripts.map((s) => s.code), ws.scripts.map((s) => s.code));
+      expect(back.scripts.first.enabled, isTrue);
+      final legacy = SerialWorkspace.fromJson({'baud': 9600})!;
+      expect(legacy.scripts, hasLength(2));
+    });
+  });
+
+  group('Lua 教程', () {
+    List<ScriptLogEntry> tryLesson(String key) {
+      final before = cubit.state.scriptLog.length;
+      cubit.tryLesson(ScriptLesson.byKey(key)!);
+      return cubit.state.scriptLog.sublist(before);
+    }
+
+    test('每课样例试跑输出与说明一致，不发送也不计入脚本', () async {
+      await cubit.toggleOpen();
+      final meta = cubit.state.scriptMeta;
+      final outputs = {
+        for (final lesson in ScriptLesson.all)
+          lesson.key: [
+            for (final e in tryLesson(lesson.key))
+              if (e.kind == ScriptLogKind.output) e.text,
+          ],
+      };
+      expect(outputs, {
+        'hooks': ['收到 5 字节'],
+        'print': ['A5 5A 03 00 F6 02 09 03', '帧头 A5 5A', '末字节 3'],
+        'parse': ['温度 24.6℃ 湿度 52.1%'],
+        'checksum': <String>[],
+        'block': ['已拦截停止采集'],
+        'modbus': <String>[],
+      });
+      expect(cubit.state.scriptLog.where((e) => e.isError), isEmpty);
+      expect(ports.written, isEmpty);
+      expect(cubit.state.scriptMeta, meta);
+      expect(cubit.state.hint.kind, SerialNoticeKind.lessonTried);
+    });
+
+    test('before_send 课的试算结果', () {
+      final checksum = tryLesson('checksum');
+      expect(checksum.first.kind, ScriptLogKind.lessonTry);
+      expect(checksum.first.text, 'before_send');
+      expect(checksum.first.from, 'A5 01 00 00 01');
+      expect(checksum.last.kind, ScriptLogKind.dryRun);
+      expect(checksum.last.to, 'A5 01 00 00 01 A7');
+      expect(tryLesson('block').last.kind, ScriptLogKind.dryBlocked);
+      expect(tryLesson('modbus').last.to, '01 03 00 00 00 01 84 0A');
+    });
+
+    test('用课新建脚本：停用、选中、切回列表，重名加序号', () {
+      final lesson = ScriptLesson.byKey('parse')!;
+      cubit.setScriptTutorial(true);
+      cubit.newScriptFromLesson(lesson);
+      final first = cubit.state.selectedScript!;
+      expect(first.name, 'lesson3_parse.lua');
+      expect(first.code, lesson.code);
+      expect(first.enabled, isFalse);
+      expect(cubit.state.scriptTutorial, isFalse);
+      expect(cubit.state.scriptDock, isTrue);
+      expect(cubit.state.scriptMeta[first.id]!.hooks, {ScriptHook.onReceive});
+      expect(cubit.state.hint.kind, SerialNoticeKind.lessonCreated);
+
+      cubit.newScriptFromLesson(lesson);
+      expect(cubit.state.selectedScript!.name, 'lesson3_parse_2.lua');
+    });
+
+    test('课表展开与收起', () {
+      expect(cubit.state.openLesson, 'hooks');
+      cubit.toggleLesson('parse');
+      expect(cubit.state.openLesson, 'parse');
+      cubit.toggleLesson('parse');
+      expect(cubit.state.openLesson, isNull);
     });
   });
 

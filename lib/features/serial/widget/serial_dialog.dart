@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_spacing.dart';
@@ -26,25 +28,47 @@ class SerialDialogFrame extends StatelessWidget {
     required this.title,
     required this.body,
     required this.actions,
+    this.side,
+    this.titleTrailing,
   });
 
   final String title;
   final Widget body;
   final List<Widget> actions;
 
+  /// 标题行右侧的控件，例如应答规则的「教程」开关。
+  final Widget? titleTrailing;
+
+  /// 放在表单右侧，例如应答规则的课表。有侧栏时对话框加宽并撑到固定高度。
+  final Widget? side;
+
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     final cs = Theme.of(context).colorScheme;
-    final width = MediaQuery.sizeOf(context).width;
+    final screen = MediaQuery.sizeOf(context);
+    final tutor = side != null;
+    final dialogW = math.min(
+      screen.width * (tutor ? 0.96 : 0.92),
+      tutor ? SerialMetrics.dialogTutorWidth : SerialMetrics.dialogWidth,
+    );
+    final maxH = screen.height * (tutor ? 0.92 : 0.86);
+    final dialogH = tutor
+        ? math.min(SerialMetrics.dialogTutorHeight, maxH)
+        : null;
+    final railW = math.min(SerialMetrics.tutorRail, dialogW * 0.42);
+    final form = SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg + 2),
+      child: body,
+    );
     return Material(
       color: Colors.transparent,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: width * 0.92 < SerialMetrics.dialogWidth
-              ? width * 0.92
-              : SerialMetrics.dialogWidth,
-          maxHeight: MediaQuery.sizeOf(context).height * 0.86,
+          minWidth: tutor ? dialogW : 0,
+          maxWidth: dialogW,
+          minHeight: dialogH ?? 0,
+          maxHeight: dialogH ?? maxH,
         ),
         child: DecoratedBox(
           decoration: BoxDecoration(
@@ -53,7 +77,7 @@ class SerialDialogFrame extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: tutor ? MainAxisSize.max : MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
@@ -63,21 +87,41 @@ class SerialDialogFrame extends StatelessWidget {
                   AppSpacing.lg + 2,
                   AppSpacing.md + 2,
                 ),
-                child: Text(
-                  title,
-                  style: AppTextStyles.body(cs).copyWith(
-                    color: palette.text,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTextStyles.body(cs).copyWith(
+                          color: palette.text,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    ?titleTrailing,
+                  ],
                 ),
               ),
               Divider(height: 1, color: palette.line2),
               Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSpacing.lg + 2),
-                  child: body,
-                ),
+                child: tutor
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(child: form),
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: palette.win,
+                              border: Border(
+                                left: BorderSide(color: palette.line),
+                              ),
+                            ),
+                            child: SizedBox(width: railW, child: side),
+                          ),
+                        ],
+                      )
+                    : form,
               ),
               Divider(height: 1, color: palette.line2),
               Padding(

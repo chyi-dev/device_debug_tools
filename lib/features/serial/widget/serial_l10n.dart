@@ -1,4 +1,5 @@
 import '../../../i18n/i18n.dart';
+import '../model/reply_lessons.dart';
 import '../model/serial_models.dart';
 
 String serialNoticeText(Translations t, SerialNotice notice) {
@@ -45,6 +46,16 @@ String serialNoticeText(Translations t, SerialNotice notice) {
       args['enabled'] == true
           ? n.ruleOn(name: args['name'] ?? '')
           : n.ruleOff(name: args['name'] ?? ''),
+    SerialNoticeKind.scriptToggled =>
+      args['enabled'] == true
+          ? n.ruleOn(name: args['name'] ?? '')
+          : n.ruleOff(name: args['name'] ?? ''),
+    SerialNoticeKind.scriptSaved => n.scriptSaved,
+    SerialNoticeKind.lessonCreated => n.lessonCreated(
+      title: lessonText(t, '${args['lesson'] ?? ''}').title,
+      name: args['name'] ?? '',
+    ),
+    SerialNoticeKind.lessonTried => n.lessonTried,
     SerialNoticeKind.deleted => n.deleted,
     SerialNoticeKind.quickSaved => n.quickSaved,
     SerialNoticeKind.folderSaved => n.folderSaved,
@@ -91,9 +102,143 @@ String serialSysText(Translations t, LogLine line) {
     SysLogKind.batchDone => log.batchDone(name: args['name'] ?? ''),
     SysLogKind.batchFail => log.batchFail(step: args['step'] ?? 0),
     SysLogKind.batchStopped => log.batchStopped,
+    SysLogKind.scriptBlocked => log.scriptBlocked(name: args['name'] ?? ''),
+    SysLogKind.scriptFailed => log.scriptFailed(name: args['name'] ?? ''),
     null => '',
   };
 }
+
+String scriptLogText(Translations t, ScriptLogEntry entry) {
+  final s = t.serial.script;
+  return switch (entry.kind) {
+    ScriptLogKind.output || ScriptLogKind.error => entry.text,
+    ScriptLogKind.changed => s.changed(from: entry.from, to: entry.to),
+    ScriptLogKind.blocked => s.blocked(from: entry.from),
+    ScriptLogKind.dryRun => s.dryRun(from: entry.from, to: entry.to),
+    ScriptLogKind.dryBlocked => s.dryBlocked(from: entry.from),
+    ScriptLogKind.manualRx => s.manualRx(hex: entry.from),
+    ScriptLogKind.noRx => s.noRx,
+    ScriptLogKind.badTx => s.badTx,
+    ScriptLogKind.noHook => s.noHookLog,
+    ScriptLogKind.tooLong => s.tooLong,
+    ScriptLogKind.lessonTry => s.tried(hook: entry.text, hex: entry.from),
+  };
+}
+
+/// 应答课表一课的文案；key 见 `ReplyLesson.key`。
+({String title, String brief, String text, String name, String rxNote})
+replyLessonCopy(Translations t, String key) {
+  final l = t.serial.reply.lessons;
+  return switch (key) {
+    'order' => (
+      title: l.order.title,
+      brief: l.order.brief,
+      text: l.order.text,
+      name: l.order.name,
+      rxNote: l.order.rxNote,
+    ),
+    'place' => (
+      title: l.place.title,
+      brief: l.place.brief,
+      text: l.place.text,
+      name: l.place.name,
+      rxNote: l.place.rxNote,
+    ),
+    'wild' => (
+      title: l.wild.title,
+      brief: l.wild.brief,
+      text: l.wild.text,
+      name: l.wild.name,
+      rxNote: l.wild.rxNote,
+    ),
+    'ascii' => (
+      title: l.ascii.title,
+      brief: l.ascii.brief,
+      text: l.ascii.text,
+      name: l.ascii.name,
+      rxNote: l.ascii.rxNote,
+    ),
+    'reword' => (
+      title: l.reword.title,
+      brief: l.reword.brief,
+      text: l.reword.text,
+      name: l.reword.name,
+      rxNote: l.reword.rxNote,
+    ),
+    'groups' => (
+      title: l.groups.title,
+      brief: l.groups.brief,
+      text: l.groups.text,
+      name: l.groups.name,
+      rxNote: l.groups.rxNote,
+    ),
+    'reascii' => (
+      title: l.reascii.title,
+      brief: l.reascii.brief,
+      text: l.reascii.text,
+      name: l.reascii.name,
+      rxNote: l.reascii.rxNote,
+    ),
+    _ => (title: key, brief: '', text: '', name: key, rxNote: ''),
+  };
+}
+
+/// 字节格下方的短标签。捕获格直接显示 `$n`。
+String replyByteTag(Translations t, ReplyByte byte) {
+  final r = t.serial.reply;
+  return switch (byte.role) {
+    ReplyByteRole.capture => '\$${byte.cap}',
+    ReplyByteRole.fixed => r.tagFixed,
+    ReplyByteRole.ignore => r.tagIgnore,
+    ReplyByteRole.prefix => r.prefix,
+    ReplyByteRole.match => r.tagMatch,
+    ReplyByteRole.before => r.tagBefore,
+    ReplyByteRole.literal => r.tagLiteral,
+  };
+}
+
+/// 课表里那一行匹配式，如「整帧 HEX · A5 ?? *」。
+String replyRecipe(Translations t, ReplyLesson lesson) {
+  final r = t.serial.reply;
+  final format = lesson.format == DataFormat.ascii ? 'ASCII' : 'HEX';
+  if (lesson.kind == MatchKind.regex) {
+    return '${r.regex} $format · ${lesson.pattern}';
+  }
+  final fold = lesson.format == DataFormat.ascii && lesson.ignoreCase
+      ? ' ${r.ignoreCaseShort}'
+      : '';
+  return '${matchModeLabel(t, lesson.match)} $format$fold · ${lesson.pattern}';
+}
+
+/// 教程一课的标题、一句话概要与说明；key 见 `ScriptLesson.key`。
+({String title, String brief, String text}) lessonText(
+  Translations t,
+  String key,
+) {
+  final l = t.serial.script.lessons;
+  return switch (key) {
+    'hooks' => (title: l.hooks.title, brief: l.hooks.brief, text: l.hooks.text),
+    'print' => (title: l.print.title, brief: l.print.brief, text: l.print.text),
+    'parse' => (title: l.parse.title, brief: l.parse.brief, text: l.parse.text),
+    'checksum' => (
+      title: l.checksum.title,
+      brief: l.checksum.brief,
+      text: l.checksum.text,
+    ),
+    'block' => (title: l.block.title, brief: l.block.brief, text: l.block.text),
+    'modbus' => (
+      title: l.modbus.title,
+      brief: l.modbus.brief,
+      text: l.modbus.text,
+    ),
+    _ => (title: key, brief: '', text: ''),
+  };
+}
+
+String scriptHookName(ScriptHook hook) => switch (hook) {
+  ScriptHook.onReceive => 'on_receive',
+  ScriptHook.beforeSend => 'before_send',
+};
 
 String encodeErrorText(Translations t, EncodeError error) => switch (error) {
   EncodeError.badHex => t.serial.sendBox.badHex,

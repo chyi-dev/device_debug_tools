@@ -8,27 +8,40 @@ import '../../../core/exception/app_exception.dart';
 import '../../../core/logger/app_logger.dart';
 import '../../../core/logger/log_category.dart';
 import '../../../core/utils/debounce.dart';
+import '../data/lua_script_engine.dart';
 import '../data/packet_assembler.dart';
 import '../data/serial_bytes.dart';
 import '../data/serial_native_text.dart';
 import '../data/serial_stamp.dart';
+import '../model/script_lessons.dart';
 import '../model/serial_models.dart';
 import '../repository/serial_console_repository.dart';
 import '../serial_metrics.dart';
 import 'serial_console_state.dart';
 
 class SerialConsoleCubit extends Cubit<SerialConsoleState> {
-  SerialConsoleCubit({required SerialConsoleRepository repository})
-    : _repo = repository,
-      super(SerialConsoleState.initial());
+  SerialConsoleCubit({
+    required SerialConsoleRepository repository,
+    LuaScriptEngine? scriptEngine,
+  }) : _repo = repository,
+       _engine = scriptEngine ?? LuaScriptEngine(),
+       super(SerialConsoleState.initial());
 
   final SerialConsoleRepository _repo;
+  final LuaScriptEngine _engine;
   final Debouncer _persistDebounce = Debouncer(
     duration: const Duration(milliseconds: 400),
+  );
+  final Debouncer _scriptDebounce = Debouncer(
+    duration: const Duration(milliseconds: 300),
   );
   final PacketAssembler _assembler = PacketAssembler();
   final List<Timer> _replies = [];
   final List<String> _saveBuf = [];
+
+  /// 自动运行时已记录过编译错误的脚本 id → 代码，同一版代码只记一次。
+  final Map<String, String> _brokenLogged = {};
+  Uint8List? _lastRx;
 
   StreamSubscription<Uint8List>? _rxSub;
   Timer? _loop;
@@ -44,6 +57,7 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     if (saved != null) {
       _emit(_applyWorkspace(saved));
     }
+    _inspectScripts();
     _rxSub ??= _repo.incoming.listen(_onChunk, onError: _onPortError);
     try {
       await refreshPorts(announce: false);
@@ -60,6 +74,8 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
   @override
   Future<void> close() async {
     _persistDebounce.dispose();
+    _scriptDebounce.dispose();
+    _engine.dispose();
     _stopLoop(notify: false);
     _stopBatch(notify: false);
     _cancelReplies();
@@ -778,6 +794,201 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     _notify(SerialNoticeKind.deleted, toast: true, hint: false);
   }
 
+  void selectScript(String id) {
+    _emit(state.copyWith(selectedScriptId: id, scriptDock: true));
+  }
+
+  void setScriptDock(bool on) {
+    if (state.scriptDock == on) return;
+    _emit(state.copyWith(scriptDock: on));
+  }
+
+  void toggleScript(String id) {
+    final script = _scriptById(id);
+    if (script == null) return;
+    final enabled = !script.enabled;
+    _replaceScript(id, (item) => item.copyWith(enabled: enabled));
+    _notify(
+      SerialNoticeKind.scriptToggled,
+      args: {'name': script.name, 'enabled': enabled},
+    );
+  }
+
+  void newScript() {
+    final names = state.scripts.map((s) => s.name).toSet();
+    var n = state.scripts.length + 1;
+    while (names.contains('script$n.lua')) {
+      n++;
+    }
+    _addScript('script$n.lua', LuaScript.template);
+  }
+
+  void setScriptTutorial(bool on) {
+    if (state.scriptTutorial == on) return;
+    _emit(state.copyWith(scriptTutorial: on));
+  }
+
+  /// 展开一课；再点同一课收起。
+  void toggleLesson(String key) {
+    _emit(state.copyWith(openLesson: state.openLesson == key ? null : key));
+  }
+
+  /// 用这课的代码新建脚本（默认停用），切回脚本列表并打开编辑区。
+  void newScriptFromLesson(ScriptLesson lesson) {
+    final names = state.scripts.map((s) => s.name).toSet();
+    final stem = lesson.fileName.replaceFirst(RegExp(r'\.lua$'), '');
+    var name = lesson.fileName;
+    for (var n = 2; names.contains(name); n++) {
+      name = '${stem}_$n.lua';
+    }
+    final script = _addScript(name, lesson.code);
+    _emit(state.copyWith(scriptTutorial: false));
+    _notify(
+      SerialNoticeKind.lessonCreated,
+      args: {'lesson': lesson.key, 'name': script.name},
+    );
+  }
+
+  /// 样例试跑：把这课的样例帧交给它的代码，输出写进运行日志；不发送，也不计入任何脚本。
+  void tryLesson(ScriptLesson lesson) {
+    final sample = SerialBytes.parseHex(lesson.sample);
+    if (sample == null) return;
+    final probe = LuaScript(
+      id: 'lesson:${lesson.key}',
+      name: lesson.fileName,
+      code: lesson.code,
+      enabled: false,
+    );
+    final receive = lesson.hook == ScriptHook.onReceive;
+    final out = receive
+        ? _engine.receive(probe.id, probe.code, sample)
+        : _engine.beforeSend(probe.id, probe.code, sample);
+    _engine.forget(probe.id);
+    _scriptLogs(probe, [
+      _scriptEntry(
+        probe,
+        ScriptLogKind.lessonTry,
+        text: lesson.hookName,
+        from: SerialBytes.toHex(sample),
+      ),
+      ..._outcomeEntries(probe, out),
+      if (!receive && out.error == null) _dryRunEntry(probe, sample, out.bytes),
+    ]);
+    _emit(state.copyWith(scriptDock: true));
+    _notify(SerialNoticeKind.lessonTried);
+  }
+
+  LuaScript _addScript(String name, String code) {
+    var id = newSerialId('s');
+    while (state.scripts.any((s) => s.id == id)) {
+      id = newSerialId('s');
+    }
+    final script = LuaScript(id: id, name: name, code: code, enabled: false);
+    _emit(
+      state.copyWith(
+        scripts: [...state.scripts, script],
+        selectedScriptId: id,
+        scriptDock: true,
+        scriptMeta: {...state.scriptMeta, id: _inspect(script)},
+      ),
+    );
+    _persist();
+    return script;
+  }
+
+  void renameScript(String id, String name) {
+    final value = name.trim();
+    if (value.isEmpty) return;
+    _replaceScript(id, (item) => item.copyWith(name: value));
+    _notify(SerialNoticeKind.scriptSaved, toast: true, hint: false);
+  }
+
+  void deleteScript(String id) {
+    _engine.forget(id);
+    _brokenLogged.remove(id);
+    final scripts = state.scripts.where((s) => s.id != id).toList();
+    final selected = state.selectedScriptId == id
+        ? (scripts.isEmpty ? null : scripts.first.id)
+        : state.selectedScriptId;
+    _emit(
+      state.copyWith(
+        scripts: scripts,
+        selectedScriptId: selected,
+        scriptMeta: {...state.scriptMeta}..remove(id),
+      ),
+    );
+    _persist();
+    _notify(SerialNoticeKind.deleted, toast: true, hint: false);
+  }
+
+  /// 输入即保存；编译检查防抖，避免每次按键都重建虚拟机。
+  void setScriptCode(String id, String code) {
+    final script = _scriptById(id);
+    if (script == null || script.code == code) return;
+    _replaceScript(id, (item) => item.copyWith(code: code));
+    _scriptDebounce.run(() {
+      if (isClosed) return;
+      final current = _scriptById(id);
+      if (current == null) return;
+      _emit(
+        state.copyWith(
+          scriptMeta: {...state.scriptMeta, id: _inspect(current)},
+        ),
+      );
+    });
+  }
+
+  void clearScriptLog() {
+    _emit(state.copyWith(scriptLog: const []));
+  }
+
+  /// 手动运行：on_receive 用最近收到的一帧；before_send 用发送框内容试算，不发送。
+  void runScript(String id) {
+    final script = _scriptById(id);
+    if (script == null) return;
+    final meta = _inspect(script);
+    _emit(state.copyWith(scriptMeta: {...state.scriptMeta, id: meta}));
+    final error = meta.error;
+    if (error != null) {
+      _scriptLogs(script, [
+        _scriptEntry(script, ScriptLogKind.error, text: error),
+      ]);
+      return;
+    }
+    if (meta.hooks.isEmpty) {
+      _scriptLogs(script, [_scriptEntry(script, ScriptLogKind.noHook)]);
+      return;
+    }
+    if (meta.hooks.contains(ScriptHook.onReceive)) {
+      final rx = _lastRx;
+      if (rx == null) {
+        _scriptLogs(script, [_scriptEntry(script, ScriptLogKind.noRx)]);
+      } else {
+        final out = _engine.receive(script.id, script.code, rx);
+        _scriptLogs(script, [
+          _scriptEntry(
+            script,
+            ScriptLogKind.manualRx,
+            from: SerialBytes.toHex(rx),
+          ),
+          ..._outcomeEntries(script, out),
+        ]);
+      }
+    }
+    if (meta.hooks.contains(ScriptHook.beforeSend)) {
+      final sample = _txSample();
+      if (sample == null) {
+        _scriptLogs(script, [_scriptEntry(script, ScriptLogKind.badTx)]);
+        return;
+      }
+      final out = _engine.beforeSend(script.id, script.code, sample);
+      _scriptLogs(script, [
+        ..._outcomeEntries(script, out),
+        if (out.error == null) _dryRunEntry(script, sample, out.bytes),
+      ]);
+    }
+  }
+
   Future<void> exportQuick() => _exportJson(
     suggestedName: 'quick-commands.json',
     data: state.quick.map((item) => item.toJson()).toList(),
@@ -891,10 +1102,19 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
       _notify(SerialNoticeKind.badHex, toast: true, warn: true);
       return false;
     }
-    final bytes = encoded.bytes;
-    if (encoded.error == EncodeError.empty || bytes == null || bytes.isEmpty) {
+    final raw = encoded.bytes;
+    if (encoded.error == EncodeError.empty || raw == null || raw.isEmpty) {
       _notify(SerialNoticeKind.emptySend, toast: true, warn: true);
       return false;
+    }
+    final hooked = _sendHooks(raw);
+    final bytes = hooked.bytes;
+    if (bytes == null) {
+      _sys(hooked.failed ? SysLogKind.scriptFailed : SysLogKind.scriptBlocked, {
+        'name': hooked.by,
+      });
+      if (recordHistory) _remember(text);
+      return !hooked.failed;
     }
     try {
       await _repo.write(bytes);
@@ -914,8 +1134,191 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
 
   void _onPacket(Uint8List bytes) {
     if (isClosed) return;
+    _lastRx = bytes;
     _push(dir: LogDir.rx, bytes: bytes);
+    _receiveHooks(bytes);
     _matchRules(bytes);
+  }
+
+  void _receiveHooks(Uint8List bytes) {
+    for (final script in state.scripts) {
+      if (!script.enabled || !_compiles(script)) continue;
+      final out = _engine.receive(script.id, script.code, bytes);
+      final entries = _outcomeEntries(script, out);
+      if (entries.isNotEmpty) _scriptLogs(script, entries);
+    }
+  }
+
+  /// 按列表顺序串联已启用的 before_send；bytes 为 null 表示被拦截，[failed] 为脚本出错。
+  ({Uint8List? bytes, String by, bool failed}) _sendHooks(Uint8List bytes) {
+    var current = bytes;
+    for (final script in state.scripts) {
+      if (!script.enabled || !_compiles(script)) continue;
+      final out = _engine.beforeSend(script.id, script.code, current);
+      final entries = _outcomeEntries(script, out);
+      if (out.error != null) {
+        _scriptLogs(script, entries);
+        return (bytes: null, by: script.name, failed: true);
+      }
+      final next = out.bytes;
+      if (next == null || next.isEmpty) {
+        entries.add(
+          _scriptEntry(
+            script,
+            ScriptLogKind.blocked,
+            from: SerialBytes.toHex(current),
+          ),
+        );
+        _scriptLogs(script, entries);
+        return (bytes: null, by: script.name, failed: false);
+      }
+      if (!_sameBytes(next, current)) {
+        entries.add(
+          _scriptEntry(
+            script,
+            ScriptLogKind.changed,
+            from: SerialBytes.toHex(current),
+            to: SerialBytes.toHex(next),
+          ),
+        );
+      }
+      if (entries.isNotEmpty) _scriptLogs(script, entries);
+      current = next;
+    }
+    return (bytes: current, by: '', failed: false);
+  }
+
+  /// 编译失败的脚本不参与自动运行；同一版代码的错误只记一次运行日志。
+  bool _compiles(LuaScript script) {
+    final error = _engine.inspect(script.id, script.code).error;
+    if (error == null) return true;
+    if (_brokenLogged[script.id] != script.code) {
+      _brokenLogged[script.id] = script.code;
+      _scriptLogs(script, [
+        _scriptEntry(script, ScriptLogKind.error, text: error),
+      ]);
+    }
+    return false;
+  }
+
+  ScriptMeta _inspect(LuaScript script) {
+    final info = _engine.inspect(script.id, script.code);
+    return ScriptMeta(
+      hooks: info.hooks,
+      error: info.error,
+      outputs: state.scriptMeta[script.id]?.outputs ?? 0,
+    );
+  }
+
+  void _inspectScripts() {
+    _engine.retain(state.scripts.map((s) => s.id));
+    _emit(
+      state.copyWith(
+        scriptMeta: {for (final s in state.scripts) s.id: _inspect(s)},
+      ),
+    );
+  }
+
+  List<ScriptLogEntry> _outcomeEntries(LuaScript script, ScriptOutcome out) {
+    final error = out.error;
+    return [
+      for (final text in out.logs)
+        _scriptEntry(script, ScriptLogKind.output, text: text),
+      if (error != null)
+        out.tooLong
+            ? _scriptEntry(script, ScriptLogKind.tooLong)
+            : _scriptEntry(script, ScriptLogKind.error, text: error),
+    ];
+  }
+
+  ScriptLogEntry _scriptEntry(
+    LuaScript script,
+    ScriptLogKind kind, {
+    String text = '',
+    String from = '',
+    String to = '',
+  }) => ScriptLogEntry(
+    time: DateTime.now(),
+    name: script.name,
+    kind: kind,
+    text: text,
+    from: from,
+    to: to,
+  );
+
+  /// before_send 试算结果：改写后的帧，或拦截。
+  ScriptLogEntry _dryRunEntry(
+    LuaScript script,
+    Uint8List sample,
+    Uint8List? next,
+  ) => next == null || next.isEmpty
+      ? _scriptEntry(
+          script,
+          ScriptLogKind.dryBlocked,
+          from: SerialBytes.toHex(sample),
+        )
+      : _scriptEntry(
+          script,
+          ScriptLogKind.dryRun,
+          from: SerialBytes.toHex(sample),
+          to: SerialBytes.toHex(next),
+        );
+
+  void _scriptLogs(LuaScript script, List<ScriptLogEntry> entries) {
+    if (entries.isEmpty) return;
+    final log = [...state.scriptLog, ...entries];
+    if (log.length > SerialMetrics.scriptLogLimit) {
+      log.removeRange(0, log.length - SerialMetrics.scriptLogLimit);
+    }
+    // 教程试跑用的临时脚本不在列表里，不记输出次数
+    final known = _scriptById(script.id) != null;
+    final meta = state.scriptMeta[script.id] ?? const ScriptMeta();
+    _emit(
+      state.copyWith(
+        scriptLog: log,
+        scriptMeta: known
+            ? {
+                ...state.scriptMeta,
+                script.id: meta.copyWith(
+                  outputs: meta.outputs + entries.length,
+                ),
+              }
+            : null,
+      ),
+    );
+  }
+
+  Uint8List? _txSample() {
+    final file = state.fileBytes;
+    if (file != null) return file;
+    final bytes = SerialBytes.encode(
+      text: state.txText,
+      format: state.txFormat,
+      escape: state.escape,
+      atCrlf: state.atCrlf,
+      crlf: state.crlf,
+      checksum: state.checksum,
+    ).bytes;
+    return bytes == null || bytes.isEmpty ? null : bytes;
+  }
+
+  LuaScript? _scriptById(String id) {
+    for (final script in state.scripts) {
+      if (script.id == id) return script;
+    }
+    return null;
+  }
+
+  void _replaceScript(String id, LuaScript Function(LuaScript s) update) {
+    _emit(
+      state.copyWith(
+        scripts: [
+          for (final script in state.scripts)
+            if (script.id == id) update(script) else script,
+        ],
+      ),
+    );
+    _persist();
   }
 
   void _matchRules(Uint8List bytes) {
@@ -1237,6 +1640,8 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
       batch: ws.batch,
       selectedBatchId: ws.selectedBatchId,
       history: ws.history,
+      scripts: ws.scripts,
+      selectedScriptId: ws.scripts.isEmpty ? null : ws.scripts.first.id,
     );
   }
 
@@ -1287,6 +1692,14 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
       args: {'detail': error.message},
     );
   }
+}
+
+bool _sameBytes(List<int> a, List<int> b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }
 
 T? _byId<T>(List<T> items, String id) {

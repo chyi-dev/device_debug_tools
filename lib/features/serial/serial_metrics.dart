@@ -19,6 +19,9 @@ abstract final class SerialMetrics {
   static const double labelCol = 62;
   static const double searchWidth = 220;
   static const double dialogWidth = 640;
+  static const double dialogTutorWidth = 1040;
+  static const double dialogTutorHeight = 800;
+  static const double tutorRail = 372;
   static const double controlRadius = 4;
   static const double menuMaxWidth = 320;
   static const double menuMaxHeight = 320;
@@ -26,6 +29,9 @@ abstract final class SerialMetrics {
   static const double pin = 8;
   static const double statusLamp = 9;
   static const double formGap = 5;
+  static const double scriptDock = 312;
+  static const double scriptLog = 380;
+  static const int scriptLogLimit = 200;
   static const int logLimit = 500;
   static const int historyLimit = 12;
   static const int filePreviewBytes = 256;

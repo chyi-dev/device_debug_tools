@@ -497,11 +497,17 @@ var Serial = (function () {
     scriptOut(s, hex(sample) + ' → ' + hex(s.action === 'checksum' ? sample.concat([sum8(sample)]) : sample) + '（试算，未发送）');
   }
   function toggleScript(id) { var s = byId(state.scripts, id); s.enabled = !s.enabled; emit('script', 'list'); return s; }
-  function newScript() {
-    var s = { id: 's' + Date.now().toString(36), name: 'script' + (state.scripts.length + 1) + '.lua', action: 'custom', enabled: false, runs: 0, last: '',
-      code: '-- 新脚本：收到数据时运行\nfunction on_receive(frame)\n  log(frame:hex())\nend' };
+  function newScript(name, code) {
+    var s = { id: 's' + Date.now().toString(36), name: name || 'script' + (state.scripts.length + 1) + '.lua', action: 'custom', enabled: false, runs: 0, last: '',
+      code: code || '-- 新脚本：收到数据时运行\nfunction on_receive(frame)\n  log(frame:hex())\nend' };
     state.scripts.push(s); emit('script', 'list');
     return s;
+  }
+  // 教程样例试跑等不属于某个脚本的输出
+  function logScript(name, text, err) {
+    state.scriptLog.push({ time: new Date(), name: name, text: text, err: !!err });
+    if (state.scriptLog.length > 200) state.scriptLog.shift();
+    emit('script', 'log');
   }
   function clearScriptLog() { state.scriptLog.length = 0; emit('script', 'log'); }
 
@@ -538,7 +544,7 @@ var Serial = (function () {
     open: open, close: close, toggle: toggle, configure: configure, portLabel: portLabel, frameFormat: frameFormat,
     send: send, sendRepeat: sendRepeat, stopLoop: stopLoop, encode: encode,
     fireRule: fireRule, captureCount: captureCount, runBatch: runBatch, stopBatch: stopBatch,
-    runScript: runScript, toggleScript: toggleScript, newScript: newScript, clearScriptLog: clearScriptLog, scriptHook: scriptHook,
+    runScript: runScript, toggleScript: toggleScript, newScript: newScript, logScript: logScript, clearScriptLog: clearScriptLog, scriptHook: scriptHook,
     clear: clear, saveLog: saveLog, exportRules: exportRules, logText: logText, seed: seed,
     hex: hex, ascii: ascii, parseHex: parseHex, textBytes: textBytes, dissect: dissect, stamp: stamp,
     sum8: sum8, xor8: xor8, lrc: lrc, crc8: crc8, crc16: crc16, crc32: crc32,

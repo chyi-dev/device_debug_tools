@@ -1,0 +1,12 @@
+.subhead{display:flex;align-items:baseline;gap:8px;padding:12px 10px 6px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line2)}
+.subhead b{font-size:13px;color:var(--text)}
+.it.snip .dt{display:flex;gap:6px;align-items:center;font-family:var(--sans)}
+.dialog.wide{width:min(980px,94vw)}
+.tcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tcard{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--line);border-radius:6px;background:var(--field);padding:10px;min-width:0}
+.tcard:hover{background:var(--hover)}
+.tcard.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tchead{display:flex;gap:6px;align-items:center}
+.tchead b{font-size:14px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcbrief{font-size:12px;color:var(--muted)}
+.tcard .tutcode{max-height:120px;overflow:hidden;font-size:12px}

@@ -131,7 +131,9 @@
       "batchRounds": " × $rounds 轮",
       "batchDone": "批量任务「$name」完成",
       "batchFail": "第 $step 步失败，任务停止",
-      "batchStopped": "批量任务已手动停止"
+      "batchStopped": "批量任务已手动停止",
+      "scriptBlocked": "脚本「$name」返回 nil，这一帧已拦截，未发送",
+      "scriptFailed": "脚本「$name」出错，这一帧未发送，详见脚本运行日志"
     },
     "sendBox": {
       "send": "发送",
@@ -147,7 +149,80 @@
       "batch": "批量发送",
       "reply": "自动应答",
       "history": "历史发送",
-      "calc": "校验计算"
+      "calc": "校验计算",
+      "script": "脚本"
+    },
+    "script": {
+      "note": "已启用 $enabled / $total",
+      "add": "新建",
+      "waiting": "等待触发",
+      "off": "已停用",
+      "outputs": "已输出 $count 次",
+      "broken": "有错误",
+      "noHook": "无钩子",
+      "explain": "Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。\n点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。\n不会写？切到「教程」，六课从收数据讲到补 CRC。",
+      "mine": "我的脚本 $count",
+      "tutorial": "教程",
+      "lessonNew": "用这课新建脚本",
+      "lessonTry": "样例试跑",
+      "lessonSample": "样例帧 $hex",
+      "tutorialNote": "下标从 1 开始；0x 写法可以直接用；死循环会被自动中止，os.execute 等危险函数已移除。\n「样例试跑」把这课的样例帧交给代码，输出写进运行日志，不会发数据。",
+      "tried": "样例试跑 · $hook ← $hex",
+      "lessons": {
+        "hooks": {
+          "title": "脚本什么时候运行",
+          "brief": "两个钩子：收到数据后、发送数据前",
+          "text": "写一个叫 on_receive 的函数，每收到一包数据就会调用它，frame 是这一包的字节。写 before_send 则在每一帧发出前调用（发送、快捷指令、批量、自动应答都算），返回的帧才会真正发出。开关只控制自动运行；「运行」是用最近一帧或发送框内容试算，不会发数据。"
+        },
+        "print": {
+          "title": "把一帧打印出来",
+          "brief": "log 输出到运行日志，帧会显示成 HEX",
+          "text": "log 把内容写到运行日志，多个参数用空格连起来；print 和 log 是同一个函数。直接传入帧会显示成 HEX，frame:sub(i, j) 取第 i 到第 j 字节，frame:str() 按 ASCII 转成文字。"
+        },
+        "parse": {
+          "title": "认帧头、取数值",
+          "brief": "starts_with 判断帧头，u16 读两字节整数",
+          "text": "frame:starts_with(0xA5, 0x5A, 0x03) 判断帧头；不是要的帧就 return 跳过。下标从 1 开始：u8(i) 读第 i 字节，u16(i) 把第 i、i+1 字节按大端拼成整数，小端用 u16le(i)。"
+        },
+        "checksum": {
+          "title": "发送前补校验",
+          "brief": "before_send 返回改过的帧，append 追加字节",
+          "text": "before_send 收到即将发出的帧，返回什么就发什么。frame:append(...) 返回在末尾追加字节后的新帧；sum8 是累加和，xor8 是异或（BCC）。"
+        },
+        "block": {
+          "title": "拦截不想发的帧",
+          "brief": "返回 nil，这一帧就不发",
+          "text": "before_send 返回 nil 时这一帧不会发出，数据日志会记一条拦截。其他帧要原样放行，记得 return frame。"
+        },
+        "modbus": {
+          "title": "Modbus 补 CRC16",
+          "brief": "crc16 返回低字节、高字节",
+          "text": "crc16(frame) 按 Modbus 算法返回两个值：低字节、高字节，正好按 Modbus RTU 的顺序追加。frame(...) 可以从数字、字符串或别的帧拼出一个新帧。"
+        }
+      },
+      "empty": "还没有脚本。点「新建」写一个。",
+      "toggle": "启用 / 停用",
+      "autoOn": "自动运行中",
+      "autoOff": "已停用，仅手动运行",
+      "editorHint": "Lua · 输入即保存 · Tab 缩进两格",
+      "run": "运行",
+      "fold": "收起",
+      "rename": "重命名",
+      "renameTitle": "重命名脚本",
+      "name": "名称",
+      "logTitle": "运行日志",
+      "logCount": "$count 条",
+      "clear": "清空",
+      "logEmpty": "还没有输出。启用脚本后，收到或发送数据时会写在这里。",
+      "changed": "$from → $to",
+      "blocked": "$from → nil，已拦截，未发送",
+      "dryRun": "试算 $from → $to（未发送）",
+      "dryBlocked": "试算 $from → nil，这一帧会被拦截（未发送）",
+      "manualRx": "手动运行 · 最近一帧 $hex",
+      "noRx": "手动运行 · 还没有收到数据",
+      "badTx": "发送框内容为空或不是合法 HEX，无法试算 before_send",
+      "noHookLog": "没有定义 on_receive 或 before_send，无可运行的钩子",
+      "tooLong": "执行超过指令上限，可能是死循环，已中止"
     },
     "quick": {
       "note": "点「发送」立即发出，不进入历史",
@@ -228,7 +303,73 @@
       "frame": "整帧",
       "contains": "包含",
       "suffix": "结尾",
-      "toggleOn": "启用 / 停用"
+      "toggleOn": "启用 / 停用",
+      "tutor": "教程",
+      "tutorNote": "模板四课，正则三课。点开一课，可填进左边。",
+      "tutorFill": "填入编辑器",
+      "tutorWrote": "已写入左边，点「保存」才会出现在规则列表里。",
+      "tutorRx": "收到",
+      "tutorTx": "将发出",
+      "tutorFrom": "由 $from",
+      "tutorHit": "中",
+      "tutorMiss": "不中",
+      "tutorWay": "方式",
+      "tagFixed": "固定",
+      "tagIgnore": "忽略",
+      "tagMatch": "匹配",
+      "tagBefore": "在前",
+      "tagLiteral": "字面",
+      "lessons": {
+        "order": {
+          "title": "收到之后才发",
+          "brief": "命中后按应答列表一条条发",
+          "name": "握手应答",
+          "text": "串口打开后，每一包收到的数据都会跟已启用的规则比。命中的按应答列表顺序发送，每条延时从上一包发出之后算，不是从收到的时刻重算。列表里两条都命中，就会都回，不是中了一条就停。串口关着时，规则不执行。",
+          "rxNote": "前缀只认开头的 A5 5A，后面两字节不参与。"
+        },
+        "place": {
+          "title": "前缀、整帧、包含、结尾",
+          "brief": "这四项只有模板有",
+          "name": "帧里出现就回",
+          "text": "同一条匹配数据 A5 5A，换匹配方式，中不中完全不同。整帧必须整包一模一样；前缀只看开头；结尾只看末尾；包含只要中间出现过。正则没有这个下拉，位置要自己写 ^ 和 \\$。",
+          "rxNote": "这一包开头是 00。前缀不中，包含能中。"
+        },
+        "wild": {
+          "title": "?? 抓一字节，* 抓一段",
+          "brief": "通配符从左到右就是 \\$1、\\$2",
+          "name": "回传抓到的字节",
+          "text": "HEX 模板里 ?? 是任意一字节，必须写成两个问号，只写一个问号存不进去。* 是任意长度，可以是空。它们按从左到右变成 \\$1、\\$2，应答里写 \\$1 就会换成抓到的字节。模板在保存时就检查：没有第三个通配符却写了 \\$3，不许存。",
+          "rxNote": "整帧。?? 吃掉 11，* 吃掉剩下的 22 33。"
+        },
+        "ascii": {
+          "title": "ASCII 里一个 ? 是一字节",
+          "brief": "应答框仍然写 HEX",
+          "name": "回传 OK 后一字节",
+          "text": "格式改成 ASCII 之后，一个 ? 就是任意一字节，* 仍是任意长度。想匹配问号本身，写成反斜杠加问号；星号、回车、换行同样加反斜杠。指定某个字节用反斜杠 x 加两位，例如 \\\\x0D。忽略大小写只在 ASCII 下有。应答框永远写 HEX：字符 7 抓进来是字节 37。",
+          "rxNote": "忽略大小写，所以 ok,7 也能对上 OK,?。问号抓到字符 7。"
+        },
+        "reword": {
+          "title": "正则看的是一行 HEX 文字",
+          "brief": "这里的 * 不是任意长度",
+          "name": "取帧头后一字节",
+          "text": "语法改成正则后，没有「匹配方式」这一栏。HEX 正则不按字节格子比，而是去比空格分隔的十六进制文字，例如 A5 5A 03。表达式里的 * 是「前一个东西重复」，?? 也不再表示任意一字节。要抓一个字节，写括号包住两位：([0-9A-F]{2})。开头用 ^，结尾用 \\$，自己写。",
+          "rxNote": "引擎拿去匹配的文字是「A5 5A 03」。这条没写 \\$，后面再跟字节也会中。"
+        },
+        "groups": {
+          "title": "只有括号才是 \\$1",
+          "brief": "写了不存在的 \\$n，那一条会跳过",
+          "name": "拆开两个字节",
+          "text": "模板的 ?? 和 * 会自动占编号。正则只有圆括号里的内容才变成 \\$1、\\$2，按左括号出现的顺序。这条用 \\$ 锚住整帧，两对括号各抓一个字节。应答里如果写了 \\$3，而只有两组括号，这一条不发送，系统日志记「引用的捕获不存在，已跳过」。括号若只抓到一个十六进制字符，同样跳过。模板则会在点保存时就拦住。",
+          "rxNote": "两对括号，按从左到右是 \\$1、\\$2。末尾的 \\$ 表示整帧到此结束。"
+        },
+        "reascii": {
+          "title": "ASCII 正则逐字匹配",
+          "brief": "对着字符比，不是对着 HEX 文字",
+          "name": "取逗号后面",
+          "text": "ASCII 正则对着收到的原始字符匹配，一个字符一个字符比，不是「A5 5A」那种十六进制文字。括号抓到的字符按字节填进应答。忽略大小写同样只在 ASCII 时可选。锚点还是自己写 ^ 和 \\$。",
+          "rxNote": "收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 \\$1。"
+        }
+      }
     },
     "history": {
       "note": "只记录用「发送」按钮发出的数据",
@@ -267,6 +408,7 @@
       "deleteRule": "删除应答规则「$name」后无法恢复。",
       "deleteBatch": "删除批量任务「$name」后无法恢复。",
       "deleteHistory": "删除全部 $count 条发送历史后无法恢复。",
+      "deleteScript": "删除脚本「$name」后无法恢复。",
       "keysTitle": "快捷键说明",
       "know": "知道了",
       "aboutTitle": "关于",
@@ -347,6 +489,9 @@
       "folderSaved": "文件夹已保存",
       "ruleSaved": "应答规则已保存",
       "batchSaved": "批量任务已保存",
+      "scriptSaved": "脚本已重命名",
+      "lessonCreated": "已用「$title」新建 $name",
+      "lessonTried": "样例试跑结果已写入运行日志",
       "checksumFilled": "已填入发送框：$text",
       "exportedQuick": "快捷指令已导出",
       "exportedRules": "应答规则已导出",

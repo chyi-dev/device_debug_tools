@@ -57,9 +57,20 @@ check('批量发送三条指令完成', (await page.evaluate(() => Serial.state.
 
 await page.click('[data-tab=reply]');
 await page.click('[data-act=ruleEdit]');
+check('应答课表默认收起', (await page.$('#rail')) === null);
+await page.click('#rtToggle');
+check('应答课表在编辑器右侧', (await page.textContent('#rail')).includes('正则') && (await page.textContent('#rail')).includes('?? 抓一字节'));
 await page.click('#dAdd');
-await page.click('.dialog .btn.pri');
+await page.click('#dlgFoot .btn.pri');
 check('空应答数据被对话框拦下', (await page.textContent('#dlgErr')).includes('HEX'));
+await page.keyboard.press('Escape');
+await page.click('[data-act=ruleNew]');
+check('重新打开时课表收起', (await page.$('#rail')) === null);
+await page.click('#rtToggle');
+await page.click('[data-rt="fill"][data-id="wild"]');
+await page.click('#rtToggle');
+check('收起课表后表单保留', (await page.$('#rail')) === null && (await page.inputValue('#dPattern')) === 'A5 ?? *');
+check('课表填入 ?? 模板', (await page.inputValue('#dPattern')) === 'A5 ?? *' && (await page.inputValue('#dMatch')) === 'frame');
 await page.keyboard.press('Escape');
 
 await page.click('[data-tab=history]');
@@ -72,6 +83,16 @@ const side = await page.evaluate(() => { const s = document.querySelector('.side
 console.log('左栏内容高度 / 可视高度：' + side.join(' / '));
 await page.waitForTimeout(400);
 await page.screenshot({ path: resolve(root, 'serial-console-light.png') });
+
+await page.click('[data-tab=script]');
+await page.click('[data-act=tutView][data-id=tut]');
+await page.click('[data-act=tutOpen][data-id=l3]');
+await page.click('[data-act=tutTry][data-id=l3]');
+check('教程样例试跑写进运行日志', (await page.textContent('#scLog')).includes('温度 24.6℃'));
+await page.screenshot({ path: resolve(root, 'serial-console-tutorial.png') });
+await page.click('[data-act=tutNew][data-id=l3]');
+check('用课新建脚本并打开编辑区', (await page.inputValue('#scCode')).includes('starts_with') && (await page.textContent('#scList')).includes('lesson3_parse.lua'));
+await page.click('[data-tab=quick]');
 
 await page.click('#btnOpen');
 await page.click('#btnSend');

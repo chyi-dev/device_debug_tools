@@ -121,6 +121,7 @@ class _Translations$serial$en extends Translations$serial$zh {
 	@override late final _Translations$serial$log$en log = _Translations$serial$log$en._(_root);
 	@override late final _Translations$serial$sendBox$en sendBox = _Translations$serial$sendBox$en._(_root);
 	@override late final _Translations$serial$tab$en tab = _Translations$serial$tab$en._(_root);
+	@override late final _Translations$serial$script$en script = _Translations$serial$script$en._(_root);
 	@override late final _Translations$serial$quick$en quick = _Translations$serial$quick$en._(_root);
 	@override late final _Translations$serial$batch$en batch = _Translations$serial$batch$en._(_root);
 	@override late final _Translations$serial$reply$en reply = _Translations$serial$reply$en._(_root);
@@ -305,6 +306,8 @@ class _Translations$serial$log$en extends Translations$serial$log$zh {
 	@override String batchDone({required Object name}) => 'Batch "${name}" finished';
 	@override String batchFail({required Object step}) => 'Step ${step} failed, batch stopped';
 	@override String get batchStopped => 'Batch stopped';
+	@override String scriptBlocked({required Object name}) => 'Script "${name}" returned nil; frame blocked, not sent';
+	@override String scriptFailed({required Object name}) => 'Script "${name}" failed; frame not sent, see the script run log';
 }
 
 // Path: serial.sendBox
@@ -335,6 +338,55 @@ class _Translations$serial$tab$en extends Translations$serial$tab$zh {
 	@override String get reply => 'Auto-reply';
 	@override String get history => 'History';
 	@override String get calc => 'Checksum';
+	@override String get script => 'Script';
+}
+
+// Path: serial.script
+class _Translations$serial$script$en extends Translations$serial$script$zh {
+	_Translations$serial$script$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String note({required Object enabled, required Object total}) => '${enabled} / ${total} enabled';
+	@override String get add => 'New';
+	@override String get waiting => 'Waiting';
+	@override String get off => 'Disabled';
+	@override String outputs({required Object count}) => '${count} outputs';
+	@override String get broken => 'Error';
+	@override String get noHook => 'No hook';
+	@override String get explain => 'Lua scripts. on_receive runs after data arrives; before_send intercepts every outgoing frame (including quick commands, batch and auto reply) and sends what it returns, or nothing if it returns nil.\nClick a row to open the editor and run log below the data log; the log and send box stay visible. The switch only controls automatic runs; Run tries the script once at any time.\nNot sure how to write one? Open Tutorial: six lessons from reading frames to adding a CRC.';
+	@override String mine({required Object count}) => 'My scripts ${count}';
+	@override String get tutorial => 'Tutorial';
+	@override String get lessonNew => 'New script from lesson';
+	@override String get lessonTry => 'Try sample';
+	@override String lessonSample({required Object hex}) => 'Sample frame ${hex}';
+	@override String get tutorialNote => 'Indexes start at 1; 0x literals work as usual; infinite loops are aborted automatically and dangerous functions such as os.execute are removed.\nTry sample feeds this lesson\'s sample frame to the code and writes the output to the run log; nothing is sent.';
+	@override String tried({required Object hook, required Object hex}) => 'Sample run · ${hook} ← ${hex}';
+	@override late final _Translations$serial$script$lessons$en lessons = _Translations$serial$script$lessons$en._(_root);
+	@override String get empty => 'No scripts yet. Click New to write one.';
+	@override String get toggle => 'Enable / disable';
+	@override String get autoOn => 'Running automatically';
+	@override String get autoOff => 'Disabled, manual runs only';
+	@override String get editorHint => 'Lua · saved as you type · Tab inserts two spaces';
+	@override String get run => 'Run';
+	@override String get fold => 'Collapse';
+	@override String get rename => 'Rename';
+	@override String get renameTitle => 'Rename script';
+	@override String get name => 'Name';
+	@override String get logTitle => 'Run log';
+	@override String logCount({required Object count}) => '${count} entries';
+	@override String get clear => 'Clear';
+	@override String get logEmpty => 'No output yet. Enabled scripts write here when data is received or sent.';
+	@override String changed({required Object from, required Object to}) => '${from} → ${to}';
+	@override String blocked({required Object from}) => '${from} → nil, blocked, not sent';
+	@override String dryRun({required Object from, required Object to}) => 'Dry run ${from} → ${to} (not sent)';
+	@override String dryBlocked({required Object from}) => 'Dry run ${from} → nil, this frame would be blocked (not sent)';
+	@override String manualRx({required Object hex}) => 'Manual run · last frame ${hex}';
+	@override String get noRx => 'Manual run · nothing received yet';
+	@override String get badTx => 'Send box is empty or not valid HEX; cannot dry-run before_send';
+	@override String get noHookLog => 'Neither on_receive nor before_send is defined';
+	@override String get tooLong => 'Instruction limit exceeded, possibly an infinite loop; aborted';
 }
 
 // Path: serial.quick
@@ -437,6 +489,22 @@ class _Translations$serial$reply$en extends Translations$serial$reply$zh {
 	@override String get contains => 'Contains';
 	@override String get suffix => 'Suffix';
 	@override String get toggleOn => 'Enable / disable';
+	@override String get tutor => 'Tutorial';
+	@override String get tutorNote => 'Four template lessons, three regex lessons. Open one to fill the form.';
+	@override String get tutorFill => 'Fill editor';
+	@override String get tutorWrote => 'Written on the left. Save to add it to the rule list.';
+	@override String get tutorRx => 'Received';
+	@override String get tutorTx => 'Will send';
+	@override String tutorFrom({required Object from}) => 'from ${from}';
+	@override String get tutorHit => 'yes';
+	@override String get tutorMiss => 'no';
+	@override String get tutorWay => 'Where';
+	@override String get tagFixed => 'fixed';
+	@override String get tagIgnore => 'skip';
+	@override String get tagMatch => 'match';
+	@override String get tagBefore => 'before';
+	@override String get tagLiteral => 'literal';
+	@override late final _Translations$serial$reply$lessons$en lessons = _Translations$serial$reply$lessons$en._(_root);
 }
 
 // Path: serial.history
@@ -503,6 +571,7 @@ class _Translations$serial$dialog$en extends Translations$serial$dialog$zh {
 	@override String deleteRule({required Object name}) => 'Delete rule "${name}"? This cannot be undone.';
 	@override String deleteBatch({required Object name}) => 'Delete batch "${name}"? This cannot be undone.';
 	@override String deleteHistory({required Object count}) => 'Delete all ${count} history entries? This cannot be undone.';
+	@override String deleteScript({required Object name}) => 'Delete script "${name}"? This cannot be undone.';
 	@override String get keysTitle => 'Keyboard shortcuts';
 	@override String get know => 'OK';
 	@override String get aboutTitle => 'About';
@@ -597,12 +666,216 @@ class _Translations$serial$notice$en extends Translations$serial$notice$zh {
 	@override String get folderSaved => 'Folder saved';
 	@override String get ruleSaved => 'Rule saved';
 	@override String get batchSaved => 'Batch saved';
+	@override String get scriptSaved => 'Script renamed';
+	@override String lessonCreated({required Object name, required Object title}) => 'Created ${name} from "${title}"';
+	@override String get lessonTried => 'Sample run written to the run log';
 	@override String checksumFilled({required Object text}) => 'Filled the send box: ${text}';
 	@override String get exportedQuick => 'Quick commands exported';
 	@override String get exportedRules => 'Rules exported';
 	@override String imported({required Object count}) => 'Imported ${count} items';
 	@override String get importInvalid => 'This file is not an exported JSON list';
 	@override String fileLoaded({required Object name}) => 'Loaded ${name}';
+}
+
+// Path: serial.script.lessons
+class _Translations$serial$script$lessons$en extends Translations$serial$script$lessons$zh {
+	_Translations$serial$script$lessons$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$serial$script$lessons$hooks$en hooks = _Translations$serial$script$lessons$hooks$en._(_root);
+	@override late final _Translations$serial$script$lessons$print$en print = _Translations$serial$script$lessons$print$en._(_root);
+	@override late final _Translations$serial$script$lessons$parse$en parse = _Translations$serial$script$lessons$parse$en._(_root);
+	@override late final _Translations$serial$script$lessons$checksum$en checksum = _Translations$serial$script$lessons$checksum$en._(_root);
+	@override late final _Translations$serial$script$lessons$block$en block = _Translations$serial$script$lessons$block$en._(_root);
+	@override late final _Translations$serial$script$lessons$modbus$en modbus = _Translations$serial$script$lessons$modbus$en._(_root);
+}
+
+// Path: serial.reply.lessons
+class _Translations$serial$reply$lessons$en extends Translations$serial$reply$lessons$zh {
+	_Translations$serial$reply$lessons$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$serial$reply$lessons$order$en order = _Translations$serial$reply$lessons$order$en._(_root);
+	@override late final _Translations$serial$reply$lessons$place$en place = _Translations$serial$reply$lessons$place$en._(_root);
+	@override late final _Translations$serial$reply$lessons$wild$en wild = _Translations$serial$reply$lessons$wild$en._(_root);
+	@override late final _Translations$serial$reply$lessons$ascii$en ascii = _Translations$serial$reply$lessons$ascii$en._(_root);
+	@override late final _Translations$serial$reply$lessons$reword$en reword = _Translations$serial$reply$lessons$reword$en._(_root);
+	@override late final _Translations$serial$reply$lessons$groups$en groups = _Translations$serial$reply$lessons$groups$en._(_root);
+	@override late final _Translations$serial$reply$lessons$reascii$en reascii = _Translations$serial$reply$lessons$reascii$en._(_root);
+}
+
+// Path: serial.script.lessons.hooks
+class _Translations$serial$script$lessons$hooks$en extends Translations$serial$script$lessons$hooks$zh {
+	_Translations$serial$script$lessons$hooks$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'When scripts run';
+	@override String get brief => 'Two hooks: after receiving, before sending';
+	@override String get text => 'Define a function named on_receive and it is called for every packet received; frame holds that packet\'s bytes. Define before_send and it is called before every outgoing frame (send button, quick commands, batch and auto reply), and only the frame it returns is sent. The switch only controls automatic runs; Run dry-runs with the last received frame or the send box, and never sends.';
+}
+
+// Path: serial.script.lessons.print
+class _Translations$serial$script$lessons$print$en extends Translations$serial$script$lessons$print$zh {
+	_Translations$serial$script$lessons$print$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Print a frame';
+	@override String get brief => 'log writes to the run log; frames show as HEX';
+	@override String get text => 'log writes to the run log, joining arguments with spaces; print is the same function. A frame passed directly shows as HEX, frame:sub(i, j) takes bytes i to j, and frame:str() turns it into ASCII text.';
+}
+
+// Path: serial.script.lessons.parse
+class _Translations$serial$script$lessons$parse$en extends Translations$serial$script$lessons$parse$zh {
+	_Translations$serial$script$lessons$parse$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Match a header, read values';
+	@override String get brief => 'starts_with checks the header, u16 reads two bytes';
+	@override String get text => 'frame:starts_with(0xA5, 0x5A, 0x03) checks the header; return early for frames you don\'t want. Indexes start at 1: u8(i) reads byte i, u16(i) combines bytes i and i+1 big-endian, and u16le(i) reads little-endian.';
+}
+
+// Path: serial.script.lessons.checksum
+class _Translations$serial$script$lessons$checksum$en extends Translations$serial$script$lessons$checksum$zh {
+	_Translations$serial$script$lessons$checksum$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Add a checksum before sending';
+	@override String get brief => 'before_send returns the changed frame; append adds bytes';
+	@override String get text => 'before_send receives the frame about to go out and sends whatever it returns. frame:append(...) returns a new frame with bytes added at the end; sum8 is the additive sum and xor8 is XOR (BCC).';
+}
+
+// Path: serial.script.lessons.block
+class _Translations$serial$script$lessons$block$en extends Translations$serial$script$lessons$block$zh {
+	_Translations$serial$script$lessons$block$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Block frames you don\'t want sent';
+	@override String get brief => 'Return nil and the frame is not sent';
+	@override String get text => 'When before_send returns nil the frame is not sent and the data log records the block. Pass every other frame through with return frame.';
+}
+
+// Path: serial.script.lessons.modbus
+class _Translations$serial$script$lessons$modbus$en extends Translations$serial$script$lessons$modbus$zh {
+	_Translations$serial$script$lessons$modbus$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Modbus CRC16';
+	@override String get brief => 'crc16 returns the low byte, then the high byte';
+	@override String get text => 'crc16(frame) uses the Modbus algorithm and returns two values, low byte then high byte, which is the order Modbus RTU appends them. frame(...) builds a new frame from numbers, strings or other frames.';
+}
+
+// Path: serial.reply.lessons.order
+class _Translations$serial$reply$lessons$order$en extends Translations$serial$reply$lessons$order$zh {
+	_Translations$serial$reply$lessons$order$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Nothing is sent until a packet arrives';
+	@override String get brief => 'Replies go out in list order';
+	@override String get name => 'Handshake reply';
+	@override String get text => 'While the port is open, every received packet is compared with each enabled rule. A hit sends the reply list in order. Each delay starts after the previous reply, not from the moment the packet arrived. Two matching rules both reply. Nothing runs while the port is closed.';
+	@override String get rxNote => 'Prefix only looks at the leading A5 5A. The last two bytes are not compared.';
+}
+
+// Path: serial.reply.lessons.place
+class _Translations$serial$reply$lessons$place$en extends Translations$serial$reply$lessons$place$zh {
+	_Translations$serial$reply$lessons$place$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Prefix, full frame, contains, suffix';
+	@override String get brief => 'Only templates have these four';
+	@override String get name => 'Reply when it appears';
+	@override String get text => 'The same pattern A5 5A hits or misses depending on where you look. Full frame must be exactly those bytes. Prefix checks the start, suffix the end, contains anywhere in the middle. Regex has no such menu: write ^ and \$ yourself.';
+	@override String get rxNote => 'This packet starts with 00. Prefix misses; contains hits.';
+}
+
+// Path: serial.reply.lessons.wild
+class _Translations$serial$reply$lessons$wild$en extends Translations$serial$reply$lessons$wild$zh {
+	_Translations$serial$reply$lessons$wild$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => '?? takes one byte, * takes a span';
+	@override String get brief => 'Wildcards become \$1, \$2 from left to right';
+	@override String get name => 'Echo captured bytes';
+	@override String get text => 'In a HEX template, ?? is any one byte and must be written as two question marks; a single ? will not save. * is any length, including empty. They become \$1 and \$2 from left to right, and writing \$1 in a reply substitutes the captured bytes. Templates are checked on save: \$3 is rejected when there is no third wildcard.';
+	@override String get rxNote => 'Full frame. ?? takes 11, * takes the remaining 22 33.';
+}
+
+// Path: serial.reply.lessons.ascii
+class _Translations$serial$reply$lessons$ascii$en extends Translations$serial$reply$lessons$ascii$zh {
+	_Translations$serial$reply$lessons$ascii$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'In ASCII, one ? is one byte';
+	@override String get brief => 'The reply box is still HEX';
+	@override String get name => 'Echo the byte after OK';
+	@override String get text => 'With ASCII, one ? is any single byte and * is still any length. To match a question mark itself, write a backslash before it; the same for star, carriage return and line feed. A specific byte is backslash, x, and two hex digits, for example \\x0D. Ignore case exists only for ASCII. Replies are always HEX: the character 7 comes back as byte 37.';
+	@override String get rxNote => 'Ignore case is on, so ok,7 matches OK,?. The question mark captures the character 7.';
+}
+
+// Path: serial.reply.lessons.reword
+class _Translations$serial$reply$lessons$reword$en extends Translations$serial$reply$lessons$reword$zh {
+	_Translations$serial$reply$lessons$reword$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Regex sees a line of HEX text';
+	@override String get brief => '* here does not mean any length';
+	@override String get name => 'Byte after the header';
+	@override String get text => 'Choosing regex removes the match menu. A HEX regex is not compared byte by byte; it is compared with the spaced hex text, such as A5 5A 03. * means “repeat the previous item”, and ?? is not “any one byte”. To capture one byte, wrap two hex digits: ([0-9A-F]{2}). Write ^ and \$ yourself.';
+	@override String get rxNote => 'The engine matches the text “A5 5A 03”. Without \$, extra bytes afterward still hit.';
+}
+
+// Path: serial.reply.lessons.groups
+class _Translations$serial$reply$lessons$groups$en extends Translations$serial$reply$lessons$groups$zh {
+	_Translations$serial$reply$lessons$groups$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Only parentheses become \$1';
+	@override String get brief => 'A missing \$n skips that reply';
+	@override String get name => 'Split two bytes';
+	@override String get text => 'A template’s ?? and * are numbered automatically. In a regex only parentheses become \$1 and \$2, in the order the opening parentheses appear. This lesson anchors the whole frame with \$. If a reply uses \$3 but there are only two groups, that reply is not sent and the log says the capture is missing. A group that catches only one hex digit is skipped the same way. A template would have blocked this at save time.';
+	@override String get rxNote => 'Two groups, \$1 then \$2. The final \$ means the frame ends there.';
+}
+
+// Path: serial.reply.lessons.reascii
+class _Translations$serial$reply$lessons$reascii$en extends Translations$serial$reply$lessons$reascii$zh {
+	_Translations$serial$reply$lessons$reascii$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'ASCII regex matches characters';
+	@override String get brief => 'Compared as text, not as HEX words';
+	@override String get name => 'After the comma';
+	@override String get text => 'An ASCII regex walks the received characters, not the spaced hex text. Characters caught by parentheses are filled into the reply as bytes. Ignore case is available only for ASCII. Anchors are still ^ and \$, written by you.';
+	@override String get rxNote => 'The characters are OK,42. (.+) puts both characters into the same \$1.';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -718,6 +991,8 @@ extension on TranslationsEn {
 			'serial.log.batchDone' => ({required Object name}) => 'Batch "${name}" finished',
 			'serial.log.batchFail' => ({required Object step}) => 'Step ${step} failed, batch stopped',
 			'serial.log.batchStopped' => 'Batch stopped',
+			'serial.log.scriptBlocked' => ({required Object name}) => 'Script "${name}" returned nil; frame blocked, not sent',
+			'serial.log.scriptFailed' => ({required Object name}) => 'Script "${name}" failed; frame not sent, see the script run log',
 			'serial.sendBox.send' => 'Send',
 			'serial.sendBox.stopLoop' => 'Stop',
 			'serial.sendBox.clear' => 'Clear',
@@ -730,6 +1005,63 @@ extension on TranslationsEn {
 			'serial.tab.reply' => 'Auto-reply',
 			'serial.tab.history' => 'History',
 			'serial.tab.calc' => 'Checksum',
+			'serial.tab.script' => 'Script',
+			'serial.script.note' => ({required Object enabled, required Object total}) => '${enabled} / ${total} enabled',
+			'serial.script.add' => 'New',
+			'serial.script.waiting' => 'Waiting',
+			'serial.script.off' => 'Disabled',
+			'serial.script.outputs' => ({required Object count}) => '${count} outputs',
+			'serial.script.broken' => 'Error',
+			'serial.script.noHook' => 'No hook',
+			'serial.script.explain' => 'Lua scripts. on_receive runs after data arrives; before_send intercepts every outgoing frame (including quick commands, batch and auto reply) and sends what it returns, or nothing if it returns nil.\nClick a row to open the editor and run log below the data log; the log and send box stay visible. The switch only controls automatic runs; Run tries the script once at any time.\nNot sure how to write one? Open Tutorial: six lessons from reading frames to adding a CRC.',
+			'serial.script.mine' => ({required Object count}) => 'My scripts ${count}',
+			'serial.script.tutorial' => 'Tutorial',
+			'serial.script.lessonNew' => 'New script from lesson',
+			'serial.script.lessonTry' => 'Try sample',
+			'serial.script.lessonSample' => ({required Object hex}) => 'Sample frame ${hex}',
+			'serial.script.tutorialNote' => 'Indexes start at 1; 0x literals work as usual; infinite loops are aborted automatically and dangerous functions such as os.execute are removed.\nTry sample feeds this lesson\'s sample frame to the code and writes the output to the run log; nothing is sent.',
+			'serial.script.tried' => ({required Object hook, required Object hex}) => 'Sample run · ${hook} ← ${hex}',
+			'serial.script.lessons.hooks.title' => 'When scripts run',
+			'serial.script.lessons.hooks.brief' => 'Two hooks: after receiving, before sending',
+			'serial.script.lessons.hooks.text' => 'Define a function named on_receive and it is called for every packet received; frame holds that packet\'s bytes. Define before_send and it is called before every outgoing frame (send button, quick commands, batch and auto reply), and only the frame it returns is sent. The switch only controls automatic runs; Run dry-runs with the last received frame or the send box, and never sends.',
+			'serial.script.lessons.print.title' => 'Print a frame',
+			'serial.script.lessons.print.brief' => 'log writes to the run log; frames show as HEX',
+			'serial.script.lessons.print.text' => 'log writes to the run log, joining arguments with spaces; print is the same function. A frame passed directly shows as HEX, frame:sub(i, j) takes bytes i to j, and frame:str() turns it into ASCII text.',
+			'serial.script.lessons.parse.title' => 'Match a header, read values',
+			'serial.script.lessons.parse.brief' => 'starts_with checks the header, u16 reads two bytes',
+			'serial.script.lessons.parse.text' => 'frame:starts_with(0xA5, 0x5A, 0x03) checks the header; return early for frames you don\'t want. Indexes start at 1: u8(i) reads byte i, u16(i) combines bytes i and i+1 big-endian, and u16le(i) reads little-endian.',
+			'serial.script.lessons.checksum.title' => 'Add a checksum before sending',
+			'serial.script.lessons.checksum.brief' => 'before_send returns the changed frame; append adds bytes',
+			'serial.script.lessons.checksum.text' => 'before_send receives the frame about to go out and sends whatever it returns. frame:append(...) returns a new frame with bytes added at the end; sum8 is the additive sum and xor8 is XOR (BCC).',
+			'serial.script.lessons.block.title' => 'Block frames you don\'t want sent',
+			'serial.script.lessons.block.brief' => 'Return nil and the frame is not sent',
+			'serial.script.lessons.block.text' => 'When before_send returns nil the frame is not sent and the data log records the block. Pass every other frame through with return frame.',
+			'serial.script.lessons.modbus.title' => 'Modbus CRC16',
+			'serial.script.lessons.modbus.brief' => 'crc16 returns the low byte, then the high byte',
+			'serial.script.lessons.modbus.text' => 'crc16(frame) uses the Modbus algorithm and returns two values, low byte then high byte, which is the order Modbus RTU appends them. frame(...) builds a new frame from numbers, strings or other frames.',
+			'serial.script.empty' => 'No scripts yet. Click New to write one.',
+			'serial.script.toggle' => 'Enable / disable',
+			'serial.script.autoOn' => 'Running automatically',
+			'serial.script.autoOff' => 'Disabled, manual runs only',
+			'serial.script.editorHint' => 'Lua · saved as you type · Tab inserts two spaces',
+			'serial.script.run' => 'Run',
+			'serial.script.fold' => 'Collapse',
+			'serial.script.rename' => 'Rename',
+			'serial.script.renameTitle' => 'Rename script',
+			'serial.script.name' => 'Name',
+			'serial.script.logTitle' => 'Run log',
+			'serial.script.logCount' => ({required Object count}) => '${count} entries',
+			'serial.script.clear' => 'Clear',
+			'serial.script.logEmpty' => 'No output yet. Enabled scripts write here when data is received or sent.',
+			'serial.script.changed' => ({required Object from, required Object to}) => '${from} → ${to}',
+			'serial.script.blocked' => ({required Object from}) => '${from} → nil, blocked, not sent',
+			'serial.script.dryRun' => ({required Object from, required Object to}) => 'Dry run ${from} → ${to} (not sent)',
+			'serial.script.dryBlocked' => ({required Object from}) => 'Dry run ${from} → nil, this frame would be blocked (not sent)',
+			'serial.script.manualRx' => ({required Object hex}) => 'Manual run · last frame ${hex}',
+			'serial.script.noRx' => 'Manual run · nothing received yet',
+			'serial.script.badTx' => 'Send box is empty or not valid HEX; cannot dry-run before_send',
+			'serial.script.noHookLog' => 'Neither on_receive nor before_send is defined',
+			'serial.script.tooLong' => 'Instruction limit exceeded, possibly an infinite loop; aborted',
 			'serial.quick.note' => 'Send now. These do not enter history',
 			'serial.quick.send' => 'Send',
 			'serial.quick.empty' => 'No quick commands yet. Add one you send often, or add a folder to group them.',
@@ -805,6 +1137,56 @@ extension on TranslationsEn {
 			'serial.reply.contains' => 'Contains',
 			'serial.reply.suffix' => 'Suffix',
 			'serial.reply.toggleOn' => 'Enable / disable',
+			'serial.reply.tutor' => 'Tutorial',
+			'serial.reply.tutorNote' => 'Four template lessons, three regex lessons. Open one to fill the form.',
+			'serial.reply.tutorFill' => 'Fill editor',
+			'serial.reply.tutorWrote' => 'Written on the left. Save to add it to the rule list.',
+			'serial.reply.tutorRx' => 'Received',
+			'serial.reply.tutorTx' => 'Will send',
+			'serial.reply.tutorFrom' => ({required Object from}) => 'from ${from}',
+			'serial.reply.tutorHit' => 'yes',
+			'serial.reply.tutorMiss' => 'no',
+			'serial.reply.tutorWay' => 'Where',
+			'serial.reply.tagFixed' => 'fixed',
+			'serial.reply.tagIgnore' => 'skip',
+			'serial.reply.tagMatch' => 'match',
+			'serial.reply.tagBefore' => 'before',
+			'serial.reply.tagLiteral' => 'literal',
+			'serial.reply.lessons.order.title' => 'Nothing is sent until a packet arrives',
+			'serial.reply.lessons.order.brief' => 'Replies go out in list order',
+			'serial.reply.lessons.order.name' => 'Handshake reply',
+			'serial.reply.lessons.order.text' => 'While the port is open, every received packet is compared with each enabled rule. A hit sends the reply list in order. Each delay starts after the previous reply, not from the moment the packet arrived. Two matching rules both reply. Nothing runs while the port is closed.',
+			'serial.reply.lessons.order.rxNote' => 'Prefix only looks at the leading A5 5A. The last two bytes are not compared.',
+			'serial.reply.lessons.place.title' => 'Prefix, full frame, contains, suffix',
+			'serial.reply.lessons.place.brief' => 'Only templates have these four',
+			'serial.reply.lessons.place.name' => 'Reply when it appears',
+			'serial.reply.lessons.place.text' => 'The same pattern A5 5A hits or misses depending on where you look. Full frame must be exactly those bytes. Prefix checks the start, suffix the end, contains anywhere in the middle. Regex has no such menu: write ^ and \$ yourself.',
+			'serial.reply.lessons.place.rxNote' => 'This packet starts with 00. Prefix misses; contains hits.',
+			'serial.reply.lessons.wild.title' => '?? takes one byte, * takes a span',
+			'serial.reply.lessons.wild.brief' => 'Wildcards become \$1, \$2 from left to right',
+			'serial.reply.lessons.wild.name' => 'Echo captured bytes',
+			'serial.reply.lessons.wild.text' => 'In a HEX template, ?? is any one byte and must be written as two question marks; a single ? will not save. * is any length, including empty. They become \$1 and \$2 from left to right, and writing \$1 in a reply substitutes the captured bytes. Templates are checked on save: \$3 is rejected when there is no third wildcard.',
+			'serial.reply.lessons.wild.rxNote' => 'Full frame. ?? takes 11, * takes the remaining 22 33.',
+			'serial.reply.lessons.ascii.title' => 'In ASCII, one ? is one byte',
+			'serial.reply.lessons.ascii.brief' => 'The reply box is still HEX',
+			'serial.reply.lessons.ascii.name' => 'Echo the byte after OK',
+			'serial.reply.lessons.ascii.text' => 'With ASCII, one ? is any single byte and * is still any length. To match a question mark itself, write a backslash before it; the same for star, carriage return and line feed. A specific byte is backslash, x, and two hex digits, for example \\x0D. Ignore case exists only for ASCII. Replies are always HEX: the character 7 comes back as byte 37.',
+			'serial.reply.lessons.ascii.rxNote' => 'Ignore case is on, so ok,7 matches OK,?. The question mark captures the character 7.',
+			'serial.reply.lessons.reword.title' => 'Regex sees a line of HEX text',
+			'serial.reply.lessons.reword.brief' => '* here does not mean any length',
+			'serial.reply.lessons.reword.name' => 'Byte after the header',
+			'serial.reply.lessons.reword.text' => 'Choosing regex removes the match menu. A HEX regex is not compared byte by byte; it is compared with the spaced hex text, such as A5 5A 03. * means “repeat the previous item”, and ?? is not “any one byte”. To capture one byte, wrap two hex digits: ([0-9A-F]{2}). Write ^ and \$ yourself.',
+			'serial.reply.lessons.reword.rxNote' => 'The engine matches the text “A5 5A 03”. Without \$, extra bytes afterward still hit.',
+			'serial.reply.lessons.groups.title' => 'Only parentheses become \$1',
+			'serial.reply.lessons.groups.brief' => 'A missing \$n skips that reply',
+			'serial.reply.lessons.groups.name' => 'Split two bytes',
+			'serial.reply.lessons.groups.text' => 'A template’s ?? and * are numbered automatically. In a regex only parentheses become \$1 and \$2, in the order the opening parentheses appear. This lesson anchors the whole frame with \$. If a reply uses \$3 but there are only two groups, that reply is not sent and the log says the capture is missing. A group that catches only one hex digit is skipped the same way. A template would have blocked this at save time.',
+			'serial.reply.lessons.groups.rxNote' => 'Two groups, \$1 then \$2. The final \$ means the frame ends there.',
+			'serial.reply.lessons.reascii.title' => 'ASCII regex matches characters',
+			'serial.reply.lessons.reascii.brief' => 'Compared as text, not as HEX words',
+			'serial.reply.lessons.reascii.name' => 'After the comma',
+			'serial.reply.lessons.reascii.text' => 'An ASCII regex walks the received characters, not the spaced hex text. Characters caught by parentheses are filled into the reply as bytes. Ignore case is available only for ASCII. Anchors are still ^ and \$, written by you.',
+			'serial.reply.lessons.reascii.rxNote' => 'The characters are OK,42. (.+) puts both characters into the same \$1.',
 			'serial.history.note' => 'Only data sent with the Send button is recorded',
 			'serial.history.clear' => 'Clear',
 			'serial.history.resendTip' => 'Send again',
@@ -835,6 +1217,7 @@ extension on TranslationsEn {
 			'serial.dialog.deleteRule' => ({required Object name}) => 'Delete rule "${name}"? This cannot be undone.',
 			'serial.dialog.deleteBatch' => ({required Object name}) => 'Delete batch "${name}"? This cannot be undone.',
 			'serial.dialog.deleteHistory' => ({required Object count}) => 'Delete all ${count} history entries? This cannot be undone.',
+			'serial.dialog.deleteScript' => ({required Object name}) => 'Delete script "${name}"? This cannot be undone.',
 			'serial.dialog.keysTitle' => 'Keyboard shortcuts',
 			'serial.dialog.know' => 'OK',
 			'serial.dialog.aboutTitle' => 'About',
@@ -911,6 +1294,9 @@ extension on TranslationsEn {
 			'serial.notice.folderSaved' => 'Folder saved',
 			'serial.notice.ruleSaved' => 'Rule saved',
 			'serial.notice.batchSaved' => 'Batch saved',
+			'serial.notice.scriptSaved' => 'Script renamed',
+			'serial.notice.lessonCreated' => ({required Object name, required Object title}) => 'Created ${name} from "${title}"',
+			'serial.notice.lessonTried' => 'Sample run written to the run log',
 			'serial.notice.checksumFilled' => ({required Object text}) => 'Filled the send box: ${text}',
 			'serial.notice.exportedQuick' => 'Quick commands exported',
 			'serial.notice.exportedRules' => 'Rules exported',

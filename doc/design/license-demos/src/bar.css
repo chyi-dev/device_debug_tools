@@ -1,0 +1,9 @@
+/* 版 B · 日志状态条 */
+.lkbar{display:none}
+.logbox.locked{grid-template-rows:36px auto minmax(0,1fr)}
+.logbox.locked .lkbar{display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+.lkbar b{color:var(--log-sys);font-weight:600}
+.lkbar span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabbody.lk .list,.tabbody.lk .steps,.tabbody.lk .batchmeta,.tabbody.lk .bar>:not(.seg){opacity:.5}
+.tabbody.lk .it:hover,.tabbody.lk .fd:hover{background:none}
+.lknote{padding:6px 10px;font-size:12px;font-weight:600;color:var(--log-sys);border-bottom:1px solid var(--line2);background:var(--panel)}

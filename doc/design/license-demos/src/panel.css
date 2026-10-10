@@ -1,0 +1,23 @@
+/* 版 C · 右栏即授权 */
+.tabs .lictab{display:none}
+.tabs.lk .lictab{display:block}
+.tabs.lk button:not(.lictab):not([data-tab="calc"]){display:none}
+.tabs.lk button{font-size:13px}
+.licpane{display:flex;flex-direction:column}
+.lichead{display:flex;align-items:baseline;gap:10px;padding:14px 14px 4px}
+.lichead b{font-size:16px;font-weight:600;color:var(--off)}
+.lichead span{font:12px var(--mono);color:var(--muted)}
+.licp{padding:2px 14px 12px;font-size:13px;line-height:1.6;color:var(--muted);border-bottom:1px solid var(--line2)}
+.licsec{display:flex;flex-direction:column;gap:8px;padding:12px 14px 14px;border-bottom:1px solid var(--line2)}
+.lictitle{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.lictitle i{font:600 12px var(--mono);font-style:normal;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;color:var(--muted);background:var(--field)}
+.licsec .lic-code{height:36px;text-align:center}
+.lic-err{font-size:12px;color:var(--off)}
+.lic-err:empty{display:none}
+.licgo{height:32px}
+.licnote{font-size:12px;line-height:1.6;color:var(--muted)}
+.lictop{padding:12px 14px 6px;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.licrow{grid-template-columns:72px minmax(0,1fr);padding:7px 14px}
+.licrow .nm{grid-row:1}
+.licrow .dt{grid-column:2;grid-row:1;font-family:var(--sans)}
+.licrow:hover{background:none}

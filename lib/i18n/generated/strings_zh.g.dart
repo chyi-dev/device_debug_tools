@@ -164,6 +164,7 @@ class Translations$serial$zh {
 	late final Translations$serial$log$zh log = Translations$serial$log$zh.internal(_root);
 	late final Translations$serial$sendBox$zh sendBox = Translations$serial$sendBox$zh.internal(_root);
 	late final Translations$serial$tab$zh tab = Translations$serial$tab$zh.internal(_root);
+	late final Translations$serial$script$zh script = Translations$serial$script$zh.internal(_root);
 	late final Translations$serial$quick$zh quick = Translations$serial$quick$zh.internal(_root);
 	late final Translations$serial$batch$zh batch = Translations$serial$batch$zh.internal(_root);
 	late final Translations$serial$reply$zh reply = Translations$serial$reply$zh.internal(_root);
@@ -518,6 +519,12 @@ class Translations$serial$log$zh {
 
 	/// zh: '批量任务已手动停止'
 	String get batchStopped => '批量任务已手动停止';
+
+	/// zh: '脚本「$name」返回 nil，这一帧已拦截，未发送'
+	String scriptBlocked({required Object name}) => '脚本「${name}」返回 nil，这一帧已拦截，未发送';
+
+	/// zh: '脚本「$name」出错，这一帧未发送，详见脚本运行日志'
+	String scriptFailed({required Object name}) => '脚本「${name}」出错，这一帧未发送，详见脚本运行日志';
 }
 
 // Path: serial.sendBox
@@ -572,6 +579,134 @@ class Translations$serial$tab$zh {
 
 	/// zh: '校验计算'
 	String get calc => '校验计算';
+
+	/// zh: '脚本'
+	String get script => '脚本';
+}
+
+// Path: serial.script
+class Translations$serial$script$zh {
+	Translations$serial$script$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '已启用 $enabled / $total'
+	String note({required Object enabled, required Object total}) => '已启用 ${enabled} / ${total}';
+
+	/// zh: '新建'
+	String get add => '新建';
+
+	/// zh: '等待触发'
+	String get waiting => '等待触发';
+
+	/// zh: '已停用'
+	String get off => '已停用';
+
+	/// zh: '已输出 $count 次'
+	String outputs({required Object count}) => '已输出 ${count} 次';
+
+	/// zh: '有错误'
+	String get broken => '有错误';
+
+	/// zh: '无钩子'
+	String get noHook => '无钩子';
+
+	/// zh: 'Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。 点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。 不会写？切到「教程」，六课从收数据讲到补 CRC。'
+	String get explain => 'Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。\n点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。\n不会写？切到「教程」，六课从收数据讲到补 CRC。';
+
+	/// zh: '我的脚本 $count'
+	String mine({required Object count}) => '我的脚本 ${count}';
+
+	/// zh: '教程'
+	String get tutorial => '教程';
+
+	/// zh: '用这课新建脚本'
+	String get lessonNew => '用这课新建脚本';
+
+	/// zh: '样例试跑'
+	String get lessonTry => '样例试跑';
+
+	/// zh: '样例帧 $hex'
+	String lessonSample({required Object hex}) => '样例帧 ${hex}';
+
+	/// zh: '下标从 1 开始；0x 写法可以直接用；死循环会被自动中止，os.execute 等危险函数已移除。 「样例试跑」把这课的样例帧交给代码，输出写进运行日志，不会发数据。'
+	String get tutorialNote => '下标从 1 开始；0x 写法可以直接用；死循环会被自动中止，os.execute 等危险函数已移除。\n「样例试跑」把这课的样例帧交给代码，输出写进运行日志，不会发数据。';
+
+	/// zh: '样例试跑 · $hook ← $hex'
+	String tried({required Object hook, required Object hex}) => '样例试跑 · ${hook} ← ${hex}';
+
+	late final Translations$serial$script$lessons$zh lessons = Translations$serial$script$lessons$zh.internal(_root);
+
+	/// zh: '还没有脚本。点「新建」写一个。'
+	String get empty => '还没有脚本。点「新建」写一个。';
+
+	/// zh: '启用 / 停用'
+	String get toggle => '启用 / 停用';
+
+	/// zh: '自动运行中'
+	String get autoOn => '自动运行中';
+
+	/// zh: '已停用，仅手动运行'
+	String get autoOff => '已停用，仅手动运行';
+
+	/// zh: 'Lua · 输入即保存 · Tab 缩进两格'
+	String get editorHint => 'Lua · 输入即保存 · Tab 缩进两格';
+
+	/// zh: '运行'
+	String get run => '运行';
+
+	/// zh: '收起'
+	String get fold => '收起';
+
+	/// zh: '重命名'
+	String get rename => '重命名';
+
+	/// zh: '重命名脚本'
+	String get renameTitle => '重命名脚本';
+
+	/// zh: '名称'
+	String get name => '名称';
+
+	/// zh: '运行日志'
+	String get logTitle => '运行日志';
+
+	/// zh: '$count 条'
+	String logCount({required Object count}) => '${count} 条';
+
+	/// zh: '清空'
+	String get clear => '清空';
+
+	/// zh: '还没有输出。启用脚本后，收到或发送数据时会写在这里。'
+	String get logEmpty => '还没有输出。启用脚本后，收到或发送数据时会写在这里。';
+
+	/// zh: '$from → $to'
+	String changed({required Object from, required Object to}) => '${from} → ${to}';
+
+	/// zh: '$from → nil，已拦截，未发送'
+	String blocked({required Object from}) => '${from} → nil，已拦截，未发送';
+
+	/// zh: '试算 $from → $to（未发送）'
+	String dryRun({required Object from, required Object to}) => '试算 ${from} → ${to}（未发送）';
+
+	/// zh: '试算 $from → nil，这一帧会被拦截（未发送）'
+	String dryBlocked({required Object from}) => '试算 ${from} → nil，这一帧会被拦截（未发送）';
+
+	/// zh: '手动运行 · 最近一帧 $hex'
+	String manualRx({required Object hex}) => '手动运行 · 最近一帧 ${hex}';
+
+	/// zh: '手动运行 · 还没有收到数据'
+	String get noRx => '手动运行 · 还没有收到数据';
+
+	/// zh: '发送框内容为空或不是合法 HEX，无法试算 before_send'
+	String get badTx => '发送框内容为空或不是合法 HEX，无法试算 before_send';
+
+	/// zh: '没有定义 on_receive 或 before_send，无可运行的钩子'
+	String get noHookLog => '没有定义 on_receive 或 before_send，无可运行的钩子';
+
+	/// zh: '执行超过指令上限，可能是死循环，已中止'
+	String get tooLong => '执行超过指令上限，可能是死循环，已中止';
 }
 
 // Path: serial.quick
@@ -824,6 +959,53 @@ class Translations$serial$reply$zh {
 
 	/// zh: '启用 / 停用'
 	String get toggleOn => '启用 / 停用';
+
+	/// zh: '教程'
+	String get tutor => '教程';
+
+	/// zh: '模板四课，正则三课。点开一课，可填进左边。'
+	String get tutorNote => '模板四课，正则三课。点开一课，可填进左边。';
+
+	/// zh: '填入编辑器'
+	String get tutorFill => '填入编辑器';
+
+	/// zh: '已写入左边，点「保存」才会出现在规则列表里。'
+	String get tutorWrote => '已写入左边，点「保存」才会出现在规则列表里。';
+
+	/// zh: '收到'
+	String get tutorRx => '收到';
+
+	/// zh: '将发出'
+	String get tutorTx => '将发出';
+
+	/// zh: '由 $from'
+	String tutorFrom({required Object from}) => '由 ${from}';
+
+	/// zh: '中'
+	String get tutorHit => '中';
+
+	/// zh: '不中'
+	String get tutorMiss => '不中';
+
+	/// zh: '方式'
+	String get tutorWay => '方式';
+
+	/// zh: '固定'
+	String get tagFixed => '固定';
+
+	/// zh: '忽略'
+	String get tagIgnore => '忽略';
+
+	/// zh: '匹配'
+	String get tagMatch => '匹配';
+
+	/// zh: '在前'
+	String get tagBefore => '在前';
+
+	/// zh: '字面'
+	String get tagLiteral => '字面';
+
+	late final Translations$serial$reply$lessons$zh lessons = Translations$serial$reply$lessons$zh.internal(_root);
 }
 
 // Path: serial.history
@@ -950,6 +1132,9 @@ class Translations$serial$dialog$zh {
 
 	/// zh: '删除全部 $count 条发送历史后无法恢复。'
 	String deleteHistory({required Object count}) => '删除全部 ${count} 条发送历史后无法恢复。';
+
+	/// zh: '删除脚本「$name」后无法恢复。'
+	String deleteScript({required Object name}) => '删除脚本「${name}」后无法恢复。';
 
 	/// zh: '快捷键说明'
 	String get keysTitle => '快捷键说明';
@@ -1197,6 +1382,15 @@ class Translations$serial$notice$zh {
 	/// zh: '批量任务已保存'
 	String get batchSaved => '批量任务已保存';
 
+	/// zh: '脚本已重命名'
+	String get scriptSaved => '脚本已重命名';
+
+	/// zh: '已用「$title」新建 $name'
+	String lessonCreated({required Object title, required Object name}) => '已用「${title}」新建 ${name}';
+
+	/// zh: '样例试跑结果已写入运行日志'
+	String get lessonTried => '样例试跑结果已写入运行日志';
+
 	/// zh: '已填入发送框：$text'
 	String checksumFilled({required Object text}) => '已填入发送框：${text}';
 
@@ -1214,6 +1408,313 @@ class Translations$serial$notice$zh {
 
 	/// zh: '已载入 $name'
 	String fileLoaded({required Object name}) => '已载入 ${name}';
+}
+
+// Path: serial.script.lessons
+class Translations$serial$script$lessons$zh {
+	Translations$serial$script$lessons$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$serial$script$lessons$hooks$zh hooks = Translations$serial$script$lessons$hooks$zh.internal(_root);
+	late final Translations$serial$script$lessons$print$zh print = Translations$serial$script$lessons$print$zh.internal(_root);
+	late final Translations$serial$script$lessons$parse$zh parse = Translations$serial$script$lessons$parse$zh.internal(_root);
+	late final Translations$serial$script$lessons$checksum$zh checksum = Translations$serial$script$lessons$checksum$zh.internal(_root);
+	late final Translations$serial$script$lessons$block$zh block = Translations$serial$script$lessons$block$zh.internal(_root);
+	late final Translations$serial$script$lessons$modbus$zh modbus = Translations$serial$script$lessons$modbus$zh.internal(_root);
+}
+
+// Path: serial.reply.lessons
+class Translations$serial$reply$lessons$zh {
+	Translations$serial$reply$lessons$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$serial$reply$lessons$order$zh order = Translations$serial$reply$lessons$order$zh.internal(_root);
+	late final Translations$serial$reply$lessons$place$zh place = Translations$serial$reply$lessons$place$zh.internal(_root);
+	late final Translations$serial$reply$lessons$wild$zh wild = Translations$serial$reply$lessons$wild$zh.internal(_root);
+	late final Translations$serial$reply$lessons$ascii$zh ascii = Translations$serial$reply$lessons$ascii$zh.internal(_root);
+	late final Translations$serial$reply$lessons$reword$zh reword = Translations$serial$reply$lessons$reword$zh.internal(_root);
+	late final Translations$serial$reply$lessons$groups$zh groups = Translations$serial$reply$lessons$groups$zh.internal(_root);
+	late final Translations$serial$reply$lessons$reascii$zh reascii = Translations$serial$reply$lessons$reascii$zh.internal(_root);
+}
+
+// Path: serial.script.lessons.hooks
+class Translations$serial$script$lessons$hooks$zh {
+	Translations$serial$script$lessons$hooks$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '脚本什么时候运行'
+	String get title => '脚本什么时候运行';
+
+	/// zh: '两个钩子：收到数据后、发送数据前'
+	String get brief => '两个钩子：收到数据后、发送数据前';
+
+	/// zh: '写一个叫 on_receive 的函数，每收到一包数据就会调用它，frame 是这一包的字节。写 before_send 则在每一帧发出前调用（发送、快捷指令、批量、自动应答都算），返回的帧才会真正发出。开关只控制自动运行；「运行」是用最近一帧或发送框内容试算，不会发数据。'
+	String get text => '写一个叫 on_receive 的函数，每收到一包数据就会调用它，frame 是这一包的字节。写 before_send 则在每一帧发出前调用（发送、快捷指令、批量、自动应答都算），返回的帧才会真正发出。开关只控制自动运行；「运行」是用最近一帧或发送框内容试算，不会发数据。';
+}
+
+// Path: serial.script.lessons.print
+class Translations$serial$script$lessons$print$zh {
+	Translations$serial$script$lessons$print$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '把一帧打印出来'
+	String get title => '把一帧打印出来';
+
+	/// zh: 'log 输出到运行日志，帧会显示成 HEX'
+	String get brief => 'log 输出到运行日志，帧会显示成 HEX';
+
+	/// zh: 'log 把内容写到运行日志，多个参数用空格连起来；print 和 log 是同一个函数。直接传入帧会显示成 HEX，frame:sub(i, j) 取第 i 到第 j 字节，frame:str() 按 ASCII 转成文字。'
+	String get text => 'log 把内容写到运行日志，多个参数用空格连起来；print 和 log 是同一个函数。直接传入帧会显示成 HEX，frame:sub(i, j) 取第 i 到第 j 字节，frame:str() 按 ASCII 转成文字。';
+}
+
+// Path: serial.script.lessons.parse
+class Translations$serial$script$lessons$parse$zh {
+	Translations$serial$script$lessons$parse$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '认帧头、取数值'
+	String get title => '认帧头、取数值';
+
+	/// zh: 'starts_with 判断帧头，u16 读两字节整数'
+	String get brief => 'starts_with 判断帧头，u16 读两字节整数';
+
+	/// zh: 'frame:starts_with(0xA5, 0x5A, 0x03) 判断帧头；不是要的帧就 return 跳过。下标从 1 开始：u8(i) 读第 i 字节，u16(i) 把第 i、i+1 字节按大端拼成整数，小端用 u16le(i)。'
+	String get text => 'frame:starts_with(0xA5, 0x5A, 0x03) 判断帧头；不是要的帧就 return 跳过。下标从 1 开始：u8(i) 读第 i 字节，u16(i) 把第 i、i+1 字节按大端拼成整数，小端用 u16le(i)。';
+}
+
+// Path: serial.script.lessons.checksum
+class Translations$serial$script$lessons$checksum$zh {
+	Translations$serial$script$lessons$checksum$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '发送前补校验'
+	String get title => '发送前补校验';
+
+	/// zh: 'before_send 返回改过的帧，append 追加字节'
+	String get brief => 'before_send 返回改过的帧，append 追加字节';
+
+	/// zh: 'before_send 收到即将发出的帧，返回什么就发什么。frame:append(...) 返回在末尾追加字节后的新帧；sum8 是累加和，xor8 是异或（BCC）。'
+	String get text => 'before_send 收到即将发出的帧，返回什么就发什么。frame:append(...) 返回在末尾追加字节后的新帧；sum8 是累加和，xor8 是异或（BCC）。';
+}
+
+// Path: serial.script.lessons.block
+class Translations$serial$script$lessons$block$zh {
+	Translations$serial$script$lessons$block$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '拦截不想发的帧'
+	String get title => '拦截不想发的帧';
+
+	/// zh: '返回 nil，这一帧就不发'
+	String get brief => '返回 nil，这一帧就不发';
+
+	/// zh: 'before_send 返回 nil 时这一帧不会发出，数据日志会记一条拦截。其他帧要原样放行，记得 return frame。'
+	String get text => 'before_send 返回 nil 时这一帧不会发出，数据日志会记一条拦截。其他帧要原样放行，记得 return frame。';
+}
+
+// Path: serial.script.lessons.modbus
+class Translations$serial$script$lessons$modbus$zh {
+	Translations$serial$script$lessons$modbus$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: 'Modbus 补 CRC16'
+	String get title => 'Modbus 补 CRC16';
+
+	/// zh: 'crc16 返回低字节、高字节'
+	String get brief => 'crc16 返回低字节、高字节';
+
+	/// zh: 'crc16(frame) 按 Modbus 算法返回两个值：低字节、高字节，正好按 Modbus RTU 的顺序追加。frame(...) 可以从数字、字符串或别的帧拼出一个新帧。'
+	String get text => 'crc16(frame) 按 Modbus 算法返回两个值：低字节、高字节，正好按 Modbus RTU 的顺序追加。frame(...) 可以从数字、字符串或别的帧拼出一个新帧。';
+}
+
+// Path: serial.reply.lessons.order
+class Translations$serial$reply$lessons$order$zh {
+	Translations$serial$reply$lessons$order$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '收到之后才发'
+	String get title => '收到之后才发';
+
+	/// zh: '命中后按应答列表一条条发'
+	String get brief => '命中后按应答列表一条条发';
+
+	/// zh: '握手应答'
+	String get name => '握手应答';
+
+	/// zh: '串口打开后，每一包收到的数据都会跟已启用的规则比。命中的按应答列表顺序发送，每条延时从上一包发出之后算，不是从收到的时刻重算。列表里两条都命中，就会都回，不是中了一条就停。串口关着时，规则不执行。'
+	String get text => '串口打开后，每一包收到的数据都会跟已启用的规则比。命中的按应答列表顺序发送，每条延时从上一包发出之后算，不是从收到的时刻重算。列表里两条都命中，就会都回，不是中了一条就停。串口关着时，规则不执行。';
+
+	/// zh: '前缀只认开头的 A5 5A，后面两字节不参与。'
+	String get rxNote => '前缀只认开头的 A5 5A，后面两字节不参与。';
+}
+
+// Path: serial.reply.lessons.place
+class Translations$serial$reply$lessons$place$zh {
+	Translations$serial$reply$lessons$place$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '前缀、整帧、包含、结尾'
+	String get title => '前缀、整帧、包含、结尾';
+
+	/// zh: '这四项只有模板有'
+	String get brief => '这四项只有模板有';
+
+	/// zh: '帧里出现就回'
+	String get name => '帧里出现就回';
+
+	/// zh: '同一条匹配数据 A5 5A，换匹配方式，中不中完全不同。整帧必须整包一模一样；前缀只看开头；结尾只看末尾；包含只要中间出现过。正则没有这个下拉，位置要自己写 ^ 和 \$。'
+	String get text => '同一条匹配数据 A5 5A，换匹配方式，中不中完全不同。整帧必须整包一模一样；前缀只看开头；结尾只看末尾；包含只要中间出现过。正则没有这个下拉，位置要自己写 ^ 和 \$。';
+
+	/// zh: '这一包开头是 00。前缀不中，包含能中。'
+	String get rxNote => '这一包开头是 00。前缀不中，包含能中。';
+}
+
+// Path: serial.reply.lessons.wild
+class Translations$serial$reply$lessons$wild$zh {
+	Translations$serial$reply$lessons$wild$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '?? 抓一字节，* 抓一段'
+	String get title => '?? 抓一字节，* 抓一段';
+
+	/// zh: '通配符从左到右就是 \$1、\$2'
+	String get brief => '通配符从左到右就是 \$1、\$2';
+
+	/// zh: '回传抓到的字节'
+	String get name => '回传抓到的字节';
+
+	/// zh: 'HEX 模板里 ?? 是任意一字节，必须写成两个问号，只写一个问号存不进去。* 是任意长度，可以是空。它们按从左到右变成 \$1、\$2，应答里写 \$1 就会换成抓到的字节。模板在保存时就检查：没有第三个通配符却写了 \$3，不许存。'
+	String get text => 'HEX 模板里 ?? 是任意一字节，必须写成两个问号，只写一个问号存不进去。* 是任意长度，可以是空。它们按从左到右变成 \$1、\$2，应答里写 \$1 就会换成抓到的字节。模板在保存时就检查：没有第三个通配符却写了 \$3，不许存。';
+
+	/// zh: '整帧。?? 吃掉 11，* 吃掉剩下的 22 33。'
+	String get rxNote => '整帧。?? 吃掉 11，* 吃掉剩下的 22 33。';
+}
+
+// Path: serial.reply.lessons.ascii
+class Translations$serial$reply$lessons$ascii$zh {
+	Translations$serial$reply$lessons$ascii$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: 'ASCII 里一个 ? 是一字节'
+	String get title => 'ASCII 里一个 ? 是一字节';
+
+	/// zh: '应答框仍然写 HEX'
+	String get brief => '应答框仍然写 HEX';
+
+	/// zh: '回传 OK 后一字节'
+	String get name => '回传 OK 后一字节';
+
+	/// zh: '格式改成 ASCII 之后，一个 ? 就是任意一字节，* 仍是任意长度。想匹配问号本身，写成反斜杠加问号；星号、回车、换行同样加反斜杠。指定某个字节用反斜杠 x 加两位，例如 \\x0D。忽略大小写只在 ASCII 下有。应答框永远写 HEX：字符 7 抓进来是字节 37。'
+	String get text => '格式改成 ASCII 之后，一个 ? 就是任意一字节，* 仍是任意长度。想匹配问号本身，写成反斜杠加问号；星号、回车、换行同样加反斜杠。指定某个字节用反斜杠 x 加两位，例如 \\x0D。忽略大小写只在 ASCII 下有。应答框永远写 HEX：字符 7 抓进来是字节 37。';
+
+	/// zh: '忽略大小写，所以 ok,7 也能对上 OK,?。问号抓到字符 7。'
+	String get rxNote => '忽略大小写，所以 ok,7 也能对上 OK,?。问号抓到字符 7。';
+}
+
+// Path: serial.reply.lessons.reword
+class Translations$serial$reply$lessons$reword$zh {
+	Translations$serial$reply$lessons$reword$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '正则看的是一行 HEX 文字'
+	String get title => '正则看的是一行 HEX 文字';
+
+	/// zh: '这里的 * 不是任意长度'
+	String get brief => '这里的 * 不是任意长度';
+
+	/// zh: '取帧头后一字节'
+	String get name => '取帧头后一字节';
+
+	/// zh: '语法改成正则后，没有「匹配方式」这一栏。HEX 正则不按字节格子比，而是去比空格分隔的十六进制文字，例如 A5 5A 03。表达式里的 * 是「前一个东西重复」，?? 也不再表示任意一字节。要抓一个字节，写括号包住两位：([0-9A-F]{2})。开头用 ^，结尾用 \$，自己写。'
+	String get text => '语法改成正则后，没有「匹配方式」这一栏。HEX 正则不按字节格子比，而是去比空格分隔的十六进制文字，例如 A5 5A 03。表达式里的 * 是「前一个东西重复」，?? 也不再表示任意一字节。要抓一个字节，写括号包住两位：([0-9A-F]{2})。开头用 ^，结尾用 \$，自己写。';
+
+	/// zh: '引擎拿去匹配的文字是「A5 5A 03」。这条没写 \$，后面再跟字节也会中。'
+	String get rxNote => '引擎拿去匹配的文字是「A5 5A 03」。这条没写 \$，后面再跟字节也会中。';
+}
+
+// Path: serial.reply.lessons.groups
+class Translations$serial$reply$lessons$groups$zh {
+	Translations$serial$reply$lessons$groups$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '只有括号才是 \$1'
+	String get title => '只有括号才是 \$1';
+
+	/// zh: '写了不存在的 \$n，那一条会跳过'
+	String get brief => '写了不存在的 \$n，那一条会跳过';
+
+	/// zh: '拆开两个字节'
+	String get name => '拆开两个字节';
+
+	/// zh: '模板的 ?? 和 * 会自动占编号。正则只有圆括号里的内容才变成 \$1、\$2，按左括号出现的顺序。这条用 \$ 锚住整帧，两对括号各抓一个字节。应答里如果写了 \$3，而只有两组括号，这一条不发送，系统日志记「引用的捕获不存在，已跳过」。括号若只抓到一个十六进制字符，同样跳过。模板则会在点保存时就拦住。'
+	String get text => '模板的 ?? 和 * 会自动占编号。正则只有圆括号里的内容才变成 \$1、\$2，按左括号出现的顺序。这条用 \$ 锚住整帧，两对括号各抓一个字节。应答里如果写了 \$3，而只有两组括号，这一条不发送，系统日志记「引用的捕获不存在，已跳过」。括号若只抓到一个十六进制字符，同样跳过。模板则会在点保存时就拦住。';
+
+	/// zh: '两对括号，按从左到右是 \$1、\$2。末尾的 \$ 表示整帧到此结束。'
+	String get rxNote => '两对括号，按从左到右是 \$1、\$2。末尾的 \$ 表示整帧到此结束。';
+}
+
+// Path: serial.reply.lessons.reascii
+class Translations$serial$reply$lessons$reascii$zh {
+	Translations$serial$reply$lessons$reascii$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: 'ASCII 正则逐字匹配'
+	String get title => 'ASCII 正则逐字匹配';
+
+	/// zh: '对着字符比，不是对着 HEX 文字'
+	String get brief => '对着字符比，不是对着 HEX 文字';
+
+	/// zh: '取逗号后面'
+	String get name => '取逗号后面';
+
+	/// zh: 'ASCII 正则对着收到的原始字符匹配，一个字符一个字符比，不是「A5 5A」那种十六进制文字。括号抓到的字符按字节填进应答。忽略大小写同样只在 ASCII 时可选。锚点还是自己写 ^ 和 \$。'
+	String get text => 'ASCII 正则对着收到的原始字符匹配，一个字符一个字符比，不是「A5 5A」那种十六进制文字。括号抓到的字符按字节填进应答。忽略大小写同样只在 ASCII 时可选。锚点还是自己写 ^ 和 \$。';
+
+	/// zh: '收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 \$1。'
+	String get rxNote => '收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 \$1。';
 }
 
 /// The flat map containing all translations for locale <zh>.
@@ -1329,6 +1830,8 @@ extension on Translations {
 			'serial.log.batchDone' => ({required Object name}) => '批量任务「${name}」完成',
 			'serial.log.batchFail' => ({required Object step}) => '第 ${step} 步失败，任务停止',
 			'serial.log.batchStopped' => '批量任务已手动停止',
+			'serial.log.scriptBlocked' => ({required Object name}) => '脚本「${name}」返回 nil，这一帧已拦截，未发送',
+			'serial.log.scriptFailed' => ({required Object name}) => '脚本「${name}」出错，这一帧未发送，详见脚本运行日志',
 			'serial.sendBox.send' => '发送',
 			'serial.sendBox.stopLoop' => '停止循环',
 			'serial.sendBox.clear' => '清除',
@@ -1341,6 +1844,63 @@ extension on Translations {
 			'serial.tab.reply' => '自动应答',
 			'serial.tab.history' => '历史发送',
 			'serial.tab.calc' => '校验计算',
+			'serial.tab.script' => '脚本',
+			'serial.script.note' => ({required Object enabled, required Object total}) => '已启用 ${enabled} / ${total}',
+			'serial.script.add' => '新建',
+			'serial.script.waiting' => '等待触发',
+			'serial.script.off' => '已停用',
+			'serial.script.outputs' => ({required Object count}) => '已输出 ${count} 次',
+			'serial.script.broken' => '有错误',
+			'serial.script.noHook' => '无钩子',
+			'serial.script.explain' => 'Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。\n点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。\n不会写？切到「教程」，六课从收数据讲到补 CRC。',
+			'serial.script.mine' => ({required Object count}) => '我的脚本 ${count}',
+			'serial.script.tutorial' => '教程',
+			'serial.script.lessonNew' => '用这课新建脚本',
+			'serial.script.lessonTry' => '样例试跑',
+			'serial.script.lessonSample' => ({required Object hex}) => '样例帧 ${hex}',
+			'serial.script.tutorialNote' => '下标从 1 开始；0x 写法可以直接用；死循环会被自动中止，os.execute 等危险函数已移除。\n「样例试跑」把这课的样例帧交给代码，输出写进运行日志，不会发数据。',
+			'serial.script.tried' => ({required Object hook, required Object hex}) => '样例试跑 · ${hook} ← ${hex}',
+			'serial.script.lessons.hooks.title' => '脚本什么时候运行',
+			'serial.script.lessons.hooks.brief' => '两个钩子：收到数据后、发送数据前',
+			'serial.script.lessons.hooks.text' => '写一个叫 on_receive 的函数，每收到一包数据就会调用它，frame 是这一包的字节。写 before_send 则在每一帧发出前调用（发送、快捷指令、批量、自动应答都算），返回的帧才会真正发出。开关只控制自动运行；「运行」是用最近一帧或发送框内容试算，不会发数据。',
+			'serial.script.lessons.print.title' => '把一帧打印出来',
+			'serial.script.lessons.print.brief' => 'log 输出到运行日志，帧会显示成 HEX',
+			'serial.script.lessons.print.text' => 'log 把内容写到运行日志，多个参数用空格连起来；print 和 log 是同一个函数。直接传入帧会显示成 HEX，frame:sub(i, j) 取第 i 到第 j 字节，frame:str() 按 ASCII 转成文字。',
+			'serial.script.lessons.parse.title' => '认帧头、取数值',
+			'serial.script.lessons.parse.brief' => 'starts_with 判断帧头，u16 读两字节整数',
+			'serial.script.lessons.parse.text' => 'frame:starts_with(0xA5, 0x5A, 0x03) 判断帧头；不是要的帧就 return 跳过。下标从 1 开始：u8(i) 读第 i 字节，u16(i) 把第 i、i+1 字节按大端拼成整数，小端用 u16le(i)。',
+			'serial.script.lessons.checksum.title' => '发送前补校验',
+			'serial.script.lessons.checksum.brief' => 'before_send 返回改过的帧，append 追加字节',
+			'serial.script.lessons.checksum.text' => 'before_send 收到即将发出的帧，返回什么就发什么。frame:append(...) 返回在末尾追加字节后的新帧；sum8 是累加和，xor8 是异或（BCC）。',
+			'serial.script.lessons.block.title' => '拦截不想发的帧',
+			'serial.script.lessons.block.brief' => '返回 nil，这一帧就不发',
+			'serial.script.lessons.block.text' => 'before_send 返回 nil 时这一帧不会发出，数据日志会记一条拦截。其他帧要原样放行，记得 return frame。',
+			'serial.script.lessons.modbus.title' => 'Modbus 补 CRC16',
+			'serial.script.lessons.modbus.brief' => 'crc16 返回低字节、高字节',
+			'serial.script.lessons.modbus.text' => 'crc16(frame) 按 Modbus 算法返回两个值：低字节、高字节，正好按 Modbus RTU 的顺序追加。frame(...) 可以从数字、字符串或别的帧拼出一个新帧。',
+			'serial.script.empty' => '还没有脚本。点「新建」写一个。',
+			'serial.script.toggle' => '启用 / 停用',
+			'serial.script.autoOn' => '自动运行中',
+			'serial.script.autoOff' => '已停用，仅手动运行',
+			'serial.script.editorHint' => 'Lua · 输入即保存 · Tab 缩进两格',
+			'serial.script.run' => '运行',
+			'serial.script.fold' => '收起',
+			'serial.script.rename' => '重命名',
+			'serial.script.renameTitle' => '重命名脚本',
+			'serial.script.name' => '名称',
+			'serial.script.logTitle' => '运行日志',
+			'serial.script.logCount' => ({required Object count}) => '${count} 条',
+			'serial.script.clear' => '清空',
+			'serial.script.logEmpty' => '还没有输出。启用脚本后，收到或发送数据时会写在这里。',
+			'serial.script.changed' => ({required Object from, required Object to}) => '${from} → ${to}',
+			'serial.script.blocked' => ({required Object from}) => '${from} → nil，已拦截，未发送',
+			'serial.script.dryRun' => ({required Object from, required Object to}) => '试算 ${from} → ${to}（未发送）',
+			'serial.script.dryBlocked' => ({required Object from}) => '试算 ${from} → nil，这一帧会被拦截（未发送）',
+			'serial.script.manualRx' => ({required Object hex}) => '手动运行 · 最近一帧 ${hex}',
+			'serial.script.noRx' => '手动运行 · 还没有收到数据',
+			'serial.script.badTx' => '发送框内容为空或不是合法 HEX，无法试算 before_send',
+			'serial.script.noHookLog' => '没有定义 on_receive 或 before_send，无可运行的钩子',
+			'serial.script.tooLong' => '执行超过指令上限，可能是死循环，已中止',
 			'serial.quick.note' => '点「发送」立即发出，不进入历史',
 			'serial.quick.send' => '发送',
 			'serial.quick.empty' => '还没有快捷指令。点「新增」保存常用的一条指令，或点「新增文件夹」先分组。',
@@ -1416,6 +1976,56 @@ extension on Translations {
 			'serial.reply.contains' => '包含',
 			'serial.reply.suffix' => '结尾',
 			'serial.reply.toggleOn' => '启用 / 停用',
+			'serial.reply.tutor' => '教程',
+			'serial.reply.tutorNote' => '模板四课，正则三课。点开一课，可填进左边。',
+			'serial.reply.tutorFill' => '填入编辑器',
+			'serial.reply.tutorWrote' => '已写入左边，点「保存」才会出现在规则列表里。',
+			'serial.reply.tutorRx' => '收到',
+			'serial.reply.tutorTx' => '将发出',
+			'serial.reply.tutorFrom' => ({required Object from}) => '由 ${from}',
+			'serial.reply.tutorHit' => '中',
+			'serial.reply.tutorMiss' => '不中',
+			'serial.reply.tutorWay' => '方式',
+			'serial.reply.tagFixed' => '固定',
+			'serial.reply.tagIgnore' => '忽略',
+			'serial.reply.tagMatch' => '匹配',
+			'serial.reply.tagBefore' => '在前',
+			'serial.reply.tagLiteral' => '字面',
+			'serial.reply.lessons.order.title' => '收到之后才发',
+			'serial.reply.lessons.order.brief' => '命中后按应答列表一条条发',
+			'serial.reply.lessons.order.name' => '握手应答',
+			'serial.reply.lessons.order.text' => '串口打开后，每一包收到的数据都会跟已启用的规则比。命中的按应答列表顺序发送，每条延时从上一包发出之后算，不是从收到的时刻重算。列表里两条都命中，就会都回，不是中了一条就停。串口关着时，规则不执行。',
+			'serial.reply.lessons.order.rxNote' => '前缀只认开头的 A5 5A，后面两字节不参与。',
+			'serial.reply.lessons.place.title' => '前缀、整帧、包含、结尾',
+			'serial.reply.lessons.place.brief' => '这四项只有模板有',
+			'serial.reply.lessons.place.name' => '帧里出现就回',
+			'serial.reply.lessons.place.text' => '同一条匹配数据 A5 5A，换匹配方式，中不中完全不同。整帧必须整包一模一样；前缀只看开头；结尾只看末尾；包含只要中间出现过。正则没有这个下拉，位置要自己写 ^ 和 \$。',
+			'serial.reply.lessons.place.rxNote' => '这一包开头是 00。前缀不中，包含能中。',
+			'serial.reply.lessons.wild.title' => '?? 抓一字节，* 抓一段',
+			'serial.reply.lessons.wild.brief' => '通配符从左到右就是 \$1、\$2',
+			'serial.reply.lessons.wild.name' => '回传抓到的字节',
+			'serial.reply.lessons.wild.text' => 'HEX 模板里 ?? 是任意一字节，必须写成两个问号，只写一个问号存不进去。* 是任意长度，可以是空。它们按从左到右变成 \$1、\$2，应答里写 \$1 就会换成抓到的字节。模板在保存时就检查：没有第三个通配符却写了 \$3，不许存。',
+			'serial.reply.lessons.wild.rxNote' => '整帧。?? 吃掉 11，* 吃掉剩下的 22 33。',
+			'serial.reply.lessons.ascii.title' => 'ASCII 里一个 ? 是一字节',
+			'serial.reply.lessons.ascii.brief' => '应答框仍然写 HEX',
+			'serial.reply.lessons.ascii.name' => '回传 OK 后一字节',
+			'serial.reply.lessons.ascii.text' => '格式改成 ASCII 之后，一个 ? 就是任意一字节，* 仍是任意长度。想匹配问号本身，写成反斜杠加问号；星号、回车、换行同样加反斜杠。指定某个字节用反斜杠 x 加两位，例如 \\x0D。忽略大小写只在 ASCII 下有。应答框永远写 HEX：字符 7 抓进来是字节 37。',
+			'serial.reply.lessons.ascii.rxNote' => '忽略大小写，所以 ok,7 也能对上 OK,?。问号抓到字符 7。',
+			'serial.reply.lessons.reword.title' => '正则看的是一行 HEX 文字',
+			'serial.reply.lessons.reword.brief' => '这里的 * 不是任意长度',
+			'serial.reply.lessons.reword.name' => '取帧头后一字节',
+			'serial.reply.lessons.reword.text' => '语法改成正则后，没有「匹配方式」这一栏。HEX 正则不按字节格子比，而是去比空格分隔的十六进制文字，例如 A5 5A 03。表达式里的 * 是「前一个东西重复」，?? 也不再表示任意一字节。要抓一个字节，写括号包住两位：([0-9A-F]{2})。开头用 ^，结尾用 \$，自己写。',
+			'serial.reply.lessons.reword.rxNote' => '引擎拿去匹配的文字是「A5 5A 03」。这条没写 \$，后面再跟字节也会中。',
+			'serial.reply.lessons.groups.title' => '只有括号才是 \$1',
+			'serial.reply.lessons.groups.brief' => '写了不存在的 \$n，那一条会跳过',
+			'serial.reply.lessons.groups.name' => '拆开两个字节',
+			'serial.reply.lessons.groups.text' => '模板的 ?? 和 * 会自动占编号。正则只有圆括号里的内容才变成 \$1、\$2，按左括号出现的顺序。这条用 \$ 锚住整帧，两对括号各抓一个字节。应答里如果写了 \$3，而只有两组括号，这一条不发送，系统日志记「引用的捕获不存在，已跳过」。括号若只抓到一个十六进制字符，同样跳过。模板则会在点保存时就拦住。',
+			'serial.reply.lessons.groups.rxNote' => '两对括号，按从左到右是 \$1、\$2。末尾的 \$ 表示整帧到此结束。',
+			'serial.reply.lessons.reascii.title' => 'ASCII 正则逐字匹配',
+			'serial.reply.lessons.reascii.brief' => '对着字符比，不是对着 HEX 文字',
+			'serial.reply.lessons.reascii.name' => '取逗号后面',
+			'serial.reply.lessons.reascii.text' => 'ASCII 正则对着收到的原始字符匹配，一个字符一个字符比，不是「A5 5A」那种十六进制文字。括号抓到的字符按字节填进应答。忽略大小写同样只在 ASCII 时可选。锚点还是自己写 ^ 和 \$。',
+			'serial.reply.lessons.reascii.rxNote' => '收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 \$1。',
 			'serial.history.note' => '只记录用「发送」按钮发出的数据',
 			'serial.history.clear' => '清空',
 			'serial.history.resendTip' => '重新发送',
@@ -1446,6 +2056,7 @@ extension on Translations {
 			'serial.dialog.deleteRule' => ({required Object name}) => '删除应答规则「${name}」后无法恢复。',
 			'serial.dialog.deleteBatch' => ({required Object name}) => '删除批量任务「${name}」后无法恢复。',
 			'serial.dialog.deleteHistory' => ({required Object count}) => '删除全部 ${count} 条发送历史后无法恢复。',
+			'serial.dialog.deleteScript' => ({required Object name}) => '删除脚本「${name}」后无法恢复。',
 			'serial.dialog.keysTitle' => '快捷键说明',
 			'serial.dialog.know' => '知道了',
 			'serial.dialog.aboutTitle' => '关于',
@@ -1522,6 +2133,9 @@ extension on Translations {
 			'serial.notice.folderSaved' => '文件夹已保存',
 			'serial.notice.ruleSaved' => '应答规则已保存',
 			'serial.notice.batchSaved' => '批量任务已保存',
+			'serial.notice.scriptSaved' => '脚本已重命名',
+			'serial.notice.lessonCreated' => ({required Object title, required Object name}) => '已用「${title}」新建 ${name}',
+			'serial.notice.lessonTried' => '样例试跑结果已写入运行日志',
 			'serial.notice.checksumFilled' => ({required Object text}) => '已填入发送框：${text}',
 			'serial.notice.exportedQuick' => '快捷指令已导出',
 			'serial.notice.exportedRules' => '应答规则已导出',

@@ -196,6 +196,19 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .sced .gut{margin:0;padding:8px 6px 8px 10px;font:13px/1.55 var(--mono);color:var(--log-prompt);text-align:right;background:var(--panel);border-right:1px solid var(--line2);overflow:hidden;user-select:none;min-width:34px}
 .sced textarea{border:0;outline:none;resize:none;padding:8px 10px;font:13px/1.55 var(--mono);color:var(--log-rx);background:transparent;white-space:pre;overflow:auto;tab-size:2;min-height:0;height:100%}
 .sced:focus-within{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+/* 脚本页「我的脚本 / 教程」切换与课表 */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{border:0;background:var(--field);height:24px;padding:0 10px;font-size:13px;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.it.tut{cursor:pointer}
+.it.tut .dt{display:flex;gap:6px;align-items:center;font-family:var(--sans)}
+.tutno{font:600 12px var(--mono);color:var(--muted);min-width:18px;text-align:right}
+.tutopen{display:flex;flex-direction:column;gap:8px;padding:10px 10px 12px 38px;border-bottom:1px solid var(--line2)}
+.tuttext{font-size:13px;line-height:1.6}
+.tutcode{margin:0;font:12px/1.55 var(--mono);color:var(--log-rx);background:var(--log-bg);border:1px solid var(--line2);border-radius:4px;padding:8px 10px;white-space:pre;overflow:auto}
+.tutsample{font:12px var(--mono);color:var(--muted)}
+.tutacts{display:flex;gap:6px;align-items:center}
 
 /* ---------- 状态栏 ---------- */
 .status{display:flex;align-items:center;gap:0;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
@@ -211,7 +224,7 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .modal{position:fixed;inset:0;background:rgba(10,14,20,.38);display:none;align-items:center;justify-content:center;z-index:50}
 .modal.show{display:flex}
 .dialog{width:min(640px,92vw);max-height:86vh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 20px 48px rgba(0,0,0,.25)}
-.dialog h3{font-size:15px;padding:14px 18px;border-bottom:1px solid var(--line2)}
+.dialog h3{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;padding:14px 18px;border-bottom:1px solid var(--line2)}
 .dialog .body{padding:14px 18px;overflow:auto;display:flex;flex-direction:column;gap:10px}
 .dialog .foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line2)}
 .dialog .row{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;align-items:center}
@@ -223,7 +236,47 @@ select:focus,.inp:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0
 .dialog .line span{font:12px var(--mono);color:var(--muted);text-align:right}
 .dialog .line .inp{font-family:var(--mono)}
 .dialog .line .note{font-family:var(--sans)}
-.dialog .err{color:var(--off);font-size:13px;min-height:18px}.dialog .keys{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:14px}
+.dialog .err{color:var(--off);font-size:13px;min-height:18px}
+.dialog.wide{width:min(1040px,96vw);height:min(800px,92vh);max-height:min(800px,92vh)}
+.dialog .body.split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:0;padding:0;overflow:hidden}
+.ruleform{min-width:0;min-height:0;overflow:auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.rail{min-width:0;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--win)}
+.railhead{padding:12px 14px 10px;border-bottom:1px solid var(--line2)}
+.railhead b{display:block;font-size:14px;font-weight:600}
+.railhead span{display:block;margin-top:2px;font-size:12px;line-height:1.5;color:var(--muted)}
+.rscroll{flex:1;min-height:0;overflow:auto}
+.glab{padding:10px 14px 4px;font-size:12px;font-weight:600;color:var(--muted)}
+.lrow{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line2);background:transparent;padding:8px 14px}
+.lrow:hover,.lrow.on{background:var(--hover)}
+.lrow .ti{display:flex;gap:8px;align-items:baseline;font-size:14px;font-weight:600}
+.lrow .no{flex:none;width:16px;font:600 12px var(--mono);color:var(--muted);text-align:right}
+.lrow .br{display:block;margin:2px 0 0 24px;font-size:12px;font-weight:400;color:var(--muted)}
+.lbody{display:flex;flex-direction:column;gap:10px;padding:2px 14px 14px 38px;border-bottom:1px solid var(--line2);background:var(--panel)}
+.lbody .acts{position:sticky;bottom:0;background:var(--panel);padding-top:8px}
+.rttext{margin:0;font-size:14px;line-height:1.6;text-wrap:pretty}
+.recipe{font:13px/1.5 var(--mono);color:var(--text);overflow-wrap:anywhere}
+.strip{display:flex;flex-direction:column;gap:6px}
+.slab{font-size:12px;color:var(--muted)}
+.bytes{display:flex;flex-wrap:wrap;gap:4px}
+.bytes span{min-width:40px;padding:4px 6px 3px;background:var(--field);border:1px solid var(--line);border-radius:4px;font:600 13px/1.2 var(--mono);text-align:center;color:var(--text)}
+.bytes span small{display:block;margin-top:3px;font:400 12px/1.2 var(--sans);color:var(--muted)}
+.bytes span.cap{background:var(--mark);border-color:transparent}
+.bytes span.cap small{color:var(--text)}
+.bytes span.dim{color:var(--muted);font-weight:500}
+.snote{margin:0;font-size:12px;line-height:1.5;color:var(--muted);text-wrap:pretty}
+.tx{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:8px;align-items:baseline}
+.tx code{font:600 13px var(--mono);color:var(--log-tx)}
+.tx .ms{font:12px var(--mono);color:var(--muted)}
+.tx .from{grid-column:2;font-size:12px;color:var(--muted)}
+.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.cmp th,.cmp td{text-align:left;padding:4px 6px 4px 0;border-bottom:1px solid var(--line2);font-weight:400}
+.cmp th{font-size:12px;color:var(--muted);font-weight:600}
+.cmp th.hex{font-family:var(--mono);font-weight:500}
+.cmp td.yes{font-weight:600}
+.cmp td.no{color:var(--muted)}
+.wrote{margin:0;font-size:12px;line-height:1.5;color:var(--accent)}
+.acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dialog .keys{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:14px}
 .dialog .keys kbd{font:13px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--field);justify-self:start}
 .toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:var(--text);color:var(--win);padding:9px 16px;border-radius:6px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
 .toast.show{opacity:1}
@@ -796,6 +849,19 @@ $('tabbody').onclick = function (e) {
   if (act === 'scNew') { scUi.sel = Serial.newScript().id; scUi.dock = true; renderTab(); $('scCode').focus(); }
   if (act === 'scFold') { scUi.dock = false; renderTab(); }
   if (act === 'scClear') Serial.clearScriptLog();
+  if (act === 'tutView') { tutUi.view = id; renderTab(); }
+  if (act === 'tutOpen') { tutUi.open = tutUi.open === id ? null : id; renderTab(); }
+  if (act === 'tutNew') {
+    var ls = byId(LESSONS, id), ns = Serial.newScript(ls.name, ls.code);
+    scUi.sel = ns.id; scUi.dock = true; tutUi.view = 'mine'; renderTab(); hint('已用「' + ls.title + '」新建 ' + ns.name);
+  }
+  if (act === 'tutTry') {
+    var lt = byId(LESSONS, id);
+    if (!scUi.dock && S.scripts.length) { scUi.dock = true; renderTab(); }
+    Serial.logScript(lt.name, '样例试跑 · ' + lt.hook + ' ← ' + lt.sample);
+    lt.out.forEach(function (t) { Serial.logScript(lt.name, t); });
+    hint('样例试跑结果已写入运行日志');
+  }
   if (act === 'calcFromTx') { var p = currentPayload(); ui.calcFmt = p.format; renderTab(); $('calcInput').value = p.text; calcUpdate(); }
   if (act === 'calcAppend') {
     var raw = ui.calcFmt === 'HEX' ? Serial.parseHex($('calcInput').value) : Serial.textBytes($('calcInput').value, true);
@@ -830,10 +896,58 @@ function scriptRows() {
   }).join('');
 }
 function scriptNote() { return '已启用 ' + S.scripts.filter(function (s) { return s.enabled; }).length + ' / ' + S.scripts.length; }
+// 教程：六课，每课一段可直接运行的代码和一帧样例；out 是样例在真实引擎里的输出，设计稿直接回放
+var LESSONS = [
+  { id: 'l1', name: 'lesson1_hooks.lua', title: '脚本什么时候运行', hook: 'on_receive', brief: '两个钩子：收到数据后、发送数据前',
+    text: '写一个叫 on_receive 的函数，每收到一包数据就会调用它，frame 是这一包的字节。写 before_send 则在每一帧发出前调用（发送、快捷指令、批量、自动应答都算），返回的帧才会真正发出。开关只控制自动运行；「运行」是用最近一帧或发送框内容试算，不会发数据。',
+    code: '-- 收到一包数据后运行，frame 是这一包的字节\nfunction on_receive(frame)\n  log("收到", frame:len(), "字节")\nend\n',
+    sample: 'A5 81 00 00 81', out: ['收到 5 字节'] },
+  { id: 'l2', name: 'lesson2_print.lua', title: '把一帧打印出来', hook: 'on_receive', brief: 'log 输出到运行日志，帧会显示成 HEX',
+    text: 'log 把内容写到右侧运行日志，多个参数用空格连起来；print 和 log 是同一个函数。直接传入帧会显示成 HEX，frame:sub(i, j) 取第 i 到第 j 字节，frame:str() 按 ASCII 转成文字。',
+    code: 'function on_receive(frame)\n  log(frame)                     -- 整帧 HEX\n  log("帧头", frame:sub(1, 2))   -- 第 1~2 字节\n  log("末字节", frame:u8(frame:len()))\nend\n',
+    sample: 'A5 5A 03 00 F6 02 09 03', out: ['A5 5A 03 00 F6 02 09 03', '帧头 A5 5A', '末字节 3'] },
+  { id: 'l3', name: 'lesson3_parse.lua', title: '认帧头、取数值', hook: 'on_receive', brief: 'starts_with 判断帧头，u16 读两字节整数',
+    text: 'frame:starts_with(0xA5, 0x5A, 0x03) 判断帧头；不是要的帧就 return 跳过。下标从 1 开始：u8(i) 读第 i 字节，u16(i) 把第 i、i+1 字节按大端拼成整数，小端用 u16le(i)。',
+    code: '-- 温湿度帧：A5 5A 03 温度(2) 湿度(2) 校验\nfunction on_receive(frame)\n  if not frame:starts_with(0xA5, 0x5A, 0x03) then return end\n  local t = frame:u16(4) / 10\n  local h = frame:u16(6) / 10\n  log(string.format("温度 %.1f℃ 湿度 %.1f%%", t, h))\nend\n',
+    sample: 'A5 5A 03 00 F6 02 09 03', out: ['温度 24.6℃ 湿度 52.1%'] },
+  { id: 'l4', name: 'lesson4_checksum.lua', title: '发送前补校验', hook: 'before_send', brief: 'before_send 返回改过的帧，append 追加字节',
+    text: 'before_send 收到即将发出的帧，返回什么就发什么。frame:append(...) 返回在末尾追加字节后的新帧；sum8 是累加和，xor8 是异或（BCC）。',
+    code: '-- 发出前在帧尾补 SUM8\nfunction before_send(frame)\n  return frame:append(sum8(frame))\n  -- 改用异或校验：return frame:append(xor8(frame))\nend\n',
+    sample: 'A5 01 00 00 01', out: ['A5 01 00 00 01 → A5 01 00 00 01 A7（试算，未发送）'] },
+  { id: 'l5', name: 'lesson5_block.lua', title: '拦截不想发的帧', hook: 'before_send', brief: '返回 nil，这一帧就不发',
+    text: 'before_send 返回 nil 时这一帧不会发出，系统日志会记一条拦截。其他帧要原样放行，记得 return frame。',
+    code: '-- 不让「停止采集」发出去，其余照常\nfunction before_send(frame)\n  if frame:starts_with(0xA5, 0x10, 0x00) then\n    log("已拦截停止采集")\n    return nil\n  end\n  return frame\nend\n',
+    sample: 'A5 10 00 00 10', out: ['已拦截停止采集', 'A5 10 00 00 10 → nil，这一帧会被拦截（试算，未发送）'] },
+  { id: 'l6', name: 'lesson6_modbus.lua', title: 'Modbus 补 CRC16', hook: 'before_send', brief: 'crc16 返回低字节、高字节',
+    text: 'crc16(frame) 按 Modbus 算法返回两个值：低字节、高字节，正好按 Modbus RTU 的顺序追加。frame(...) 可以从数字、字符串或别的帧拼出一个新帧。',
+    code: '-- Modbus RTU：帧尾追加 CRC16，低字节在前\nfunction before_send(frame)\n  local lo, hi = crc16(frame)\n  return frame:append(lo, hi)\nend\n',
+    sample: '01 03 00 00 00 01', out: ['01 03 00 00 00 01 → 01 03 00 00 00 01 84 0A（试算，未发送）'] }
+];
+var tutUi = { view: 'mine', open: 'l1' };
+function segHtml() {
+  return '<span class="seg"><button data-act="tutView" data-id="mine"' + (tutUi.view === 'mine' ? ' class="on"' : '') + '>我的脚本 ' + S.scripts.length + '</button>' +
+    '<button data-act="tutView" data-id="tut"' + (tutUi.view === 'tut' ? ' class="on"' : '') + '>教程</button></span>';
+}
+function lessonRow(l, i) {
+  var open = tutUi.open === l.id;
+  var head = '<div class="it tut' + (open ? ' active' : '') + '" data-act="tutOpen" data-id="' + l.id + '">' +
+    '<span class="tutno lead">' + (i + 1) + '</span><span class="nm">' + esc(l.title) + '</span>' +
+    '<span class="dt"><span class="schook">' + l.hook + '</span>' + esc(l.brief) + '</span></div>';
+  if (!open) return head;
+  return head + '<div class="tutopen"><p class="tuttext">' + esc(l.text) + '</p><pre class="tutcode">' + esc(l.code.replace(/\n$/, '')) + '</pre>' +
+    '<div class="tutsample">样例帧 ' + l.sample + '</div>' +
+    '<div class="tutacts"><button class="btn sm pri" data-act="tutNew" data-id="' + l.id + '">用这课新建脚本</button><button class="btn sm" data-act="tutTry" data-id="' + l.id + '">样例试跑</button></div></div>';
+}
 function scriptHtml() {
-  return '<div class="bar"><span class="note" id="scNote">' + scriptNote() + '</span><span class="grow"></span><button class="btn sm" data-act="scNew">新建</button></div>' +
+  if (tutUi.view === 'tut') {
+    return '<div class="bar">' + segHtml() + '<span class="grow"></span><span class="note" id="scNote">' + scriptNote() + '</span></div>' +
+      '<div class="list" id="scList" hidden></div>' +
+      '<div class="list">' + LESSONS.map(lessonRow).join('') + '</div>' +
+      '<div class="explain">下标从 1 开始；0x 写法可以直接用；死循环会被自动中止，os.execute 等危险函数已移除。<br>「样例试跑」把这课的样例帧交给代码，输出写进运行日志，不会发数据。</div>';
+  }
+  return '<div class="bar">' + segHtml() + '<span class="note" id="scNote">' + scriptNote() + '</span><span class="grow"></span><button class="btn sm" data-act="scNew">新建</button></div>' +
     '<div class="list" id="scList">' + scriptRows() + '</div>' +
-    '<div class="explain">Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。<br>点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。</div>';
+    '<div class="explain">Lua 脚本。on_receive 在收到数据后运行；before_send 拦截每一帧发送（含快捷指令、批量、自动应答），返回处理后的帧再发出，返回 nil 则不发。<br>点一行在中间下方打开编辑器和运行日志，数据日志与发送框保持可见。开关只控制自动运行，「运行」随时可手动试一次。<br>不会写？切到「教程」，六课从收数据讲到补 CRC。</div>';
 }
 function gutter(code) { var g = ''; for (var i = 1, n = code.split('\n').length; i <= n; i++) g += i + '\n'; return g; }
 function dockHead(s) {
@@ -1067,5 +1181,6 @@ renderTab(); renderStatus(); renderOpen(); renderLog(); preview();
 Serial.seed();
 setTimeout(function () { Serial.send('A5 01 00 00 01 07', { format: 'HEX' }); }, 900);
 </script>
+<!-- @reply-tutor -->
 </body>
 </html>

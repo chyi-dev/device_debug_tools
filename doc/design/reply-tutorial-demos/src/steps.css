@@ -1,0 +1,14 @@
+/* 版 B：上面是两列课名索引，下面是这一课的三步，每步只写表单的一块。 */
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;padding:8px 12px 10px;border-bottom:1px solid var(--line)}
+.pick .g{grid-column:1 / -1;padding-top:6px;font-size:12px;font-weight:600;color:var(--muted)}
+.pick .g:first-child{padding-top:2px}
+.pick button{border:0;background:transparent;border-radius:4px;text-align:left;padding:4px 6px;font-size:13px;color:var(--muted)}
+.pick button:hover,.pick button.on{background:var(--hover);color:var(--text)}
+.pick button.on{font-weight:600}
+.steps{flex:1;min-height:0;overflow:auto;padding:8px 12px 14px;display:flex;flex-direction:column;gap:4px}
+.stepkicker{font-size:14px;font-weight:600;padding:6px 2px 8px}
+.step{display:flex;gap:8px;align-items:baseline;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line2);background:transparent;padding:8px 2px;font-size:14px}
+.step .no{flex:none;width:16px;font:600 12px var(--mono);color:var(--muted);text-align:right}
+.step.on{font-weight:600}
+.stepbody{display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px 24px}
+.stepall{margin-top:8px}

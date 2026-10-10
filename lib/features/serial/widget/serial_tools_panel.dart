@@ -11,11 +11,13 @@ import '../cubit/serial_console_cubit.dart';
 import '../cubit/serial_console_state.dart';
 import '../data/serial_bytes.dart';
 import '../data/serial_stamp.dart';
+import '../model/script_lessons.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
 import 'serial_chrome.dart';
 import 'serial_editors.dart';
 import 'serial_l10n.dart';
+import 'serial_script_dock.dart';
 
 class SerialToolsPanel extends StatefulWidget {
   const SerialToolsPanel({super.key});
@@ -38,9 +40,7 @@ class _SerialToolsPanelState extends State<SerialToolsPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Translations.of(context);
     final palette = SerialPalette.of(context);
-    final cs = Theme.of(context).colorScheme;
     return BlocBuilder<SerialConsoleCubit, SerialConsoleState>(
       builder: (context, state) {
         return DecoratedBox(
@@ -56,40 +56,14 @@ class _SerialToolsPanelState extends State<SerialToolsPanel> {
                 child: Row(
                   children: [
                     for (final tab in ToolTab.values)
-                      Expanded(
-                        child: InkWell(
-                          onTap: () =>
-                              context.read<SerialConsoleCubit>().setTab(tab),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: state.tab == tab
-                                      ? palette.accent
-                                      : Colors.transparent,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                _tabLabel(t, tab),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.caption(cs).copyWith(
-                                  color: state.tab == tab
-                                      ? palette.text
-                                      : palette.muted,
-                                  fontWeight: state.tab == tab
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      if (tab == ToolTab.script) ...[
+                        // 脚本页会改动中间列，用竖线与其他页签隔开
+                        const SizedBox(width: AppSpacing.xs),
+                        Container(width: 1, height: 18, color: palette.line),
+                        const SizedBox(width: AppSpacing.xs),
+                        _tabButton(context, state, tab, padded: true),
+                      ] else
+                        Expanded(child: _tabButton(context, state, tab)),
                   ],
                 ),
               ),
@@ -102,8 +76,46 @@ class _SerialToolsPanelState extends State<SerialToolsPanel> {
     );
   }
 
+  Widget _tabButton(
+    BuildContext context,
+    SerialConsoleState state,
+    ToolTab tab, {
+    bool padded = false,
+  }) {
+    final palette = SerialPalette.of(context);
+    final active = state.tab == tab;
+    return InkWell(
+      onTap: () => context.read<SerialConsoleCubit>().setTab(tab),
+      child: Container(
+        padding: padded
+            ? const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4)
+            : EdgeInsets.zero,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: active ? palette.accent : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          _tabLabel(Translations.of(context), tab),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
+            color: active ? palette.text : palette.muted,
+            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _body(BuildContext context, SerialConsoleState state) {
     return switch (state.tab) {
+      ToolTab.script => _ScriptTab(state: state),
       ToolTab.quick => _QuickTab(state: state),
       ToolTab.batch => _BatchTab(state: state),
       ToolTab.reply => _ReplyTab(state: state),
@@ -133,13 +145,15 @@ String _tabLabel(Translations t, ToolTab tab) => switch (tab) {
   ToolTab.reply => t.serial.tab.reply,
   ToolTab.history => t.serial.tab.history,
   ToolTab.calc => t.serial.tab.calc,
+  ToolTab.script => t.serial.tab.script,
 };
 
 class _Bar extends StatelessWidget {
-  const _Bar({required this.note, required this.actions});
+  const _Bar({required this.note, required this.actions, this.leading});
 
   final String note;
   final List<Widget> actions;
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +165,10 @@ class _Bar extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (leading != null) ...[
+            leading!,
+            const SizedBox(width: AppSpacing.sm),
+          ],
           Expanded(
             child: Text(
               note,
@@ -640,6 +658,376 @@ class _HistoryTab extends StatelessWidget {
                   ],
                 ),
         ),
+      ],
+    );
+  }
+}
+
+class _ScriptTab extends StatelessWidget {
+  const _ScriptTab({required this.state});
+
+  final SerialConsoleState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final s = t.serial.script;
+    final cubit = context.read<SerialConsoleCubit>();
+    final enabled = state.scripts.where((item) => item.enabled).length;
+    final current = state.scriptDockVisible ? state.selectedScript : null;
+    final note = s.note(enabled: enabled, total: state.scripts.length);
+    final views = _ScriptViewSwitch(
+      tutorial: state.scriptTutorial,
+      mineLabel: s.mine(count: state.scripts.length),
+      tutorialLabel: s.tutorial,
+      onChanged: cubit.setScriptTutorial,
+    );
+    if (state.scriptTutorial) {
+      return Column(
+        children: [
+          _Bar(leading: views, note: note, actions: const []),
+          Expanded(
+            child: ListView(
+              children: [
+                for (final (i, lesson) in ScriptLesson.all.indexed)
+                  _LessonRow(
+                    index: i + 1,
+                    lesson: lesson,
+                    open: state.openLesson == lesson.key,
+                  ),
+                _Explain(s.tutorialNote),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    return Column(
+      children: [
+        _Bar(
+          leading: views,
+          note: note,
+          actions: [
+            SerialButton(label: s.add, small: true, onPressed: cubit.newScript),
+          ],
+        ),
+        Expanded(
+          child: ListView(
+            children: [
+              for (final script in state.scripts)
+                _ScriptRow(
+                  script: script,
+                  meta: state.scriptMeta[script.id] ?? const ScriptMeta(),
+                  active: script.id == current?.id,
+                ),
+              if (state.scripts.isEmpty) _Explain(s.empty),
+              _Explain(s.explain),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScriptRow extends StatelessWidget {
+  const _ScriptRow({
+    required this.script,
+    required this.meta,
+    required this.active,
+  });
+
+  final LuaScript script;
+  final ScriptMeta meta;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final s = t.serial.script;
+    final cubit = context.read<SerialConsoleCubit>();
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final status = meta.outputs > 0
+        ? s.outputs(count: meta.outputs)
+        : (script.enabled ? s.waiting : s.off);
+    return HoverSurface(
+      color: active ? palette.accent.withValues(alpha: 0.14) : null,
+      onTap: () => cubit.selectScript(script.id),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 2,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: palette.line2)),
+        ),
+        child: Row(
+          children: [
+            Tooltip(
+              message: s.toggle,
+              child: SerialSwitch(
+                on: script.enabled,
+                onTap: () => cubit.toggleScript(script.id),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm + 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    script.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.body(cs).copyWith(
+                      color: script.enabled ? palette.text : palette.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      ...scriptHookChips(context, meta),
+                      Expanded(
+                        child: Text(
+                          status,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.mono(
+                            cs,
+                            fontSize: 12,
+                            color: palette.muted,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 脚本页顶部「我的脚本 / 教程」分段切换。
+class _ScriptViewSwitch extends StatelessWidget {
+  const _ScriptViewSwitch({
+    required this.tutorial,
+    required this.mineLabel,
+    required this.tutorialLabel,
+    required this.onChanged,
+  });
+
+  final bool tutorial;
+  final String mineLabel;
+  final String tutorialLabel;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    Widget segment(String label, bool value) {
+      final on = tutorial == value;
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () => onChanged(value),
+          child: Container(
+            height: SerialMetrics.buttonSm,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 2),
+            color: on ? palette.accent : palette.field,
+            child: Text(
+              label,
+              style: AppTextStyles.body(cs).copyWith(
+                fontSize: 13,
+                height: 1,
+                color: on ? palette.accentInk : palette.muted,
+                fontWeight: on ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        border: Border.all(color: palette.line),
+        borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          segment(mineLabel, false),
+          Container(
+            width: 1,
+            height: SerialMetrics.buttonSm,
+            color: palette.line,
+          ),
+          segment(tutorialLabel, true),
+        ],
+      ),
+    );
+  }
+}
+
+/// 课表一行；展开后显示说明、代码、样例帧与操作。
+class _LessonRow extends StatelessWidget {
+  const _LessonRow({
+    required this.index,
+    required this.lesson,
+    required this.open,
+  });
+
+  final int index;
+  final ScriptLesson lesson;
+  final bool open;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final s = t.serial.script;
+    final text = lessonText(t, lesson.key);
+    final cubit = context.read<SerialConsoleCubit>();
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final mono = AppTextStyles.mono(cs, fontSize: 12, color: palette.muted);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HoverSurface(
+          color: open ? palette.accent.withValues(alpha: 0.14) : null,
+          onTap: () => cubit.toggleLesson(lesson.key),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 2,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: palette.line2)),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 18,
+                  child: Text(
+                    '$index',
+                    textAlign: TextAlign.right,
+                    style: mono.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm + 2),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        text.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.body(cs).copyWith(
+                          color: palette.text,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          scriptHookChip(lesson.hook),
+                          Expanded(
+                            child: Text(
+                              text.brief,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.caption(
+                                cs,
+                              ).copyWith(color: palette.muted),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (open)
+          Container(
+            padding: const EdgeInsets.fromLTRB(
+              38,
+              AppSpacing.sm + 2,
+              AppSpacing.sm + 2,
+              AppSpacing.md,
+            ),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: palette.line2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  text.text,
+                  style: AppTextStyles.body(
+                    cs,
+                  ).copyWith(fontSize: 13, height: 1.6, color: palette.text),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm + 2,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: palette.logBg,
+                    border: Border.all(color: palette.line2),
+                    borderRadius: BorderRadius.circular(
+                      SerialMetrics.controlRadius,
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SelectableText(
+                      lesson.code.trimRight(),
+                      style: AppTextStyles.mono(
+                        cs,
+                        fontSize: 12,
+                        height: 1.55,
+                        color: palette.logRx,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(s.lessonSample(hex: lesson.sample), style: mono),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    SerialButton(
+                      label: s.lessonNew,
+                      small: true,
+                      primary: true,
+                      onPressed: () => cubit.newScriptFromLesson(lesson),
+                    ),
+                    const SizedBox(width: AppSpacing.xs + 2),
+                    SerialButton(
+                      label: s.lessonTry,
+                      small: true,
+                      onPressed: () => cubit.tryLesson(lesson),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

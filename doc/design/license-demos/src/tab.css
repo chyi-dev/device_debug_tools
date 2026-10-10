@@ -1,0 +1,6 @@
+/* 版 A · 页签上锁 */
+.tabs button.lk{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.15;color:var(--muted)}
+.tabs button.lk>*{pointer-events:none}
+.tabs button.lk span{opacity:.62}
+.tabs button.lk small{font-size:12px;font-weight:600;color:var(--log-sys)}
+.tabs button.lk:hover span{opacity:1}
