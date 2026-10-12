@@ -95,6 +95,7 @@ flutter test
 ```bash
 flutter build windows --release
 iscc installer/windows/device_debug_tools.iss
+& "D:\dev_tools\Inno Setup 6\ISCC.exe" installer\windows\device_debug_tools.iss
 ```
 
 产物：`build/installer/device_debug_tools-<version>-setup.exe`。脚本中的 `MyAppVersion` 需与 `pubspec.yaml` 的版本同步。目标机缺少 `VCRUNTIME140.dll` 时，需安装 Microsoft Visual C++ 2015–2022 可再发行组件（x64）。
