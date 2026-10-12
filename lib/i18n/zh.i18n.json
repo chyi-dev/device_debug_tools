@@ -21,7 +21,8 @@
     "delete": "删除",
     "close": "关闭",
     "add": "新增",
-    "edit": "编辑"
+    "edit": "编辑",
+    "duplicate": "复制"
   },
   "serial": {
     "menu": {
@@ -503,6 +504,7 @@
       "ruleOn": "$name 已启用",
       "ruleOff": "$name 已停用",
       "deleted": "已删除",
+      "duplicated": "已复制",
       "quickSaved": "快捷指令已保存",
       "folderSaved": "文件夹已保存",
       "ruleSaved": "应答规则已保存",

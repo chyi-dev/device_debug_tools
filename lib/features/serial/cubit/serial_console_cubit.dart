@@ -542,6 +542,39 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     _notify(SerialNoticeKind.deleted, toast: true, hint: false);
   }
 
+  /// 复制：立即克隆，插到源条目之后（同文件夹内）；克隆不占 F 键。
+  void duplicateQuick(String id) {
+    final source = state.quick.commandById(id);
+    if (source == null) return;
+    final copy = QuickCommand(
+      id: _freshId('q', {for (final c in state.quick.commands) c.id}),
+      name: _copyName(source.name, {
+        for (final c in state.quick.commands) c.name,
+      }),
+      data: source.data,
+      format: source.format,
+    );
+    final quick = <QuickNode>[
+      for (final node in state.quick)
+        ...switch (node) {
+          QuickCommand() => [node, if (node.id == id) copy],
+          QuickFolder() => [
+            node.copyWith(
+              commands: [
+                for (final item in node.commands) ...[
+                  item,
+                  if (item.id == id) copy,
+                ],
+              ],
+            ),
+          ],
+        },
+    ];
+    _emit(state.copyWith(quick: quick));
+    _persist();
+    _notify(SerialNoticeKind.duplicated, toast: true, hint: false);
+  }
+
   /// 新文件夹追加到根目录末尾；已存在则只改名称。
   void upsertFolder(String? id, String name) {
     final folders = state.quick.folders;
@@ -697,6 +730,30 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     _persist();
   }
 
+  /// 复制：步骤、轮数、失败即停一起克隆，插到源任务之后并选中；运行中的任务不受影响。
+  void duplicateBatch(String id) {
+    final source = _byId(state.batch, id);
+    if (source == null) return;
+    final copy = BatchJob(
+      id: _freshId('b', {for (final b in state.batch) b.id}),
+      name: _copyName(source.name, {for (final b in state.batch) b.name}),
+      repeat: source.repeat,
+      stopOnFail: source.stopOnFail,
+      steps: [
+        for (final step in source.steps)
+          BatchStep(data: step.data, delayMs: step.delayMs, note: step.note),
+      ],
+    );
+    _emit(
+      state.copyWith(
+        batch: _insertAfterId(state.batch, id, copy, (b) => b.id),
+        selectedBatchId: copy.id,
+      ),
+    );
+    _persist();
+    _notify(SerialNoticeKind.duplicated, toast: true, hint: false);
+  }
+
   void setBatchRepeat(String id, int repeat) {
     if (repeat <= 0) {
       _notify(
@@ -759,6 +816,29 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     );
     _persist();
     _notify(SerialNoticeKind.deleted, toast: true, hint: false);
+  }
+
+  /// 复制：克隆插到源规则之后；克隆默认停用、命中归零，避免意外应答。
+  void duplicateRule(String id) {
+    final source = _byId(state.rules, id);
+    if (source == null) return;
+    final copy = ReplyRule(
+      id: _freshId('r', {for (final r in state.rules) r.id}),
+      name: _copyName(source.name, {for (final r in state.rules) r.name}),
+      match: source.match,
+      pattern: source.pattern,
+      enabled: false,
+      hits: 0,
+      replies: source.replies,
+      kind: source.kind,
+      format: source.format,
+      ignoreCase: source.ignoreCase,
+    );
+    _emit(
+      state.copyWith(rules: _insertAfterId(state.rules, id, copy, (r) => r.id)),
+    );
+    _persist();
+    _notify(SerialNoticeKind.duplicated, toast: true, hint: false);
   }
 
   Future<void> resendHistory(int index) async {
@@ -920,6 +1000,30 @@ class SerialConsoleCubit extends Cubit<SerialConsoleState> {
     );
     _persist();
     _notify(SerialNoticeKind.deleted, toast: true, hint: false);
+  }
+
+  /// 复制：克隆插到源脚本之后，命名保留 .lua；克隆默认停用、选中并打开编辑区，不复制运行日志。
+  void duplicateScript(String id) {
+    final source = _scriptById(id);
+    if (source == null) return;
+    final copy = LuaScript(
+      id: _freshId('s', {for (final s in state.scripts) s.id}),
+      name: _copyName(source.name, {
+        for (final s in state.scripts) s.name,
+      }, script: true),
+      code: source.code,
+      enabled: false,
+    );
+    _emit(
+      state.copyWith(
+        scripts: _insertAfterId(state.scripts, id, copy, (s) => s.id),
+        selectedScriptId: copy.id,
+        scriptDock: true,
+        scriptMeta: {...state.scriptMeta, copy.id: _inspect(copy)},
+      ),
+    );
+    _persist();
+    _notify(SerialNoticeKind.duplicated, toast: true, hint: false);
   }
 
   /// 输入即保存；编译检查防抖，避免每次按键都重建虚拟机。
@@ -1733,4 +1837,44 @@ T? _byId<T>(List<T> items, String id) {
     if (item is BatchJob && item.id == id) return item;
   }
   return null;
+}
+
+String _freshId(String prefix, Set<String> taken) {
+  var id = newSerialId(prefix);
+  while (taken.contains(id)) {
+    id = newSerialId(prefix);
+  }
+  return id;
+}
+
+/// 「副本」命名：源名加「副本」，重名时「副本 2」「副本 3」顺延；脚本保留 .lua 扩展名。
+String _copyName(String name, Set<String> taken, {bool script = false}) {
+  final lua = script && name.toLowerCase().endsWith('.lua');
+  final stem = lua ? name.substring(0, name.length - 4) : name;
+  String label(int? n) {
+    if (!script) return n == null ? '$name 副本' : '$name 副本 $n';
+    final suffix = n == null ? '_副本' : '_副本_$n';
+    return lua ? '$stem$suffix.lua' : '$stem$suffix';
+  }
+
+  var text = label(null);
+  for (var n = 2; taken.contains(text); n++) {
+    text = label(n);
+  }
+  return text;
+}
+
+/// 克隆插到源条目之后；第二次复制仍紧随源条目，第一次的副本顺移。
+List<T> _insertAfterId<T>(
+  List<T> list,
+  String id,
+  T copy,
+  String Function(T item) idOf,
+) {
+  final next = <T>[];
+  for (final item in list) {
+    next.add(item);
+    if (idOf(item) == id) next.add(copy);
+  }
+  return next;
 }

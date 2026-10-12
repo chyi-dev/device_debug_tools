@@ -41,6 +41,14 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent);width:15px;hei
 .drop button:hover{background:var(--hover)}
 .drop button kbd,.drop button .chk{font:12px var(--mono);color:var(--muted)}
 .drop hr{border:0;border-top:1px solid var(--line2);margin:4px 0}
+/* 行操作右键菜单：沿用 .drop 的面板与阴影；挂在 body 上 fixed 定位，工具面板 overflow 裁不到 */
+#actCtx{position:fixed;z-index:40;min-width:112px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:4px}
+#actCtx[hidden]{display:none}
+#actCtx button{display:block;width:100%;border:0;background:none;text-align:left;padding:7px 12px;border-radius:4px;font-size:13px;color:var(--text)}
+#actCtx button.danger{color:var(--off)}
+#actCtx button:hover{background:var(--hover)}
+[data-kind]{cursor:context-menu}
+[data-kind] button{cursor:pointer}
 .menubar .right{margin-left:auto;display:flex;gap:6px}
 .iconbtn{border:1px solid transparent;background:none;height:26px;padding:0 10px;border-radius:4px;font-size:13px;color:var(--muted)}
 .iconbtn:hover{border-color:var(--line);color:var(--text)}
@@ -885,16 +893,16 @@ function ruleLabel(r) {
 }
 
 function quickRow(q, inner) {
-  return '<div class="it' + (inner ? ' in' : '') + '"><button class="btn sm pri lead" data-act="quickSend" data-id="' + q.id + '">发送</button>' +
+  return '<div class="it' + (inner ? ' in' : '') + '" data-kind="quick" data-id="' + q.id + '"><button class="btn sm pri lead" data-act="quickSend" data-id="' + q.id + '">发送</button>' +
     '<span class="nm">' + esc(q.name) + '</span><span class="dt">' + (q.format === 'ASCII' ? 'ASCII · ' : '') + esc(q.data) + '</span>' +
-    '<span class="ops">' + (q.key ? '<span class="key">' + q.key + '</span>' : '') + '<button class="link" data-act="quickEdit" data-id="' + q.id + '">编辑</button><button class="link danger" data-act="quickDel" data-id="' + q.id + '">删除</button></span></div>';
+    '<span class="ops">' + (q.key ? '<span class="key">' + q.key + '</span>' : '') + '</span></div>';
 }
 function quickHtml() {
   return '<div class="bar"><span class="note">点「发送」立即发出，不进入历史</span><span class="grow"></span><button class="btn sm" data-act="folderNew">新增文件夹</button><button class="btn sm" data-act="quickNew">新增</button></div>' +
     '<div class="list">' + S.quick.map(function (x) {
       if (!isFolder(x)) return quickRow(x, false);
-      return '<div class="fd" data-act="folderToggle" data-id="' + x.id + '"><span class="arw">' + (x.expanded ? '▼' : '▶') + '</span><span class="nm">' + esc(x.name) + '</span><span class="cnt">' + x.commands.length + ' 条</span>' +
-        '<button class="link" data-act="quickNewIn" data-id="' + x.id + '">新增</button><button class="link" data-act="folderEdit" data-id="' + x.id + '">重命名</button><button class="link danger" data-act="folderDel" data-id="' + x.id + '">删除</button></div>' +
+      return '<div class="fd" data-act="folderToggle" data-id="' + x.id + '" data-kind="folder"><span class="arw">' + (x.expanded ? '▼' : '▶') + '</span><span class="nm">' + esc(x.name) + '</span><span class="cnt">' + x.commands.length + ' 条</span>' +
+        '<button class="link" data-act="quickNewIn" data-id="' + x.id + '">新增</button></div>' +
         (x.expanded ? (x.commands.length ? x.commands.map(function (q) { return quickRow(q, true); }).join('') : '<div class="explain in">文件夹为空。点「新增」在这里添加指令。</div>') : '');
     }).join('') + '</div>' +
     (S.quick.length ? '' : '<div class="explain">还没有快捷指令。点「新增」保存常用的一条指令，或点「新增文件夹」先分组。</div>');
@@ -904,13 +912,13 @@ function batchHtml() {
   if (!job) return '<div class="bar"><span class="grow"></span><button class="btn sm" data-act="batchNew">新建任务</button></div><div class="explain">还没有批量任务。</div>';
   ui.batchSel = job.id;
   var run = ui.batchRun && ui.batchRun.id === job.id ? ui.batchRun : null;
-  return '<div class="bar"><select id="batchSel" style="flex:1">' + S.batch.map(function (b) { return '<option value="' + b.id + '"' + (b.id === job.id ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select>' +
+  return '<div class="bar" data-kind="batch"><select id="batchSel" style="flex:1">' + S.batch.map(function (b) { return '<option value="' + b.id + '"' + (b.id === job.id ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select>' +
     '<button class="btn sm" data-act="batchNew">新建</button><button class="btn sm" data-act="batchEdit">编辑</button><button class="btn sm danger" data-act="batchDel">删除</button></div>' +
     '<div class="batchmeta"><label>重复 <input class="inp" id="batchRepeat" value="' + job.repeat + '"> 轮</label><label><input type="checkbox" id="batchStop"' + (job.stopOnFail ? ' checked' : '') + '>失败即停</label>' +
     '<span style="margin-left:auto">' + (run ? '第 ' + run.round + '/' + run.rounds + ' 轮 · 第 ' + run.step + '/' + run.total + ' 条' : job.steps.length + ' 条指令') + '</span>' +
     (run ? '<button class="btn sm danger" data-act="batchStop">停止</button>' : '<button class="btn sm pri" data-act="batchRun">开始发送</button>') + '</div>' +
     (run ? '<div class="prog"><i style="width:' + (((run.round - 1) * run.total + run.step) / (run.rounds * run.total) * 100) + '%"></i></div>' : '') +
-    '<table class="steps"><thead><tr><th>#</th><th>延时</th><th>指令数据</th><th>备注</th></tr></thead><tbody>' +
+    '<table class="steps" data-kind="batch"><thead><tr><th>#</th><th>延时</th><th>指令数据</th><th>备注</th></tr></thead><tbody>' +
     job.steps.map(function (s, i) { return '<tr class="' + (run && run.step === i + 1 ? 'now' : '') + '"><td>' + (i + 1) + '</td><td>' + s.delay + ' ms</td><td>' + esc(s.data) + '</td><td class="note">' + esc(s.note || '') + '</td></tr>'; }).join('') +
     '</tbody></table><div class="explain">延时指发送本条之前等待的毫秒数，第一条立即发送。</div>';
 }
@@ -918,10 +926,10 @@ function replyHtml() {
   var on = S.rules.filter(function (r) { return r.enabled; }).length;
   return '<div class="bar"><span class="note">已启用 ' + on + ' / ' + S.rules.length + '，按列表顺序逐条匹配</span><span class="grow"></span><button class="btn sm" data-act="ruleNew">新增规则</button></div>' +
     '<div class="list">' + S.rules.map(function (r) {
-      return '<div class="it"><button class="sw lead' + (r.enabled ? ' on' : '') + '" data-act="ruleToggle" data-id="' + r.id + '" title="启用 / 停用"></button>' +
+      return '<div class="it" data-kind="rule" data-id="' + r.id + '"><button class="sw lead' + (r.enabled ? ' on' : '') + '" data-act="ruleToggle" data-id="' + r.id + '" title="启用 / 停用"></button>' +
         '<span class="nm">' + esc(r.name) + '</span>' +
         '<span class="dt">' + esc(ruleLabel(r)) + ' → ' + r.replies.map(function (x) { return '+' + x.delay + 'ms ' + x.data; }).map(esc).join('，') + '</span>' +
-        '<span class="ops"><span class="hits">' + r.hits + ' 次</span><button class="link" data-act="ruleFire" data-id="' + r.id + '">执行</button><button class="link" data-act="ruleEdit" data-id="' + r.id + '">编辑</button><button class="link danger" data-act="ruleDel" data-id="' + r.id + '">删除</button></span></div>';
+        '<span class="ops"><span class="hits">' + r.hits + ' 次</span><button class="link" data-act="ruleFire" data-id="' + r.id + '">执行</button></span></div>';
     }).join('') + '</div>' +
     '<div class="explain">收到的数据与规则匹配后，按应答列表顺序依次发送；每条应答的延时从上一条发出后开始计算。</div>';
 }
@@ -1032,7 +1040,7 @@ function scriptSel() { return byId(S.scripts, scUi.sel) || S.scripts[0]; }
 function scriptRows() {
   var cur = scriptSel();
   return S.scripts.map(function (s) {
-    return '<div class="it sc' + (scUi.dock && s === cur ? ' active' : '') + (s.enabled ? '' : ' off') + '" data-act="scSel" data-id="' + s.id + '">' +
+    return '<div class="it sc' + (scUi.dock && s === cur ? ' active' : '') + (s.enabled ? '' : ' off') + '" data-act="scSel" data-id="' + s.id + '" data-kind="script">' +
       '<button class="sw lead' + (s.enabled ? ' on' : '') + '" data-act="scToggle" data-id="' + s.id + '" title="启用 / 停用"></button>' +
       '<span class="nm">' + esc(s.name) + '</span>' +
       '<span class="dt"><span class="schook">' + Serial.scriptHook(s) + '</span>' + (s.runs ? '已输出 ' + s.runs + ' 次' : (s.enabled ? '等待触发' : '已停用')) + '</span></div>';
@@ -1106,6 +1114,8 @@ function renderDock() {
     '<div class="scbody"><div class="sced"><pre class="gut" id="scGut">' + gutter(s.code) + '</pre><textarea id="scCode" spellcheck="false">' + esc(s.code) + '</textarea></div>' +
     '<div class="sclogbox"><div class="schead"><b>运行日志</b><span id="scCount">' + S.scriptLog.length + ' 条</span><span class="grow"></span><button class="link" data-act="scClear">清空</button></div>' +
     '<div class="sclog" id="scLog">' + scriptLogHtml() + '</div></div></div>';
+  $('scDockHead').dataset.kind = 'script';
+  $('scDockHead').dataset.id = s.id;
   var code = $('scCode'), l = $('scLog');
   l.scrollTop = l.scrollHeight;
   if (ui.scroll) $('log').scrollTop = $('log').scrollHeight;
@@ -1148,6 +1158,172 @@ function closeDialog() { $('modal').classList.remove('show'); }
 $('modal').onmousedown = function (e) { if (e.target === this) closeDialog(); };
 function fail(msg) { $('dlgErr').textContent = msg; return false; }
 function confirmDel(what, run) { dialog('确认删除', '<p>删除' + esc(what) + '后无法恢复。</p>', [{ text: '取消' }, { text: '删除', pri: true, run: function () { run(); toast('已删除'); } }]); }
+
+// ---------- 复制与行操作右键菜单 ----------
+// 复制：立即克隆，插到源条目之后，命名加「副本」；快捷指令不占 F 键，应答与脚本克隆默认停用
+function copyName(name, taken, script) {
+  var used = {};
+  taken.forEach(function (n) { used[n] = 1; });
+  var lua = script && /\.lua$/i.test(name);
+  var stem = lua ? name.slice(0, -4) : name;
+  function label(n) {
+    if (!script) return n == null ? name + ' 副本' : name + ' 副本 ' + n;
+    var suffix = n == null ? '_副本' : '_副本_' + n;
+    return lua ? stem + suffix + '.lua' : stem + suffix;
+  }
+  var text = label(null);
+  for (var n = 2; used[text]; n++) text = label(n);
+  return text;
+}
+function insertAfter(list, id, copy) {
+  var next = [];
+  list.forEach(function (item) {
+    next.push(item);
+    if (item.id === id) next.push(copy);
+  });
+  return next;
+}
+function dupQuick(id) {
+  var src = byId(allQuick(), id);
+  if (!src) return;
+  var copy = { id: uid('q'), name: copyName(src.name, allQuick().map(function (c) { return c.name; })), data: src.data, format: src.format, key: '' };
+  var folder = quickFolderOf(id);
+  if (folder) folder.commands = insertAfter(folder.commands, id, copy);
+  else S.quick = insertAfter(S.quick, id, copy);
+  renderTab(); toast('已复制');
+}
+function dupBatch() {
+  var src = byId(S.batch, ui.batchSel);
+  if (!src) return;
+  var copy = {
+    id: uid('b'),
+    name: copyName(src.name, S.batch.map(function (b) { return b.name; })),
+    repeat: src.repeat, stopOnFail: src.stopOnFail,
+    steps: src.steps.map(function (s) { return { data: s.data, delay: s.delay, note: s.note || '' }; })
+  };
+  S.batch = insertAfter(S.batch, src.id, copy);
+  ui.batchSel = copy.id;
+  renderTab(); toast('已复制');
+}
+function dupRule(id) {
+  var src = byId(S.rules, id);
+  if (!src) return;
+  var copy = JSON.parse(JSON.stringify(src));
+  copy.id = uid('r');
+  copy.name = copyName(src.name, S.rules.map(function (r) { return r.name; }));
+  copy.enabled = false;
+  copy.hits = 0;
+  S.rules = insertAfter(S.rules, id, copy);
+  renderTab(); toast('已复制');
+}
+function dupScript(id) {
+  var src = byId(S.scripts, id);
+  if (!src) return;
+  var copy = { id: uid('s'), name: copyName(src.name, S.scripts.map(function (s) { return s.name; }), true), action: src.action || '', enabled: false, runs: 0, last: '', code: src.code };
+  S.scripts = insertAfter(S.scripts, id, copy);
+  scUi.sel = copy.id; scUi.dock = true;
+  renderTab(); toast('已复制');
+}
+function renameScript(id) {
+  var s = byId(S.scripts, id);
+  if (!s) return;
+  dialog('重命名脚本',
+    '<div class="row"><label>名称</label><input class="inp" id="dName" value="' + esc(s.name) + '"></div><div class="err" id="dlgErr"></div>',
+    [{ text: '取消' }, { text: '保存', pri: true, run: function () {
+      var name = $('dName').value.trim();
+      if (!name) return fail('请填写名称');
+      s.name = name; renderTab(); toast('脚本已重命名');
+    } }]);
+}
+function deleteScript(id) {
+  var s = byId(S.scripts, id);
+  if (!s) return;
+  confirmDel('脚本「' + s.name + '」', function () {
+    S.scripts = S.scripts.filter(function (x) { return x.id !== id; });
+    if (scUi.sel === id) scUi.sel = S.scripts[0] && S.scripts[0].id;
+    if (!S.scripts.length) scUi.dock = false;
+    renderTab();
+  });
+}
+// 行上只留主操作，编辑 / 复制 / 删除右键该行弹出；批量顶栏已有「编辑」，菜单只补复制和删除
+function ctxItems(kind) {
+  var edit = { k: 'edit', text: (kind === 'folder' || kind === 'script') ? '重命名' : '编辑' };
+  var dup = { k: 'dup', text: '复制' };
+  var del = { k: 'del', text: '删除', danger: true };
+  if (kind === 'batch') return [dup, del];
+  if (kind === 'folder') return [edit, del];
+  return [edit, dup, del];
+}
+function ctxHide() { $('actCtx').hidden = true; }
+function ctxOpen(x, y, kind, id) {
+  var m = $('actCtx');
+  m.dataset.kind = kind;
+  m.dataset.id = id || '';
+  m.innerHTML = ctxItems(kind).map(function (it) {
+    return '<button data-k="' + it.k + '"' + (it.danger ? ' class="danger"' : '') + '>' + it.text + '</button>';
+  }).join('');
+  m.hidden = false;
+  m.style.left = '0px';
+  m.style.top = '0px';
+  var w = m.offsetWidth, h = m.offsetHeight;
+  var left = x, top = y;
+  if (left + w > innerWidth - 8) left = innerWidth - 8 - w;
+  if (left < 8) left = 8;
+  if (top + h > innerHeight - 8) top = Math.max(8, y - h - 8);
+  m.style.left = left + 'px';
+  m.style.top = top + 'px';
+}
+function ctxRun(kind, k, id) {
+  if (kind === 'quick') {
+    if (k === 'edit') return editQuick(byId(allQuick(), id));
+    if (k === 'dup') return dupQuick(id);
+    return confirmDel('快捷指令「' + byId(allQuick(), id).name + '」', function () { removeQuick(id); renderTab(); });
+  }
+  if (kind === 'folder') {
+    if (k === 'edit') return editFolder(byId(S.quick, id));
+    var fd = byId(S.quick, id);
+    return confirmDel('文件夹「' + fd.name + '」' + (fd.commands.length ? '会一并删除其中 ' + fd.commands.length + ' 条指令，' : ''), function () { removeQuick(id); renderTab(); });
+  }
+  if (kind === 'batch') {
+    if (k === 'dup') return dupBatch();
+    return confirmDel('批量任务「' + byId(S.batch, ui.batchSel).name + '」', function () {
+      S.batch = S.batch.filter(function (x) { return x.id !== ui.batchSel; });
+      ui.batchSel = S.batch[0] && S.batch[0].id;
+      renderTab();
+    });
+  }
+  if (kind === 'rule') {
+    if (k === 'edit') return editRule(byId(S.rules, id));
+    if (k === 'dup') return dupRule(id);
+    return confirmDel('应答规则「' + byId(S.rules, id).name + '」', function () { S.rules = S.rules.filter(function (x) { return x.id !== id; }); renderTab(); renderStatus(); });
+  }
+  if (kind === 'script') {
+    if (k === 'edit') return renameScript(id);
+    if (k === 'dup') return dupScript(id);
+    return deleteScript(id);
+  }
+}
+(function () {
+  var m = document.createElement('div');
+  m.id = 'actCtx';
+  m.hidden = true;
+  document.body.appendChild(m);
+  m.onclick = function (e) {
+    var b = e.target.closest('[data-k]');
+    if (!b) return;
+    e.stopPropagation();
+    ctxHide();
+    ctxRun(m.dataset.kind, b.dataset.k, m.dataset.id);
+  };
+  document.addEventListener('click', function (e) { if (!e.target.closest('#actCtx')) ctxHide(); });
+  document.addEventListener('contextmenu', function (e) {
+    var host = e.target.closest('[data-kind]');
+    if (!host) return;
+    e.preventDefault();
+    ctxOpen(e.clientX, e.clientY, host.dataset.kind, host.dataset.id);
+  });
+})();
+
 function validHex(v) { return !!Serial.parseHex(v); }
 
 function editQuick(q, folderId) {

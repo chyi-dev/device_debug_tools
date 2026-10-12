@@ -73,6 +73,7 @@ enum SerialNoticeKind {
   lessonCreated,
   lessonTried,
   deleted,
+  duplicated,
   quickSaved,
   folderSaved,
   ruleSaved,

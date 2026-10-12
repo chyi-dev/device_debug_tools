@@ -21,7 +21,8 @@
     "delete": "Delete",
     "close": "Close",
     "add": "Add",
-    "edit": "Edit"
+    "edit": "Edit",
+    "duplicate": "Duplicate"
   },
   "serial": {
     "menu": {
@@ -503,6 +504,7 @@
       "ruleOn": "$name enabled",
       "ruleOff": "$name disabled",
       "deleted": "Deleted",
+      "duplicated": "Duplicated",
       "quickSaved": "Quick command saved",
       "folderSaved": "Folder saved",
       "ruleSaved": "Rule saved",

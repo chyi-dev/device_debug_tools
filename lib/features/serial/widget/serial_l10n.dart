@@ -58,6 +58,7 @@ String serialNoticeText(Translations t, SerialNotice notice) {
     ),
     SerialNoticeKind.lessonTried => n.lessonTried,
     SerialNoticeKind.deleted => n.deleted,
+    SerialNoticeKind.duplicated => n.duplicated,
     SerialNoticeKind.quickSaved => n.quickSaved,
     SerialNoticeKind.folderSaved => n.folderSaved,
     SerialNoticeKind.ruleSaved => n.ruleSaved,

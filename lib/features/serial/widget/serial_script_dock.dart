@@ -146,65 +146,73 @@ class _DockHead extends StatelessWidget {
     final palette = SerialPalette.of(context);
     final cs = Theme.of(context).colorScheme;
     final muted = AppTextStyles.caption(cs).copyWith(color: palette.muted);
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm + 2,
-        vertical: AppSpacing.xs + 2,
-      ),
-      child: Row(
-        children: [
-          Flexible(
-            child: Text(
-              script.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.body(cs).copyWith(
-                color: palette.text,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
+    return SerialContextMenu(
+      menu: [
+        SerialMenuAction(
+          label: s.rename,
+          onTap: () => showScriptRename(context, script),
+        ),
+        SerialMenuAction(
+          label: t.common.duplicate,
+          onTap: () => cubit.duplicateScript(script.id),
+        ),
+        SerialMenuAction(
+          label: t.common.delete,
+          danger: true,
+          onTap: () => showSerialDelete(
+            context,
+            message: t.serial.dialog.deleteScript(name: script.name),
+            onDelete: () => cubit.deleteScript(script.id),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          ...scriptHookChips(context, meta),
-          Expanded(
-            flex: 2,
-            child: Tooltip(
-              message: s.editorHint,
+        ),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 2,
+          vertical: AppSpacing.xs + 2,
+        ),
+        child: Row(
+          children: [
+            Flexible(
               child: Text(
-                '${script.enabled ? s.autoOn : s.autoOff} · ${s.editorHint}',
+                script.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: muted,
+                style: AppTextStyles.body(cs).copyWith(
+                  color: palette.text,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          SerialButton(
-            label: s.run,
-            small: true,
-            primary: true,
-            onPressed: () => cubit.runScript(script.id),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          SerialLinkButton(
-            label: s.rename,
-            onPressed: () => showScriptRename(context, script),
-          ),
-          SerialLinkButton(
-            label: t.common.delete,
-            danger: true,
-            onPressed: () => showSerialDelete(
-              context,
-              message: t.serial.dialog.deleteScript(name: script.name),
-              onDelete: () => cubit.deleteScript(script.id),
+            const SizedBox(width: AppSpacing.sm),
+            ...scriptHookChips(context, meta),
+            Expanded(
+              flex: 2,
+              child: Tooltip(
+                message: s.editorHint,
+                child: Text(
+                  '${script.enabled ? s.autoOn : s.autoOff} · ${s.editorHint}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: muted,
+                ),
+              ),
             ),
-          ),
-          SerialLinkButton(
-            label: s.fold,
-            onPressed: () => cubit.setScriptDock(false),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.sm),
+            SerialButton(
+              label: s.run,
+              small: true,
+              primary: true,
+              onPressed: () => cubit.runScript(script.id),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            SerialLinkButton(
+              label: s.fold,
+              onPressed: () => cubit.setScriptDock(false),
+            ),
+          ],
+        ),
       ),
     );
   }

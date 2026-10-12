@@ -96,6 +96,7 @@ class _Translations$common$en extends Translations$common$zh {
 	@override String get close => 'Close';
 	@override String get add => 'Add';
 	@override String get edit => 'Edit';
+	@override String get duplicate => 'Duplicate';
 }
 
 // Path: serial
@@ -688,6 +689,7 @@ class _Translations$serial$notice$en extends Translations$serial$notice$zh {
 	@override String ruleOn({required Object name}) => '${name} enabled';
 	@override String ruleOff({required Object name}) => '${name} disabled';
 	@override String get deleted => 'Deleted';
+	@override String get duplicated => 'Duplicated';
 	@override String get quickSaved => 'Quick command saved';
 	@override String get folderSaved => 'Folder saved';
 	@override String get ruleSaved => 'Rule saved';
@@ -927,6 +929,7 @@ extension on TranslationsEn {
 			'common.close' => 'Close',
 			'common.add' => 'Add',
 			'common.edit' => 'Edit',
+			'common.duplicate' => 'Duplicate',
 			'serial.menu.file' => 'File',
 			'serial.menu.settings' => 'Settings',
 			'serial.menu.tools' => 'Tools',
@@ -1331,6 +1334,7 @@ extension on TranslationsEn {
 			'serial.notice.ruleOn' => ({required Object name}) => '${name} enabled',
 			'serial.notice.ruleOff' => ({required Object name}) => '${name} disabled',
 			'serial.notice.deleted' => 'Deleted',
+			'serial.notice.duplicated' => 'Duplicated',
 			'serial.notice.quickSaved' => 'Quick command saved',
 			'serial.notice.folderSaved' => 'Folder saved',
 			'serial.notice.ruleSaved' => 'Rule saved',

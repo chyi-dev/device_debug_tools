@@ -130,6 +130,9 @@ class Translations$common$zh {
 
 	/// zh: '编辑'
 	String get edit => '编辑';
+
+	/// zh: '复制'
+	String get duplicate => '复制';
 }
 
 // Path: serial
@@ -1428,6 +1431,9 @@ class Translations$serial$notice$zh {
 	/// zh: '已删除'
 	String get deleted => '已删除';
 
+	/// zh: '已复制'
+	String get duplicated => '已复制';
+
 	/// zh: '快捷指令已保存'
 	String get quickSaved => '快捷指令已保存';
 
@@ -1796,6 +1802,7 @@ extension on Translations {
 			'common.close' => '关闭',
 			'common.add' => '新增',
 			'common.edit' => '编辑',
+			'common.duplicate' => '复制',
 			'serial.menu.file' => '文件',
 			'serial.menu.settings' => '设置',
 			'serial.menu.tools' => '工具',
@@ -2200,6 +2207,7 @@ extension on Translations {
 			'serial.notice.ruleOn' => ({required Object name}) => '${name} 已启用',
 			'serial.notice.ruleOff' => ({required Object name}) => '${name} 已停用',
 			'serial.notice.deleted' => '已删除',
+			'serial.notice.duplicated' => '已复制',
 			'serial.notice.quickSaved' => '快捷指令已保存',
 			'serial.notice.folderSaved' => '文件夹已保存',
 			'serial.notice.ruleSaved' => '应答规则已保存',

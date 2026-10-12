@@ -559,6 +559,84 @@ class SerialLinkButton extends StatelessWidget {
   }
 }
 
+/// 行操作右键菜单的一项；[danger] 用 off 色，删除仍由调用方走确认框。
+class SerialMenuAction {
+  const SerialMenuAction({
+    required this.label,
+    required this.onTap,
+    this.danger = false,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool danger;
+}
+
+/// 在 [position] 弹出右键菜单，沿用菜单栏下拉的面板、描边与圆角；
+/// 选中项在菜单完全关闭后才执行，打开对话框不会和菜单退场冲突。
+Future<void> showSerialContextMenu(
+  BuildContext context, {
+  required Offset position,
+  required List<SerialMenuAction> actions,
+}) async {
+  final palette = SerialPalette.of(context);
+  final cs = Theme.of(context).colorScheme;
+  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+  final index = await showMenu<int>(
+    context: context,
+    position: RelativeRect.fromLTRB(
+      position.dx,
+      position.dy,
+      overlay.size.width - position.dx,
+      overlay.size.height - position.dy,
+    ),
+    color: palette.panel,
+    surfaceTintColor: Colors.transparent,
+    elevation: 8,
+    shape: RoundedRectangleBorder(
+      side: BorderSide(color: palette.line),
+      borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
+    ),
+    items: [
+      for (final (i, action) in actions.indexed)
+        PopupMenuItem<int>(
+          value: i,
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md - 4),
+          child: Text(
+            action.label,
+            style: AppTextStyles.body(cs).copyWith(
+              fontSize: 13,
+              color: action.danger ? palette.off : palette.text,
+            ),
+          ),
+        ),
+    ],
+  );
+  if (index != null) actions[index].onTap();
+}
+
+/// 给一整行挂右键菜单；行内主操作按钮不受影响。
+class SerialContextMenu extends StatelessWidget {
+  const SerialContextMenu({super.key, required this.menu, required this.child});
+
+  final List<SerialMenuAction> menu;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onSecondaryTapUp: (details) => showSerialContextMenu(
+        context,
+        position: details.globalPosition,
+        actions: menu,
+      ),
+      child: child,
+    );
+  }
+}
+
 class HoverSurface extends StatefulWidget {
   const HoverSurface({super.key, required this.child, this.color, this.onTap});
 

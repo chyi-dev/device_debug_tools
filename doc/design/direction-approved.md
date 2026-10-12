@@ -158,3 +158,29 @@
 
 - 主稿文件菜单去掉原来的「导出 / 导入快捷指令」「导出 / 导入应答规则」，换成「导出配置… / 导入配置…」；清单与替换逻辑并入 `src/serial-console.html`。
 - 规则写入 `design.md`「配置导入导出」一节。
+
+---
+
+# 操作折叠方向确认
+
+## 展示的三版初稿
+
+快捷指令、批量发送、自动应答、脚本都先加上「复制」，溢出是真的，再用三种骨架收掉多余按钮。历史记录仍是「填入 / 删除」，三版都不折叠。颜色、字号和模拟数据沿用主稿；菜单和操作条用现有 `panel` / `line` / `text` / `off`。源文件 `action-demos/src/`，`action-demos/build.mjs` 注入主稿生成，`action-demos/shoot.mjs` 以 1440×900 截图。本机没有 Edge，截图用 Chrome（`PW_CHANNEL=chrome`）。
+
+| 方向 | 文件 | 截图 |
+|---|---|---|
+| A · 行尾「更多」：快捷指令留「发送」「编辑」，文件夹留「新增」，批量顶栏留「新建」「编辑」，自动应答留「执行」「编辑」，脚本标题栏留「运行」「收起」。复制、删除进下拉，删除用危险色，点下去仍是确认框 | `action-demos/more.html` | `action-demos/more-quick.png`、`action-demos/more-menu.png`、`action-demos/more-batch.png`、`action-demos/more-reply.png`、`action-demos/more-script.png` |
+| B · 选中才展开：未选中的行只有主操作。点中一行后，下方多出操作条，放编辑、复制、删除。批量顶栏只留下拉和「新建」，编辑、复制、删除跟到步骤列表上方 | `action-demos/select.html` | `action-demos/select-quick.png`、`action-demos/select-open.png`、`action-demos/select-batch.png`、`action-demos/select-reply.png`、`action-demos/select-script.png` |
+| C · 右键菜单：行上只留主操作（发送、执行、运行、文件夹的「新增」、批量的「新建」「编辑」）。编辑、复制、删除右键该行弹出 | `action-demos/context.html` | `action-demos/context-quick.png`、`action-demos/context-menu.png`、`action-demos/context-batch.png`、`action-demos/context-reply.png`、`action-demos/context-script.png` |
+
+## 用户选择（原话）
+
+> 按C · 右键菜单 方案执行，先归档到主设计稿中，再实现代码
+
+## 落地
+
+- 主稿并入右键菜单与「复制」：行上只留主操作（发送、执行、运行、文件夹的「新增」、批量的「新建」「编辑」），编辑、复制、删除右键该行弹出；删除仍走确认框。
+- 复制规则沿用设计稿演示版：立即克隆、命名加「副本」、快捷指令不占 F 键、应答与脚本克隆默认停用、插入到源条目之后。
+- 规则写入 `design.md` 工具面板一节。
+- Flutter 已按此实现：右键菜单控件 `SerialContextMenu` 在 `lib/features/serial/widget/serial_chrome.dart`，复制逻辑 `duplicateQuick/Batch/Rule/Script` 在 `lib/features/serial/cubit/serial_console_cubit.dart`，提示走 `serial.notice.duplicated`。
+- 后续调整（用户原话「下拉控件应该居左占据横向所有剩余空间，同时增加对应选择的删除功能」）：批量顶栏任务下拉居左占满剩余宽度，「删除」按钮恢复到顶栏（删当前选中任务，仍走确认框）；右键菜单保持「复制 / 删除」。

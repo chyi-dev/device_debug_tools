@@ -236,6 +236,122 @@ void main() {
     });
   });
 
+  group('复制', () {
+    test('快捷指令：紧随源条目、不占 F 键，再复制仍紧随源条目', () {
+      cubit.upsertQuick(
+        const QuickCommand(
+          id: 'q1',
+          name: '读取温湿度',
+          data: 'A5 01',
+          format: DataFormat.hex,
+          key: 'F1',
+        ),
+      );
+      cubit.duplicateQuick('q1');
+      expect(cubit.state.toast?.kind, SerialNoticeKind.duplicated);
+      var names = cubit.state.quick.commands.map((c) => c.name).toList();
+      expect(names, ['读取温湿度', '读取温湿度 副本']);
+      final first = cubit.state.quick.commands.last;
+      expect(first.key, '');
+      expect(first.data, 'A5 01');
+
+      cubit.duplicateQuick('q1');
+      names = cubit.state.quick.commands.map((c) => c.name).toList();
+      expect(names, ['读取温湿度', '读取温湿度 副本 2', '读取温湿度 副本']);
+    });
+
+    test('文件夹内指令复制在同文件夹内紧随', () {
+      cubit.upsertFolder(null, '采集');
+      final folder = cubit.state.quick.folders.single;
+      cubit.upsertQuick(
+        const QuickCommand(
+          id: 'q1',
+          name: '读取',
+          data: 'A5 01',
+          format: DataFormat.hex,
+        ),
+        folderId: folder.id,
+      );
+      cubit.duplicateQuick('q1');
+      final commands = cubit.state.quick.folders.single.commands;
+      expect(commands.map((c) => c.name), ['读取', '读取 副本']);
+      expect(cubit.state.quick, hasLength(1));
+    });
+
+    test('批量：步骤、轮数、失败即停一起克隆并选中，改副本不影响原任务', () {
+      cubit.upsertBatch(
+        const BatchJob(
+          id: 'b1',
+          name: '启动流程',
+          repeat: 3,
+          stopOnFail: false,
+          steps: [BatchStep(data: 'A5 01', delayMs: 100, note: '唤醒')],
+        ),
+      );
+      cubit.duplicateBatch('b1');
+      expect(cubit.state.batch.map((b) => b.name), ['启动流程', '启动流程 副本']);
+      final copy = cubit.state.batch.last;
+      expect(cubit.state.selectedBatchId, copy.id);
+      expect(copy.repeat, 3);
+      expect(copy.stopOnFail, isFalse);
+      expect(copy.steps.single.note, '唤醒');
+
+      cubit.upsertBatch(copy.copyWith(steps: const []));
+      expect(cubit.state.batch.first.steps, hasLength(1));
+    });
+
+    test('应答：克隆默认停用、命中归零，语法与应答列表保留', () {
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'r1',
+          name: '温度应答',
+          match: MatchMode.prefix,
+          pattern: 'A5 ??',
+          enabled: true,
+          hits: 7,
+          replies: [ReplyStep(data: 'A5 01', delayMs: 50)],
+          format: DataFormat.ascii,
+          ignoreCase: true,
+        ),
+      );
+      cubit.duplicateRule('r1');
+      expect(cubit.state.rules.map((r) => r.name), ['温度应答', '温度应答 副本']);
+      final copy = cubit.state.rules.last;
+      expect(copy.enabled, isFalse);
+      expect(copy.hits, 0);
+      expect(copy.format, DataFormat.ascii);
+      expect(copy.ignoreCase, isTrue);
+      expect(copy.replies.single.delayMs, 50);
+      // 原规则不受影响
+      expect(cubit.state.rules.first.enabled, isTrue);
+      expect(cubit.state.rules.first.hits, 7);
+    });
+
+    test('脚本：保留 .lua 命名、默认停用、选中并打开编辑区，重名顺延', () {
+      cubit.duplicateScript('s1');
+      expect(cubit.state.toast?.kind, SerialNoticeKind.duplicated);
+      expect(cubit.state.scripts.map((s) => s.name), [
+        'parse_sensor.lua',
+        'parse_sensor_副本.lua',
+        'add_checksum.lua',
+      ]);
+      final copy = cubit.state.scripts[1];
+      expect(copy.enabled, isFalse);
+      expect(copy.code, cubit.state.scripts.first.code);
+      expect(cubit.state.selectedScriptId, copy.id);
+      expect(cubit.state.scriptDock, isTrue);
+      expect(cubit.state.scriptMeta[copy.id]?.hooks, isNotEmpty);
+
+      cubit.duplicateScript('s1');
+      expect(cubit.state.scripts.map((s) => s.name), [
+        'parse_sensor.lua',
+        'parse_sensor_副本_2.lua',
+        'parse_sensor_副本.lua',
+        'add_checksum.lua',
+      ]);
+    });
+  });
+
   group('配置包', () {
     test('导出只写入勾选的类别，命中次数不写进文件', () async {
       files.savePath = 'cfg.json';

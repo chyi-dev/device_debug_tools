@@ -149,15 +149,24 @@ String _tabLabel(Translations t, ToolTab tab) => switch (tab) {
 };
 
 class _Bar extends StatelessWidget {
-  const _Bar({required this.note, required this.actions, this.leading});
+  const _Bar({
+    required this.note,
+    required this.actions,
+    this.leading,
+    this.expand,
+  });
 
   final String note;
   final List<Widget> actions;
   final Widget? leading;
 
+  /// 占满 note 槽位的部件（如批量页的任务下拉）；提供时不显示 note。
+  final Widget? expand;
+
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
+    final expand = this.expand;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
@@ -169,14 +178,17 @@ class _Bar extends StatelessWidget {
             leading!,
             const SizedBox(width: AppSpacing.sm),
           ],
-          Expanded(
-            child: Text(
-              note,
-              style: AppTextStyles.caption(
-                Theme.of(context).colorScheme,
-              ).copyWith(color: palette.muted),
+          if (expand != null)
+            Expanded(child: expand)
+          else
+            Expanded(
+              child: Text(
+                note,
+                style: AppTextStyles.caption(
+                  Theme.of(context).colorScheme,
+                ).copyWith(color: palette.muted),
+              ),
             ),
-          ),
           for (final action in actions) ...[
             const SizedBox(width: AppSpacing.xs + 2),
             action,
@@ -210,16 +222,20 @@ class _QuickTab extends StatelessWidget {
       detail: item.format == DataFormat.ascii
           ? '${t.serial.mark.ascii} · ${item.data}'
           : item.data,
-      trailing: [
-        if (item.key.isNotEmpty) _KeyChip(item.key),
-        SerialLinkButton(
+      trailing: [if (item.key.isNotEmpty) _KeyChip(item.key)],
+      menu: [
+        SerialMenuAction(
           label: t.common.edit,
-          onPressed: () => showQuickEditor(context, existing: item),
+          onTap: () => showQuickEditor(context, existing: item),
         ),
-        SerialLinkButton(
+        SerialMenuAction(
+          label: t.common.duplicate,
+          onTap: () => cubit.duplicateQuick(item.id),
+        ),
+        SerialMenuAction(
           label: t.common.delete,
           danger: true,
-          onPressed: () => showSerialDelete(
+          onTap: () => showSerialDelete(
             context,
             message: t.serial.dialog.deleteQuick(name: item.name),
             onDelete: () => cubit.deleteQuick(item.id),
@@ -289,62 +305,66 @@ class _FolderRow extends StatelessWidget {
     final palette = SerialPalette.of(context);
     final cs = Theme.of(context).colorScheme;
     final count = folder.commands.length;
-    return HoverSurface(
-      onTap: () => cubit.toggleFolder(folder.id),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm + 2,
-          vertical: AppSpacing.sm,
+    return SerialContextMenu(
+      menu: [
+        SerialMenuAction(
+          label: q.rename,
+          onTap: () => showFolderEditor(context, existing: folder),
         ),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: palette.line2)),
+        SerialMenuAction(
+          label: t.common.delete,
+          danger: true,
+          onTap: () => showSerialDelete(
+            context,
+            message: count == 0
+                ? t.serial.dialog.deleteFolder(name: folder.name)
+                : t.serial.dialog.deleteFolderWith(
+                    name: folder.name,
+                    count: count,
+                  ),
+            onDelete: () => cubit.deleteFolder(folder.id),
+          ),
         ),
-        child: Row(
-          children: [
-            Icon(
-              folder.expanded ? Icons.expand_more : Icons.chevron_right,
-              size: 18,
-              color: palette.muted,
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Expanded(
-              child: Text(
-                folder.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.body(
-                  cs,
-                ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
+      ],
+      child: HoverSurface(
+        onTap: () => cubit.toggleFolder(folder.id),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm + 2,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: palette.line2)),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                folder.expanded ? Icons.expand_more : Icons.chevron_right,
+                size: 18,
+                color: palette.muted,
               ),
-            ),
-            Text(
-              q.folderCount(count: count),
-              style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            SerialLinkButton(
-              label: q.add,
-              onPressed: () => showQuickEditor(context, folderId: folder.id),
-            ),
-            SerialLinkButton(
-              label: q.rename,
-              onPressed: () => showFolderEditor(context, existing: folder),
-            ),
-            SerialLinkButton(
-              label: t.common.delete,
-              danger: true,
-              onPressed: () => showSerialDelete(
-                context,
-                message: count == 0
-                    ? t.serial.dialog.deleteFolder(name: folder.name)
-                    : t.serial.dialog.deleteFolderWith(
-                        name: folder.name,
-                        count: count,
-                      ),
-                onDelete: () => cubit.deleteFolder(folder.id),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  folder.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.body(
+                    cs,
+                  ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
+                ),
               ),
-            ),
-          ],
+              Text(
+                q.folderCount(count: count),
+                style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              SerialLinkButton(
+                label: q.add,
+                onPressed: () => showQuickEditor(context, folderId: folder.id),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -384,43 +404,58 @@ class _BatchTab extends StatelessWidget {
       if (job.id == state.selectedBatchId) selected = job;
     }
     final run = state.batchRun?.jobId == selected.id ? state.batchRun : null;
+    // 顶栏已有「编辑」，右键菜单只补复制和删除
+    final jobMenu = [
+      SerialMenuAction(
+        label: t.common.duplicate,
+        onTap: () => cubit.duplicateBatch(selected.id),
+      ),
+      SerialMenuAction(
+        label: t.common.delete,
+        danger: true,
+        onTap: () => showSerialDelete(
+          context,
+          message: t.serial.dialog.deleteBatch(name: selected.name),
+          onDelete: () => cubit.deleteBatch(selected.id),
+        ),
+      ),
+    ];
     return Column(
       children: [
-        _Bar(
-          note: '',
-          actions: [
-            SizedBox(
-              width: 140,
-              child: SerialDropdown<String>(
-                value: selected.id,
-                items: [
-                  for (final job in state.batch)
-                    (value: job.id, label: job.name),
-                ],
-                onChanged: cubit.selectBatch,
+        SerialContextMenu(
+          menu: jobMenu,
+          child: _Bar(
+            note: '',
+            expand: SerialDropdown<String>(
+              value: selected.id,
+              items: [
+                for (final job in state.batch) (value: job.id, label: job.name),
+              ],
+              onChanged: cubit.selectBatch,
+            ),
+            actions: [
+              SerialButton(
+                label: t.serial.batch.kNew,
+                small: true,
+                onPressed: () => showBatchEditor(context),
               ),
-            ),
-            SerialButton(
-              label: t.serial.batch.kNew,
-              small: true,
-              onPressed: () => showBatchEditor(context),
-            ),
-            SerialButton(
-              label: t.serial.batch.edit,
-              small: true,
-              onPressed: () => showBatchEditor(context, existing: selected),
-            ),
-            SerialButton(
-              label: t.serial.batch.delete,
-              small: true,
-              danger: true,
-              onPressed: () => showSerialDelete(
-                context,
-                message: t.serial.dialog.deleteBatch(name: selected.name),
-                onDelete: () => cubit.deleteBatch(selected.id),
+              SerialButton(
+                label: t.serial.batch.edit,
+                small: true,
+                onPressed: () => showBatchEditor(context, existing: selected),
               ),
-            ),
-          ],
+              SerialButton(
+                label: t.serial.batch.delete,
+                small: true,
+                danger: true,
+                onPressed: () => showSerialDelete(
+                  context,
+                  message: t.serial.dialog.deleteBatch(name: selected.name),
+                  onDelete: () => cubit.deleteBatch(selected.id),
+                ),
+              ),
+            ],
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(
@@ -503,17 +538,20 @@ class _BatchTab extends StatelessWidget {
             backgroundColor: palette.line2,
           ),
         Expanded(
-          child: ListView(
-            children: [
-              _TableHead(t),
-              for (var i = 0; i < selected.steps.length; i++)
-                _StepLine(
-                  index: i + 1,
-                  step: selected.steps[i],
-                  active: run != null && run.step == i + 1,
-                ),
-              _Explain(t.serial.batch.explain),
-            ],
+          child: SerialContextMenu(
+            menu: jobMenu,
+            child: ListView(
+              children: [
+                _TableHead(t),
+                for (var i = 0; i < selected.steps.length; i++)
+                  _StepLine(
+                    index: i + 1,
+                    step: selected.steps[i],
+                    active: run != null && run.step == i + 1,
+                  ),
+                _Explain(t.serial.batch.explain),
+              ],
+            ),
           ),
         ),
       ],
@@ -571,14 +609,20 @@ class _ReplyTab extends StatelessWidget {
                       label: t.serial.reply.fire,
                       onPressed: () => cubit.fireRule(rule.id),
                     ),
-                    SerialLinkButton(
+                  ],
+                  menu: [
+                    SerialMenuAction(
                       label: t.common.edit,
-                      onPressed: () => showRuleEditor(context, existing: rule),
+                      onTap: () => showRuleEditor(context, existing: rule),
                     ),
-                    SerialLinkButton(
+                    SerialMenuAction(
+                      label: t.common.duplicate,
+                      onTap: () => cubit.duplicateRule(rule.id),
+                    ),
+                    SerialMenuAction(
                       label: t.common.delete,
                       danger: true,
-                      onPressed: () => showSerialDelete(
+                      onTap: () => showSerialDelete(
                         context,
                         message: t.serial.dialog.deleteRule(name: rule.name),
                         onDelete: () => cubit.deleteRule(rule.id),
@@ -751,62 +795,83 @@ class _ScriptRow extends StatelessWidget {
     final status = meta.outputs > 0
         ? s.outputs(count: meta.outputs)
         : (script.enabled ? s.waiting : s.off);
-    return HoverSurface(
-      color: active ? palette.accent.withValues(alpha: 0.14) : null,
-      onTap: () => cubit.selectScript(script.id),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm + 2,
-          vertical: AppSpacing.sm,
+    return SerialContextMenu(
+      menu: [
+        SerialMenuAction(
+          label: s.rename,
+          onTap: () => showScriptRename(context, script),
         ),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: palette.line2)),
+        SerialMenuAction(
+          label: t.common.duplicate,
+          onTap: () => cubit.duplicateScript(script.id),
         ),
-        child: Row(
-          children: [
-            Tooltip(
-              message: s.toggle,
-              child: SerialSwitch(
-                on: script.enabled,
-                onTap: () => cubit.toggleScript(script.id),
+        SerialMenuAction(
+          label: t.common.delete,
+          danger: true,
+          onTap: () => showSerialDelete(
+            context,
+            message: t.serial.dialog.deleteScript(name: script.name),
+            onDelete: () => cubit.deleteScript(script.id),
+          ),
+        ),
+      ],
+      child: HoverSurface(
+        color: active ? palette.accent.withValues(alpha: 0.14) : null,
+        onTap: () => cubit.selectScript(script.id),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm + 2,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: palette.line2)),
+          ),
+          child: Row(
+            children: [
+              Tooltip(
+                message: s.toggle,
+                child: SerialSwitch(
+                  on: script.enabled,
+                  onTap: () => cubit.toggleScript(script.id),
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm + 2),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    script.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.body(cs).copyWith(
-                      color: script.enabled ? palette.text : palette.muted,
-                      fontWeight: FontWeight.w600,
+              const SizedBox(width: AppSpacing.sm + 2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      script.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.body(cs).copyWith(
+                        color: script.enabled ? palette.text : palette.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      ...scriptHookChips(context, meta),
-                      Expanded(
-                        child: Text(
-                          status,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.mono(
-                            cs,
-                            fontSize: 12,
-                            color: palette.muted,
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        ...scriptHookChips(context, meta),
+                        Expanded(
+                          child: Text(
+                            status,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.mono(
+                              cs,
+                              fontSize: 12,
+                              color: palette.muted,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1188,6 +1253,7 @@ class _ItemRow extends StatelessWidget {
     required this.trailing,
     this.monoTitle = false,
     this.indent = false,
+    this.menu,
   });
 
   final Widget leading;
@@ -1197,11 +1263,15 @@ class _ItemRow extends StatelessWidget {
   final bool monoTitle;
   final bool indent;
 
+  /// 行上只留主操作时，其余操作从这里右键弹出。
+  final List<SerialMenuAction>? menu;
+
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     final cs = Theme.of(context).colorScheme;
-    return HoverSurface(
+    final menu = this.menu;
+    final row = HoverSurface(
       child: Container(
         padding: EdgeInsets.fromLTRB(
           AppSpacing.sm + 2 + (indent ? AppSpacing.lg : 0),
@@ -1253,6 +1323,7 @@ class _ItemRow extends StatelessWidget {
         ),
       ),
     );
+    return menu == null ? row : SerialContextMenu(menu: menu, child: row);
   }
 }
 

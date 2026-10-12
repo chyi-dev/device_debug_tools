@@ -1,0 +1,2 @@
+#tabbody .it[data-kind],#tabbody .fd[data-kind],#scDock .schead[data-kind],#tabbody .bar[data-kind],#tabbody .steps[data-kind]{cursor:context-menu}
+#tabbody .it[data-kind] .btn,#tabbody .it[data-kind] .sw,#tabbody .fd[data-kind] .link,#scDock .schead .btn,#scDock .schead .link{cursor:pointer}
