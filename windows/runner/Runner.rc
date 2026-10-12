@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.chyi" "\0"
-            VALUE "FileDescription", "device_debug_tools" "\0"
+            VALUE "FileDescription", "设备调试工具" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "device_debug_tools" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.chyi. All rights reserved." "\0"
             VALUE "OriginalFilename", "device_debug_tools.exe" "\0"
-            VALUE "ProductName", "device_debug_tools" "\0"
+            VALUE "ProductName", "设备调试工具" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

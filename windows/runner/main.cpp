@@ -27,7 +27,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-  if (!window.Create(L"device_debug_tools", origin, size)) {
+  // Keep this file ASCII: MSVC reads it in the system codepage (C4819 is fatal).
+  if (!window.Create(L"\u8BBE\u5907\u8C03\u8BD5\u5DE5\u5177", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

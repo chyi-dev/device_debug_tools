@@ -1,9 +1,9 @@
-; Windows 安装包脚本（Inno Setup 6）
+﻿; Windows 安装包脚本（Inno Setup 6）
 ; 先执行 flutter build windows --release，再在项目根目录执行：
 ;   iscc installer/windows/device_debug_tools.iss
 ; 版本号需与 pubspec.yaml 的 version 保持一致
 
-#define MyAppName "Device Debug Tools"
+#define MyAppName "设备调试工具"
 #define MyAppVersion "1.0.0"
 #define MyAppExeName "device_debug_tools.exe"
 #define MyAppPublisher "device_debug_tools"
