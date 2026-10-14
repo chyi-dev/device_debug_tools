@@ -1,14 +1,51 @@
-// 把 src/engine.js 内联进设计稿，产出可双击打开的单文件 HTML。
+// 把 src/*.js 内联进设计稿，产出可双击打开的单文件 HTML。
 // 用法：node doc/design/build.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
-const engine = readFileSync(join(root, 'src', 'engine.js'), 'utf8');
-const tutor = readFileSync(join(root, 'src', 'reply-tutor.js'), 'utf8');
-const html = readFileSync(join(root, 'src', 'serial-console.html'), 'utf8')
-  .replace('<!-- @engine -->', () => `<script>\n${engine}</script>`)
-  .replace('<!-- @reply-tutor -->', () => `<script>\n${tutor}</script>`);
-writeFileSync(join(root, 'serial-console.html'), html);
-console.log('built', join(root, 'serial-console.html'));
+
+function build(name, jsFiles, sourceName = name, cssFiles = [], outputDir = root) {
+  let html = readFileSync(join(root, 'src', `${sourceName}.html`), 'utf8');
+  for (const [slot, file] of cssFiles) {
+    const css = readFileSync(join(root, 'src', file), 'utf8');
+    // 用函数替换，避免内容里的 $' / $& 被 String.replace 当成特殊替换符
+    html = html.replace(slot, () => css);
+  }
+  for (const [slot, file] of jsFiles) {
+    const js = readFileSync(join(root, 'src', file), 'utf8');
+    html = html.replace(slot, () => `<script>\n${js}</script>`);
+  }
+  mkdirSync(outputDir, { recursive: true });
+  const output = join(outputDir, `${name}.html`);
+  writeFileSync(output, html);
+  console.log('built', output);
+}
+
+build('serial-console', [
+  ['<!-- @engine -->', 'engine.js'],
+  ['<!-- @reply-tutor -->', 'reply-tutor.js'],
+]);
+
+build('multi-console', [
+  ['<!-- @multi-engine -->', 'multi-engine.js'],
+]);
+
+build('index', [
+  ['<!-- @multi-workbench -->', 'multi-workbench.js'],
+], 'multi-pro-a', [
+  ['<!-- @multi-css -->', 'multi-workbench.css'],
+], join(root, 'option-a'));
+
+build('multi-console-b', [
+  ['<!-- @multi-workbench -->', 'multi-workbench.js'],
+], 'multi-pro-b', [
+  ['<!-- @multi-css -->', 'multi-workbench.css'],
+]);
+
+build('multi-console-c', [
+  ['<!-- @multi-workbench -->', 'multi-workbench.js'],
+], 'multi-pro-c', [
+  ['<!-- @multi-css -->', 'multi-workbench.css'],
+]);

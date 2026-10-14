@@ -1,0 +1,596 @@
+/* 完整多协议设计稿工作区：三种布局共用同一套功能与状态模型。 */
+window.MultiWorkbench = (function () {
+  'use strict';
+
+  var KIND = {
+    serial: { label: 'SERIAL', name: '串口', color: 'var(--serial)' },
+    ble: { label: 'BLE', name: '蓝牙 BLE', color: 'var(--ble)' },
+    mqtt: { label: 'MQTT', name: 'MQTT', color: 'var(--mqtt)' },
+    ws: { label: 'WS', name: 'WebSocket', color: 'var(--ws)' }
+  };
+  var TOOL_TABS = [
+    ['quick', '快捷'], ['batch', '批量'], ['reply', '应答'],
+    ['history', '历史'], ['calc', '校验'], ['script', '脚本']
+  ];
+  var uid = 20;
+  var batchTimers = {};
+  var loopTimers = {};
+
+  function id(prefix) { uid += 1; return prefix + uid; }
+  function clone(v) { return JSON.parse(JSON.stringify(v)); }
+  function esc(v) {
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function bytes(text, format) {
+    return format === 'hex'
+      ? Math.floor(String(text).replace(/[^0-9a-f]/gi, '').length / 2)
+      : new TextEncoder().encode(String(text)).length;
+  }
+  function stamp() {
+    var d = new Date();
+    function p(n, len) { return String(n).padStart(len || 2, '0'); }
+    return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' +
+      p(d.getSeconds()) + '.' + p(d.getMilliseconds(), 3);
+  }
+  function checksum(text) {
+    var clean = String(text).replace(/[^0-9a-f]/gi, '');
+    var list = [];
+    for (var i = 0; i + 1 < clean.length; i += 2) list.push(parseInt(clean.slice(i, i + 2), 16));
+    var sum = list.reduce(function (a, b) { return (a + b) & 255; }, 0);
+    var xor = list.reduce(function (a, b) { return a ^ b; }, 0);
+    var crc = 0xffff;
+    list.forEach(function (b) {
+      crc ^= b;
+      for (var j = 0; j < 8; j++) crc = (crc & 1) ? (crc >>> 1) ^ 0xa001 : crc >>> 1;
+    });
+    return {
+      sum: sum.toString(16).padStart(2, '0').toUpperCase(),
+      xor: xor.toString(16).padStart(2, '0').toUpperCase(),
+      lrc: ((-sum) & 255).toString(16).padStart(2, '0').toUpperCase(),
+      crc16: (crc & 255).toString(16).padStart(2, '0').toUpperCase() + ' ' +
+        ((crc >>> 8) & 255).toString(16).padStart(2, '0').toUpperCase()
+    };
+  }
+
+  function defaultConfig(kind) {
+    if (kind === 'serial') return {
+      port:'COM3',baud:115200,parity:'NONE',dataBits:8,stopBits:'1',flow:'NONE',
+      dtr:true,rts:true,packetTimeout:20
+    };
+    if (kind === 'ble') return {
+      scanName:'Sensor',scanAddress:'',device:'Sensor-A4 · C8:2E:18:91:7A:04',
+      autoReconnect:true,mtu:247,service:'FFF0',notify:'FFF1',notifyMode:'Notify',
+      write:'FFF2',writeType:'Without Response',chunkSize:180,chunkGap:12
+    };
+    if (kind === 'mqtt') return {
+      host:'broker.local',port:1883,version:'5.0',clientId:'ddt-desktop-01',
+      username:'device-lab',password:'••••••••',tls:false,caFile:'未选择',
+      clientCert:'未选择',keepAlive:30,cleanStart:true,sessionExpiry:3600,
+      autoReconnect:true,willTopic:'device/status',willPayload:'offline',
+      willQos:1,willRetain:true,subscriptions:'device/+/telemetry · QoS 1',
+      publishTopic:'device/demo/command',publishQos:1,publishRetain:false
+    };
+    return {
+      url:'ws://192.168.1.20/ws',headers:'Authorization: Bearer demo-token',
+      subprotocol:'device-v1',proxy:'系统代理',tlsVerify:true,compression:true,
+      pingInterval:30,autoReconnect:true,frameType:'Text'
+    };
+  }
+  function defaultRx() {
+    return { format:'hex',logMode:true,wrap:true,hideRx:false,save:false,autoScroll:true };
+  }
+  function defaultTx() {
+    return {
+      format:'hex',escape:true,atCrlf:false,crlf:false,checksum:'none',
+      clearAfter:false,loop:false,loopMs:1000,fileName:'',text:'A5 01 00 00 01 07'
+    };
+  }
+  function defaultTarget(kind) {
+    if (kind === 'mqtt') return { inherit:true, topic:'', qos:1, retain:false };
+    if (kind === 'ble') return { inherit:true, service:'', characteristic:'', writeType:'' };
+    if (kind === 'ws') return { inherit:true, frameType:'' };
+    return { inherit:true, checksum:'' };
+  }
+  function targetText(profile, target) {
+    target = target || defaultTarget(profile.kind);
+    if (target.inherit) {
+      if (profile.kind === 'mqtt') return '继承 · ' + profile.config.publishTopic + ' · QoS ' + profile.config.publishQos;
+      if (profile.kind === 'ble') return '继承 · ' + profile.config.write + ' · ' + profile.config.writeType;
+      if (profile.kind === 'ws') return '继承 · ' + profile.config.frameType;
+      return '继承串口发送设置';
+    }
+    if (profile.kind === 'mqtt') return (target.topic || '—') + ' · QoS ' + target.qos + (target.retain ? ' · Retain' : '');
+    if (profile.kind === 'ble') return (target.characteristic || '—') + ' · ' + (target.writeType || '默认');
+    if (profile.kind === 'ws') return target.frameType || 'Text';
+    return target.checksum ? '校验 ' + target.checksum : '无附加校验';
+  }
+  function profileTitle(p) {
+    if (p.kind === 'serial') return p.config.port || 'Serial';
+    if (p.kind === 'ble') return (p.config.device || 'BLE').split(' · ')[0];
+    if (p.kind === 'mqtt') return p.config.host || 'MQTT';
+    return p.config.url || 'WebSocket';
+  }
+  function profileSub(p) {
+    if (p.kind === 'serial') return p.config.baud + ' ' + p.config.dataBits + p.config.parity.charAt(0) + p.config.stopBits;
+    if (p.kind === 'ble') return p.config.service + ' / ' + p.config.write;
+    if (p.kind === 'mqtt') return p.config.subscriptions;
+    return p.config.frameType + ' · ping ' + p.config.pingInterval + 's';
+  }
+  function newProfile(kind, index) {
+    var p = {
+      id:id('profile-'),kind:kind,open:kind !== 'ble',status:kind === 'ble' ? 'idle' : 'open',
+      config:defaultConfig(kind),rx:defaultRx(),tx:defaultTx(),rxCount:0,txCount:0,
+      lines:[],activeTool:'quick',selectedScript:'script-parse',batchRunning:false,
+      quick:[],batches:[],replies:[],history:[],scripts:[],scriptLog:[]
+    };
+    if (kind === 'mqtt') p.tx = Object.assign(p.tx, { format:'ascii',text:'{"led":true}' });
+    if (kind === 'ws') p.tx = Object.assign(p.tx, { format:'ascii',text:'{"type":"ping"}' });
+    if (kind === 'ble') p.tx.text = '01 03 00 00';
+    var target = defaultTarget(kind);
+    p.quick = [
+      { id:id('q-'),name:kind === 'mqtt' ? '打开指示灯' : kind === 'ws' ? '发送 ping' : kind === 'ble' ? '读取传感器' : '读取温湿度',
+        data:p.tx.text,format:p.tx.format,key:'F1',target:clone(target) },
+      { id:id('q-'),name:'读取设备信息',data:kind === 'serial' ? 'A5 02 00 00 02 08' : '{"cmd":"info"}',
+        format:kind === 'serial' || kind === 'ble' ? 'hex' : 'ascii',key:'F2',target:clone(target) }
+    ];
+    p.batches = [{
+      id:id('batch-'),name:'设备上线检查',repeat:1,stopOnFail:true,running:false,progress:0,
+      steps:[
+        { name:'握手',data:p.quick[0].data,format:p.quick[0].format,delay:0,target:clone(target) },
+        { name:'读取信息',data:p.quick[1].data,format:p.quick[1].format,delay:350,target:clone(target) }
+      ]
+    }];
+    p.replies = [{
+      id:id('reply-'),name:'上线确认自动应答',enabled:true,hits:0,kind:'模板',
+      pattern:kind === 'mqtt' ? '"online":true' : kind === 'ws' ? '"type":"hello"' : kind === 'ble' ? '01 81 ??' : 'A5 81 00 00 81',
+      format:kind === 'mqtt' || kind === 'ws' ? 'ascii' : 'hex',
+      replies:[{ data:kind === 'serial' ? 'A5 02 00 00 02 08' : '{"ack":true}',delay:80,target:clone(target) }]
+    }];
+    p.scripts = [
+      { id:'script-parse',name:'parse_frame.lua',enabled:true,hooks:'on_receive',runs:3,
+        code:'function on_receive(frame, ctx)\\n  log(\"protocol=\" .. ctx.protocol)\\n  log(\"target=\" .. ctx.target)\\n  return frame\\nend' },
+      { id:'script-before',name:'before_send.lua',enabled:false,hooks:'before_send',runs:0,
+        code:'function before_send(frame, ctx)\\n  -- 可读取 MQTT topic / BLE characteristic / WS frame_type\\n  return frame\\nend' }
+    ];
+    log(p,'sys',KIND[kind].label + ' 工作区已载入');
+    if (p.open) {
+      log(p,'sys',KIND[kind].label + ' CONNECTED ' + profileTitle(p));
+      if (kind === 'mqtt') log(p,'rx','{"temp":23.4,"hum":51.8}','device/room1/telemetry');
+      if (kind === 'ws') log(p,'rx','{"type":"hello","id":7}','Text');
+      if (kind === 'serial') log(p,'rx','A5 5A 03 00 F6 02 09 0E','COM3');
+    }
+    return p;
+  }
+  function log(p, dir, text, route) {
+    p.lines.push({ id:id('line-'),time:stamp(),dir:dir,text:String(text),route:route || '' });
+    if (dir === 'rx') p.rxCount += bytes(text,p.rx.format);
+    if (p.lines.length > 300) p.lines.splice(0,p.lines.length - 250);
+  }
+
+  function field(label, path, value, opts) {
+    opts = opts || {};
+    var cls = 'mw-field' + (opts.stack ? ' stack' : '');
+    var input;
+    if (opts.type === 'select') {
+      input = '<select data-bind="' + path + '">' + opts.items.map(function (x) {
+        var pair = Array.isArray(x) ? x : [x,x];
+        return '<option value="' + esc(pair[0]) + '"' + (String(pair[0]) === String(value) ? ' selected' : '') + '>' + esc(pair[1]) + '</option>';
+      }).join('') + '</select>';
+    } else if (opts.type === 'textarea') {
+      input = '<textarea data-bind="' + path + '">' + esc(value) + '</textarea>';
+    } else {
+      input = '<input data-bind="' + path + '" type="' + (opts.type || 'text') + '" value="' + esc(value) + '"' +
+        (opts.placeholder ? ' placeholder="' + esc(opts.placeholder) + '"' : '') + '>';
+    }
+    return '<div class="' + cls + '"><label>' + esc(label) + '</label>' + input + '</div>';
+  }
+  function check(label, path, value) {
+    return '<label class="mw-check"><input data-bind="' + path + '" type="checkbox"' + (value ? ' checked' : '') + '>' + esc(label) + '</label>';
+  }
+  function section(title, body, trailing) {
+    return '<section class="mw-section"><div class="mw-section-head"><span>' + esc(title) + '</span>' + (trailing || '') + '</div>' + body + '</section>';
+  }
+  function protocolSettings(p) {
+    var c = p.config, h = '';
+    if (p.kind === 'serial') {
+      h += field('串口','config.port',c.port,{type:'select',items:['COM3','COM5','USB0']});
+      h += field('波特率','config.baud',c.baud,{type:'number'});
+      h += field('校验位','config.parity',c.parity,{type:'select',items:['NONE','ODD','EVEN','MARK','SPACE']});
+      h += field('数据位','config.dataBits',c.dataBits,{type:'select',items:[5,6,7,8]});
+      h += field('停止位','config.stopBits',c.stopBits,{type:'select',items:['1','1.5','2']});
+      h += field('流控','config.flow',c.flow,{type:'select',items:['NONE','RTS/CTS','DTR/DSR','XON/XOFF']});
+      h += '<div class="mw-inline">' + check('DTR','config.dtr',c.dtr) + check('RTS','config.rts',c.rts) + '</div>';
+      h += '<div class="mw-note">DCD ●　DSR ●　CTS ●　RI ○</div>';
+      h += field('分包超时','config.packetTimeout',c.packetTimeout,{type:'number'});
+    } else if (p.kind === 'ble') {
+      h += '<div class="mw-inline">' + field('名称过滤','config.scanName',c.scanName) + '<button class="mw-btn small" data-action="ble-scan">扫描</button></div>';
+      h += field('地址过滤','config.scanAddress',c.scanAddress,{placeholder:'可选'});
+      h += field('设备','config.device',c.device,{type:'select',items:[[c.device,c.device],['EnvTag-B2 · 84:31:20:7C:11:02','EnvTag-B2 · 84:31:20:7C:11:02']]});
+      h += check('断线自动重连','config.autoReconnect',c.autoReconnect);
+      h += field('MTU','config.mtu',c.mtu,{type:'number'});
+      h += field('Service','config.service',c.service);
+      h += field('Notify/Indicate','config.notify',c.notify);
+      h += field('订阅方式','config.notifyMode',c.notifyMode,{type:'select',items:['Notify','Indicate']});
+      h += field('Write','config.write',c.write);
+      h += field('写入方式','config.writeType',c.writeType,{type:'select',items:['With Response','Without Response']});
+      h += field('分片字节','config.chunkSize',c.chunkSize,{type:'number'});
+      h += field('分片间隔 ms','config.chunkGap',c.chunkGap,{type:'number'});
+    } else if (p.kind === 'mqtt') {
+      h += field('Broker','config.host',c.host);
+      h += field('端口','config.port',c.port,{type:'number'});
+      h += field('版本','config.version',c.version,{type:'select',items:['3.1.1','5.0']});
+      h += field('Client ID','config.clientId',c.clientId);
+      h += field('用户名','config.username',c.username);
+      h += field('密码','config.password',c.password,{type:'password'});
+      h += check('启用 TLS','config.tls',c.tls);
+      h += field('CA 证书','config.caFile',c.caFile);
+      h += field('客户端证书','config.clientCert',c.clientCert);
+      h += field('Keep Alive','config.keepAlive',c.keepAlive,{type:'number'});
+      h += check('Clean Start','config.cleanStart',c.cleanStart);
+      h += field('Session Expiry','config.sessionExpiry',c.sessionExpiry,{type:'number'});
+      h += check('断线自动重连','config.autoReconnect',c.autoReconnect);
+      h += field('遗嘱 Topic','config.willTopic',c.willTopic);
+      h += field('遗嘱 Payload','config.willPayload',c.willPayload);
+      h += field('遗嘱 QoS','config.willQos',c.willQos,{type:'select',items:[0,1,2]});
+      h += check('遗嘱 Retain','config.willRetain',c.willRetain);
+      h += field('订阅列表','config.subscriptions',c.subscriptions,{type:'textarea',stack:true});
+      h += field('默认发布 Topic','config.publishTopic',c.publishTopic,{stack:true});
+      h += field('默认 QoS','config.publishQos',c.publishQos,{type:'select',items:[0,1,2]});
+      h += check('默认 Retain','config.publishRetain',c.publishRetain);
+    } else {
+      h += field('URL','config.url',c.url,{stack:true});
+      h += field('Headers','config.headers',c.headers,{type:'textarea',stack:true});
+      h += field('Subprotocol','config.subprotocol',c.subprotocol);
+      h += field('代理','config.proxy',c.proxy,{type:'select',items:['系统代理','不使用','自定义']});
+      h += check('校验 TLS 证书','config.tlsVerify',c.tlsVerify);
+      h += check('Per-message Deflate','config.compression',c.compression);
+      h += field('Ping/Pong 秒','config.pingInterval',c.pingInterval,{type:'number'});
+      h += check('断线自动重连','config.autoReconnect',c.autoReconnect);
+      h += field('默认帧类型','config.frameType',c.frameType,{type:'select',items:['Text','Binary']});
+    }
+    return section(KIND[p.kind].name + ' 连接设置',h,
+      '<span class="mw-kind" style="--kind:' + KIND[p.kind].color + '">' + KIND[p.kind].label + '</span>') +
+      '<button class="mw-btn primary" style="width:100%" data-action="toggle-open">' +
+      (p.open ? '关闭 / 断开' : '打开 / 连接') + '</button>';
+  }
+  function rxTxSettings(p) {
+    var r = p.rx, t = p.tx;
+    var rx = field('显示格式','rx.format',r.format,{type:'select',items:[['hex','HEX'],['ascii','ASCII']]}) +
+      check('日志模式','rx.logMode',r.logMode) + check('自动换行','rx.wrap',r.wrap) +
+      check('隐藏接收','rx.hideRx',r.hideRx) + check('接收保存到文件','rx.save',r.save) +
+      check('自动滚动','rx.autoScroll',r.autoScroll);
+    var tx = field('发送格式','tx.format',t.format,{type:'select',items:[['hex','HEX'],['ascii','ASCII']]}) +
+      check('解析转义符','tx.escape',t.escape) + check('AT 自动回车','tx.atCrlf',t.atCrlf) +
+      check('追加 CRLF','tx.crlf',t.crlf) +
+      field('附加校验','tx.checksum',t.checksum,{type:'select',items:['none','SUM8','XOR/BCC','LRC','CRC8','CRC16 MODBUS','CRC32']}) +
+      check('发送后清空','tx.clearAfter',t.clearAfter) + check('循环发送','tx.loop',t.loop) +
+      field('循环周期 ms','tx.loopMs',t.loopMs,{type:'number'}) +
+      '<div class="mw-inline"><button class="mw-btn small mw-grow" data-action="file-source">文件数据源</button>' +
+      (t.fileName ? '<span class="mw-note">' + esc(t.fileName) + '</span>' : '') + '</div>';
+    return section('接收设置',rx) + section('发送设置',tx);
+  }
+  function settingsPanel(p, compact) {
+    return '<div class="mw-panel ' + (compact ? 'compact' : '') + '"><div class="mw-panel-title"><span>工作区设置</span><span class="grow"></span>' +
+      '<button class="mw-btn small danger" data-action="remove-profile">删除连接</button></div>' +
+      '<div class="mw-form">' + protocolSettings(p) + rxTxSettings(p) + '</div></div>';
+  }
+  function routeFor(p) {
+    if (p.kind === 'mqtt') return p.config.publishTopic;
+    if (p.kind === 'ble') return p.config.write;
+    if (p.kind === 'ws') return p.config.frameType;
+    return p.config.port;
+  }
+  function consolePanel(p) {
+    var lines = p.lines.map(function (l) {
+      var tag = l.dir === 'rx' ? 'RECV' : l.dir === 'tx' ? 'SEND' : '';
+      return '<div class="mw-line ' + l.dir + '"><span class="stamp">[' + l.time + ']# </span>' +
+        (tag ? '<span class="route">' + tag + (l.route ? ' [' + esc(l.route) + ']' : '') + '&gt; </span>' : '') + esc(l.text) + '</div>';
+    }).join('');
+    return '<div class="mw-console"><div class="mw-log"><div class="mw-log-head">' +
+      '<strong>' + esc(profileTitle(p)) + '</strong><span class="summary">' + p.lines.length + ' 条记录 · ' + esc(profileSub(p)) + '</span>' +
+      '<input class="mw-search" data-role="search" placeholder="搜索日志…">' +
+      '<button class="mw-btn small" data-action="clear-log">清空</button></div>' +
+      '<div class="mw-log-body" data-role="log">' + lines + '</div></div>' + composePanel(p) + '</div>';
+  }
+  function composePanel(p) {
+    return '<div class="mw-compose"><textarea data-role="tx-editor" placeholder="输入发送内容（Ctrl+Enter）">' + esc(p.tx.text) + '</textarea>' +
+      '<div class="mw-compose-actions"><button class="mw-btn primary" data-action="send">' + (loopTimers[p.id] ? '停止循环' : '发送') + '</button>' +
+      '<button class="mw-btn" data-action="clear-tx">清空</button></div>' +
+      '<div class="mw-compose-foot"><span>实发 ' + bytes(p.tx.text,p.tx.format) + ' bytes</span><span>' + esc(targetText(p,{inherit:true})) + '</span>' +
+      '<span class="mw-grow"></span><span>' + p.tx.format.toUpperCase() + '</span><span>Ctrl+Enter</span></div></div>';
+  }
+  function profileTabs(state) {
+    var tabs = state.profiles.map(function (p) {
+      return '<div class="mw-profile-tab ' + (p.id === state.activeId ? 'active' : '') + '" data-action="select-profile" data-id="' + p.id + '" style="--kind:' + KIND[p.kind].color + '">' +
+        '<span class="mw-dot ' + (p.open ? 'open' : '') + '"></span><span class="mw-kind">' + KIND[p.kind].label + '</span>' +
+        '<span class="tab-title">' + esc(profileTitle(p)) + '</span><span class="close" data-action="remove-profile" data-id="' + p.id + '">×</span></div>';
+    }).join('');
+    return '<div class="mw-tabs">' + tabs + '<div class="mw-add-strip">' +
+      Object.keys(KIND).map(function (k) { return '<button class="mw-btn small" data-action="add-profile" data-kind="' + k + '">' + KIND[k].name + '</button>'; }).join('') +
+      '</div></div>';
+  }
+  function toolTabs(p) {
+    return '<div class="mw-tool-tabs">' + TOOL_TABS.map(function (x) {
+      return '<button class="mw-tool-tab ' + (p.activeTool === x[0] ? 'active' : '') + '" data-action="tool-tab" data-tool="' + x[0] + '">' + x[1] + '</button>';
+    }).join('') + '</div>';
+  }
+  function targetBadge(p, target) {
+    return '<span class="mw-target" style="--kind:' + KIND[p.kind].color + '">' + esc(targetText(p,target)) + '</span>';
+  }
+  function quickTool(p) {
+    var rows = p.quick.map(function (q) {
+      return '<div class="mw-item"><button class="mw-btn small primary" data-action="quick-send" data-id="' + q.id + '">发送</button>' +
+        '<div><div class="mw-item-title">' + esc(q.name) + ' <span class="mw-badge">' + esc(q.key || '—') + '</span></div>' +
+        '<div class="mw-item-sub">' + esc(q.data) + '</div>' + targetBadge(p,q.target) + '</div>' +
+        '<div class="mw-inline"><button class="mw-btn small" data-action="quick-edit" data-id="' + q.id + '">编辑</button>' +
+        '<button class="mw-btn small" data-action="quick-copy" data-id="' + q.id + '">复制</button></div></div>';
+    }).join('');
+    return '<div class="mw-tool-bar"><span class="note">当前连接专属，可复制到其他连接</span><button class="mw-btn small" data-action="quick-add">新增</button></div>' + rows;
+  }
+  function batchTool(p) {
+    var rows = p.batches.map(function (b) {
+      return '<div class="mw-item"><button class="mw-btn small ' + (b.running ? 'danger' : 'primary') + '" data-action="batch-run" data-id="' + b.id + '">' + (b.running ? '停止' : '运行') + '</button>' +
+        '<div><div class="mw-item-title">' + esc(b.name) + ' <span class="mw-badge">' + b.steps.length + ' 步 × ' + b.repeat + '</span></div>' +
+        '<div class="mw-item-sub">' + b.steps.map(function (s) { return s.name + ' ' + s.delay + 'ms'; }).join(' → ') + '</div>' +
+        '<div class="mw-progress"><i style="width:' + b.progress + '%"></i></div></div>' +
+        '<button class="mw-btn small" data-action="batch-copy" data-id="' + b.id + '">复制</button></div>';
+    }).join('');
+    return '<div class="mw-tool-bar"><span class="note">每一步可覆盖协议目标</span><button class="mw-btn small" data-action="batch-add">新建任务</button></div>' + rows;
+  }
+  function replyTool(p) {
+    var rows = p.replies.map(function (r) {
+      return '<div class="mw-item"><div class="mw-switch ' + (r.enabled ? 'on' : '') + '" data-action="reply-toggle" data-id="' + r.id + '"></div>' +
+        '<div><div class="mw-item-title">' + esc(r.name) + ' <span class="mw-badge">命中 ' + r.hits + '</span></div>' +
+        '<div class="mw-item-sub">' + esc(r.kind + ' · ' + r.format.toUpperCase() + ' · ' + r.pattern) + '</div>' +
+        targetBadge(p,r.replies[0].target) + '</div><div class="mw-inline">' +
+        '<button class="mw-btn small primary" data-action="reply-test" data-id="' + r.id + '">模拟命中</button>' +
+        '<button class="mw-btn small" data-action="reply-copy" data-id="' + r.id + '">复制</button></div></div>';
+    }).join('');
+    return '<div class="mw-tool-bar"><span class="note">模板 / 正则 · 回复步骤支持目标覆盖</span><button class="mw-btn small" data-action="reply-add">新增规则</button></div>' + rows;
+  }
+  function historyTool(p) {
+    var rows = p.history.length ? p.history.slice().reverse().map(function (h) {
+      return '<div class="mw-item"><button class="mw-btn small primary" data-action="history-send" data-id="' + h.id + '">重发</button>' +
+        '<div><div class="mw-item-title">' + esc(h.time) + '</div><div class="mw-item-sub">' + esc(h.data) + '</div>' + targetBadge(p,h.target) + '</div>' +
+        '<button class="mw-btn small" data-action="history-fill" data-id="' + h.id + '">填入</button></div>';
+    }).join('') : '<div class="mw-empty">发送按钮产生的记录会出现在这里</div>';
+    return '<div class="mw-tool-bar"><span class="note">仅记录手动发送</span><button class="mw-btn small danger" data-action="history-clear">清空</button></div>' + rows;
+  }
+  function calcTool(p) {
+    var input = p.calcInput || '01 03 00 00 00 01';
+    var r = checksum(input);
+    return '<div class="mw-tool-bar"><span class="note">SUM / XOR / LRC / CRC16</span><button class="mw-btn small" data-action="calc-use-tx">取发送框</button></div>' +
+      '<div class="mw-calc-grid"><input class="mw-textarea" data-role="calc-input" value="' + esc(input) + '">' +
+      '<button class="mw-btn primary" data-action="calc-run">计算</button></div>' +
+      '<div class="mw-calc-result">SUM8　' + r.sum + '<br>XOR/BCC　' + r.xor + '<br>LRC　' + r.lrc + '<br>CRC16 MODBUS　' + r.crc16 +
+      '<br><button class="mw-btn small" data-action="calc-append">追加 CRC16 到发送框</button></div>';
+  }
+  function scriptTool(p) {
+    var selected = p.scripts.find(function (s) { return s.id === p.selectedScript; }) || p.scripts[0];
+    var list = p.scripts.map(function (s) {
+      return '<div class="mw-item"><div class="mw-switch ' + (s.enabled ? 'on' : '') + '" data-action="script-toggle" data-id="' + s.id + '"></div>' +
+        '<div data-action="script-select" data-id="' + s.id + '"><div class="mw-item-title">' + esc(s.name) + '</div><div class="mw-item-sub">' + esc(s.hooks) + ' · 运行 ' + s.runs + '</div></div>' +
+        '<button class="mw-btn small primary" data-action="script-run" data-id="' + s.id + '">运行</button></div>';
+    }).join('');
+    var editor = selected ? '<div style="padding:8px"><div class="mw-inline" style="margin-bottom:6px"><strong>' + esc(selected.name) + '</strong><span class="mw-badge">' + esc(selected.hooks) + '</span></div>' +
+      '<textarea class="mw-code" data-role="script-code" data-id="' + selected.id + '">' + esc(selected.code) + '</textarea>' +
+      '<div class="mw-note">上下文：ctx.protocol / ctx.target / ctx.meta；before_send 返回 nil 可拦截。</div>' +
+      '<div class="mw-item-sub" style="margin-top:6px">' + esc(p.scriptLog.slice(-3).join('　')) + '</div></div>' : '';
+    return '<div class="mw-tool-bar"><span class="note">Lua · on_receive / before_send</span><button class="mw-btn small" data-action="script-add">新建</button><button class="mw-btn small" data-action="script-tutorial">教程</button></div>' +
+      '<div style="display:grid;grid-template-columns:42% 58%;min-height:0">' + '<div>' + list + '</div>' + editor + '</div>';
+  }
+  function toolsPanel(p) {
+    var body = p.activeTool === 'quick' ? quickTool(p) :
+      p.activeTool === 'batch' ? batchTool(p) :
+      p.activeTool === 'reply' ? replyTool(p) :
+      p.activeTool === 'history' ? historyTool(p) :
+      p.activeTool === 'calc' ? calcTool(p) : scriptTool(p);
+    return '<div class="mw-panel mw-tools">' + toolTabs(p) + '<div class="mw-tool-body">' + body + '</div></div>';
+  }
+  function topBar(state, label) {
+    return '<header class="mw-top"><span class="mw-brand">设备调试工具</span><span class="mw-direction">' + esc(label) + '</span>' +
+      '<div class="mw-top-actions"><button class="mw-btn small" data-action="export">导出工作区</button>' +
+      '<button class="mw-btn small" data-action="import">导入工作区</button><input type="file" data-role="import-file" accept=".json" hidden>' +
+      '<button class="mw-btn small" data-action="theme">黑/白主题</button></div></header>';
+  }
+  function statusBar(state) {
+    var p = active(state), totalRx = state.profiles.reduce(function (n,x) { return n + x.rxCount; },0);
+    var totalTx = state.profiles.reduce(function (n,x) { return n + x.txCount; },0);
+    return '<footer class="mw-status"><span class="' + (p && p.open ? 'ok' : '') + '">' +
+      (p ? (p.open ? '● ' : '○ ') + esc(profileTitle(p)) + (p.open ? ' OPENED' : ' CLOSED') : '未选择连接') +
+      '</span><span>RX ' + totalRx + ' B</span><span>TX ' + totalTx + ' B</span><span class="grow">并发 ' +
+      state.profiles.filter(function (x) { return x.open; }).length + ' / ' + state.profiles.length + '</span></footer>';
+  }
+  function active(state) {
+    return state.profiles.find(function (p) { return p.id === state.activeId; }) || state.profiles[0];
+  }
+  function treePanel(state,p) {
+    var tree = state.profiles.map(function (x) {
+      return '<div class="mw-tree-profile ' + (x.id === p.id ? 'active' : '') + '" style="--kind:' + KIND[x.kind].color + '">' +
+        '<div class="mw-tree-main" data-action="select-profile" data-id="' + x.id + '"><span class="mw-dot ' + (x.open ? 'open' : '') + '"></span>' +
+        '<span class="mw-kind">' + KIND[x.kind].label + '</span><span class="grow">' + esc(profileTitle(x)) + '</span></div>' +
+        (x.id === p.id ? TOOL_TABS.map(function (t) {
+          var count = t[0] === 'quick' ? x.quick.length : t[0] === 'batch' ? x.batches.length : t[0] === 'reply' ? x.replies.length : t[0] === 'history' ? x.history.length : t[0] === 'script' ? x.scripts.length : '';
+          return '<div class="mw-tree-child" data-action="tool-tab" data-tool="' + t[0] + '">' + t[1] + (count !== '' ? '（' + count + '）' : '') + '</div>';
+        }).join('') : '') + '</div>';
+    }).join('');
+    return '<div class="mw-panel"><div class="mw-panel-title"><span>项目工作区</span><span class="grow"></span>' +
+      '<button class="mw-btn small" data-action="add-profile" data-kind="serial">＋</button></div><div class="mw-tree">' + tree + '</div>' +
+      '<div class="mw-add-strip" style="padding:7px;border-top:1px solid var(--line2)">' +
+      Object.keys(KIND).map(function(k){return '<button class="mw-btn small" data-action="add-profile" data-kind="'+k+'">'+KIND[k].label+'</button>';}).join('') +
+      '</div></div>';
+  }
+  function monitorGrid(state) {
+    return '<div class="mw-monitor-grid">' + state.profiles.slice(0,4).map(function (p) {
+      var last = p.lines.slice(-5).map(function(l){return '<div class="mw-line '+l.dir+'">'+esc(l.text)+'</div>';}).join('');
+      return '<div class="mw-monitor ' + (p.id === state.activeId ? 'active' : '') + '" data-action="select-profile" data-id="' + p.id + '" style="--kind:' + KIND[p.kind].color + '">' +
+        '<div class="mw-monitor-head"><span class="mw-dot ' + (p.open ? 'open' : '') + '"></span><span class="mw-kind">' + KIND[p.kind].label + '</span>' +
+        '<span class="grow">' + esc(profileTitle(p)) + '</span><span class="mw-note">RX ' + p.rxCount + ' / TX ' + p.txCount + '</span></div>' +
+        '<div class="mw-monitor-log">' + last + '</div></div>';
+    }).join('') + '</div>';
+  }
+  function renderA(state) {
+    var p = active(state);
+    return '<div class="mw-app mode-a">' + topBar(state,'方向 A · 原串口继承式') +
+      '<main class="mw-body">' + profileTabs(state) + '<div class="mw-grid">' +
+      settingsPanel(p) + consolePanel(p) + toolsPanel(p) + '</div></main>' + statusBar(state) + '</div>';
+  }
+  function renderB(state) {
+    var p = active(state);
+    return '<div class="mw-app mode-b">' + topBar(state,'方向 B · 项目工作区式') +
+      '<main class="mw-body">' + treePanel(state,p) +
+      '<section class="mw-center">' + profileTabs(state) + consolePanel(p) + '</section>' +
+      '<aside class="mw-inspector">' + settingsPanel(p,true) + toolsPanel(p) + '</aside></main>' + statusBar(state) + '</div>';
+  }
+  function renderC(state) {
+    var p = active(state);
+    var hits = state.profiles.reduce(function(n,x){return n+x.replies.reduce(function(m,r){return m+r.hits;},0);},0);
+    var errors = state.profiles.reduce(function(n,x){return n+x.scriptLog.filter(function(l){return l.indexOf('ERROR')>=0;}).length;},0);
+    var rx = state.profiles.reduce(function(n,x){return n+x.rxCount;},0), tx = state.profiles.reduce(function(n,x){return n+x.txCount;},0);
+    var metrics = [['活动连接',state.profiles.filter(function(x){return x.open;}).length],['总接收',rx+' B'],['总发送',tx+' B'],['规则命中',hits],['脚本错误',errors]];
+    return '<div class="mw-app mode-c">' + topBar(state,'方向 C · 多连接监控式') +
+      '<main class="mw-body"><div class="mw-metrics">' + metrics.map(function(x){return '<div class="mw-metric"><b>'+x[1]+'</b><span>'+x[0]+'</span></div>';}).join('') +
+      '</div>' + monitorGrid(state) + '<div class="mw-detail">' + settingsPanel(p,true) + consolePanel(p) + toolsPanel(p) + '</div></main>' +
+      statusBar(state) + '</div>';
+  }
+
+  function mount(options) {
+    var root = document.querySelector(options.root || '#app');
+    var state = {
+      mode:options.mode || 'a',
+      profiles:[newProfile('serial'),newProfile('ble'),newProfile('mqtt'),newProfile('ws')],
+      activeId:null,theme:'dark'
+    };
+    state.activeId = state.profiles[0].id;
+    document.documentElement.dataset.theme = state.theme;
+    function render() {
+      root.innerHTML = state.mode === 'a' ? renderA(state) : state.mode === 'b' ? renderB(state) : renderC(state);
+      var logBody = root.querySelector('[data-role=log]');
+      if (logBody) logBody.scrollTop = logBody.scrollHeight;
+    }
+    function getProfile(idValue) {
+      return state.profiles.find(function(p){return p.id === idValue;}) || active(state);
+    }
+    function getById(list,idValue){return list.find(function(x){return x.id === idValue;});}
+    function showToast(text,isError) {
+      var old = document.querySelector('.mw-toast'); if(old) old.remove();
+      var el = document.createElement('div'); el.className='mw-toast'+(isError?' error':''); el.textContent=text;
+      document.body.appendChild(el); setTimeout(function(){el.remove();},1800);
+    }
+    function send(p,data,format,target,recordHistory) {
+      if (!p.open) { showToast('连接未打开，发送已拦截',true); return; }
+      var n = bytes(data,format); p.txCount += n;
+      var route = targetText(p,target);
+      log(p,'tx',data,route);
+      if(recordHistory) p.history.push({id:id('hist-'),time:stamp(),data:data,format:format,target:clone(target || {inherit:true})});
+      p.scripts.filter(function(s){return s.enabled && s.hooks.indexOf('before_send')>=0;}).forEach(function(s){s.runs++;p.scriptLog.push(stamp()+' '+s.name+' target='+route);});
+      if(p.kind==='mqtt') setTimeout(function(){log(p,'rx','{"ok":true,"echo":'+JSON.stringify(data)+'}','device/ack');render();},220);
+      if(p.kind==='ws') setTimeout(function(){log(p,'rx','{"type":"ack"}',p.config.frameType);render();},180);
+      if(p.kind==='ble') setTimeout(function(){log(p,'rx','01 81 00 80',p.config.notify);render();},120);
+      if(p.kind==='serial') setTimeout(function(){log(p,'rx','A5 5A 03 00 F6 02 09 0E',p.config.port);render();},100);
+      if(p.tx.clearAfter && recordHistory) p.tx.text='';
+    }
+    function runBatch(p,b) {
+      if(b.running){clearTimeout(batchTimers[b.id]);b.running=false;b.progress=0;render();return;}
+      if(!p.open){showToast('连接未打开，批量任务未启动',true);return;}
+      b.running=true;b.progress=0;var i=0;
+      function next(){
+        if(!b.running)return;
+        if(i>=b.steps.length){b.running=false;b.progress=100;log(p,'sys','批量任务「'+b.name+'」完成');render();return;}
+        var s=b.steps[i];send(p,s.data,s.format,s.target,false);i++;b.progress=Math.round(i/b.steps.length*100);render();
+        batchTimers[b.id]=setTimeout(next,Math.max(100,s.delay));
+      }
+      next();
+    }
+    function editQuick(p,q) {
+      var name=prompt('快捷指令名称',q?q.name:'新快捷指令'); if(name===null)return;
+      var data=prompt('发送数据',q?q.data:p.tx.text); if(data===null)return;
+      var override=confirm('是否覆盖连接默认发送目标？\\n确定=单独指定，取消=继承');
+      var target=defaultTarget(p.kind);target.inherit=!override;
+      if(override){
+        if(p.kind==='mqtt')target.topic=prompt('MQTT Topic',p.config.publishTopic)||p.config.publishTopic;
+        if(p.kind==='ble')target.characteristic=prompt('BLE Write Characteristic',p.config.write)||p.config.write;
+        if(p.kind==='ws')target.frameType=prompt('WebSocket 帧类型 Text/Binary',p.config.frameType)||p.config.frameType;
+        if(p.kind==='serial')target.checksum=prompt('附加校验（如 CRC16 MODBUS）',p.tx.checksum)||p.tx.checksum;
+      }
+      if(q){q.name=name;q.data=data;q.target=target;}else p.quick.push({id:id('q-'),name:name,data:data,format:p.tx.format,key:'',target:target});
+      render();
+    }
+    root.addEventListener('click',function(e){
+      var el=e.target.closest('[data-action]');if(!el)return;
+      var action=el.dataset.action,p=getProfile(el.dataset.id && action==='select-profile'?el.dataset.id:state.activeId);
+      e.stopPropagation();
+      if(action==='select-profile'){state.activeId=el.dataset.id;render();}
+      else if(action==='add-profile'){var np=newProfile(el.dataset.kind);state.profiles.push(np);state.activeId=np.id;render();}
+      else if(action==='remove-profile'){var rid=el.dataset.id||p.id;if(!confirm('删除该连接工作区及其专属工具数据？'))return;state.profiles=state.profiles.filter(function(x){return x.id!==rid;});state.activeId=state.profiles[0]&&state.profiles[0].id;render();}
+      else if(action==='toggle-open'){p.open=!p.open;p.status=p.open?'open':'idle';log(p,'sys',KIND[p.kind].label+(p.open?' CONNECTED ':' CLOSED ')+profileTitle(p));render();}
+      else if(action==='tool-tab'){p.activeTool=el.dataset.tool;render();}
+      else if(action==='clear-log'){p.lines=[];render();}
+      else if(action==='clear-tx'){p.tx.text='';render();}
+      else if(action==='send'){
+        if(loopTimers[p.id]){clearInterval(loopTimers[p.id]);delete loopTimers[p.id];render();return;}
+        send(p,p.tx.text,p.tx.format,{inherit:true},true);
+        if(p.tx.loop){loopTimers[p.id]=setInterval(function(){send(p,p.tx.text,p.tx.format,{inherit:true},false);render();},Math.max(10,Number(p.tx.loopMs)||1000));}
+        render();
+      }
+      else if(action==='file-source'){p.tx.fileName=p.tx.fileName?'':'firmware.bin · 2048 B';if(p.tx.fileName){p.tx.format='hex';p.tx.text='7F 45 4C 46 01 01 01 00 …';}render();}
+      else if(action==='ble-scan'){showToast('扫描完成：发现 Sensor-A4、EnvTag-B2');}
+      else if(action==='quick-send'){var q=getById(p.quick,el.dataset.id);if(q){send(p,q.data,q.format,q.target,false);render();}}
+      else if(action==='quick-add'){editQuick(p,null);}
+      else if(action==='quick-edit'){editQuick(p,getById(p.quick,el.dataset.id));}
+      else if(action==='quick-copy'){var q0=getById(p.quick,el.dataset.id);if(q0){var q1=clone(q0);q1.id=id('q-');q1.name+=' 副本';q1.key='';p.quick.push(q1);render();}}
+      else if(action==='batch-run'){runBatch(p,getById(p.batches,el.dataset.id));}
+      else if(action==='batch-copy'){var b0=getById(p.batches,el.dataset.id);if(b0){var b1=clone(b0);b1.id=id('batch-');b1.name+=' 副本';b1.running=false;b1.progress=0;p.batches.push(b1);render();}}
+      else if(action==='batch-add'){var name=prompt('批量任务名称','新批量任务');if(name){var b=clone(p.batches[0]);b.id=id('batch-');b.name=name;b.running=false;b.progress=0;p.batches.push(b);render();}}
+      else if(action==='reply-toggle'){var r=getById(p.replies,el.dataset.id);r.enabled=!r.enabled;render();}
+      else if(action==='reply-test'){var rr=getById(p.replies,el.dataset.id);rr.hits++;log(p,'rx',rr.pattern,routeFor(p));rr.replies.forEach(function(s){setTimeout(function(){send(p,s.data,s.format||p.tx.format,s.target,false);render();},s.delay);});render();}
+      else if(action==='reply-copy'){var r0=getById(p.replies,el.dataset.id);if(r0){var r1=clone(r0);r1.id=id('reply-');r1.name+=' 副本';r1.enabled=false;r1.hits=0;p.replies.push(r1);render();}}
+      else if(action==='reply-add'){var rn=prompt('规则名称','新自动应答');var pattern=rn&&prompt('匹配内容','*');if(pattern){var nr=clone(p.replies[0]);nr.id=id('reply-');nr.name=rn;nr.pattern=pattern;nr.enabled=false;nr.hits=0;p.replies.push(nr);render();}}
+      else if(action==='history-send'){var h=getById(p.history,el.dataset.id);if(h){send(p,h.data,h.format,h.target,false);render();}}
+      else if(action==='history-fill'){var hf=getById(p.history,el.dataset.id);if(hf){p.tx.text=hf.data;p.tx.format=hf.format;render();}}
+      else if(action==='history-clear'){p.history=[];render();}
+      else if(action==='calc-use-tx'){p.calcInput=p.tx.text;p.activeTool='calc';render();}
+      else if(action==='calc-run'){var ci=root.querySelector('[data-role=calc-input]');p.calcInput=ci&&ci.value;render();}
+      else if(action==='calc-append'){var cr=checksum(p.calcInput||'');p.tx.text=(p.tx.text+' '+cr.crc16).trim();render();}
+      else if(action==='script-select'){p.selectedScript=el.dataset.id;render();}
+      else if(action==='script-toggle'){var s0=getById(p.scripts,el.dataset.id);s0.enabled=!s0.enabled;render();}
+      else if(action==='script-run'){var s1=getById(p.scripts,el.dataset.id);s1.runs++;p.scriptLog.push(stamp()+' '+s1.name+' protocol='+p.kind+' target='+routeFor(p));log(p,'sys','脚本 '+s1.name+' 试跑完成');render();}
+      else if(action==='script-add'){var sn=prompt('脚本名','new_script.lua');if(sn){p.scripts.push({id:id('script-'),name:sn,enabled:false,hooks:'on_receive',runs:0,code:'function on_receive(frame, ctx)\\n  log(frame:hex())\\nend'});p.selectedScript=p.scripts[p.scripts.length-1].id;render();}}
+      else if(action==='script-tutorial'){showToast('教程：钩子、打印帧、解析字段、补校验、拦截发送、Modbus CRC16');}
+      else if(action==='theme'){state.theme=state.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=state.theme;}
+      else if(action==='export'){
+        var blob=new Blob([JSON.stringify({kind:'device-debug-workspaces',version:2,profiles:state.profiles},null,2)],{type:'application/json'});
+        var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='device-debug-workspaces.json';a.click();URL.revokeObjectURL(a.href);showToast('工作区已导出');
+      }
+      else if(action==='import'){root.querySelector('[data-role=import-file]').click();}
+    });
+    root.addEventListener('change',function(e){
+      var p=active(state);
+      if(e.target.dataset.bind){
+        var parts=e.target.dataset.bind.split('.'),obj=p;
+        for(var i=0;i<parts.length-1;i++)obj=obj[parts[i]];
+        var value=e.target.type==='checkbox'?e.target.checked:e.target.type==='number'?Number(e.target.value):e.target.value;
+        obj[parts[parts.length-1]]=value;render();
+      } else if(e.target.dataset.role==='import-file' && e.target.files[0]){
+        var reader=new FileReader();reader.onload=function(){try{var raw=JSON.parse(reader.result);if(!raw.profiles)throw new Error('格式不匹配');state.profiles=raw.profiles;state.activeId=state.profiles[0]&&state.profiles[0].id;showToast('工作区已导入');render();}catch(err){showToast('导入失败：'+err.message,true);}};reader.readAsText(e.target.files[0]);
+      }
+    });
+    root.addEventListener('input',function(e){
+      var p=active(state);
+      if(e.target.dataset.role==='tx-editor')p.tx.text=e.target.value;
+      if(e.target.dataset.role==='script-code'){var s=getById(p.scripts,e.target.dataset.id);if(s)s.code=e.target.value;}
+      if(e.target.dataset.role==='search'){
+        var q=e.target.value.toLowerCase();root.querySelectorAll('.mw-log-body .mw-line').forEach(function(n){n.style.display=!q||n.textContent.toLowerCase().indexOf(q)>=0?'':'none';});
+      }
+    });
+    root.addEventListener('keydown',function(e){
+      if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();var p=active(state);send(p,p.tx.text,p.tx.format,{inherit:true},true);render();}
+    });
+    render();
+    return {state:state,render:render};
+  }
+
+  return { mount:mount };
+})();

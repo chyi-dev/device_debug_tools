@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>多协议调试台 · 方向 B · 工具箱标签式</title>
+<style>
+:root{
+  --win:#e9edf1;--panel:#f7f8fa;--field:#fff;--line:#c5ced7;--line2:#dfe4e9;
+  --text:#1f2933;--muted:#56616e;--accent:#1769c2;--accent-ink:#fff;--hover:#e3ebf5;
+  --log-bg:#fff;--log-prompt:#6b7480;--log-rx:#1b2630;--log-tx:#1461b8;--log-sys:#9a5a00;--mark:#ffe28a;
+  --on:#1f9d55;--off:#c8392f;--lamp-idle:#b9c1ca;
+  --serial:#3ccf7a;--ble:#5b9fff;--mqtt:#f0a04b;--ws:#b388ff;
+  --sans:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --win:#16191d;--panel:#1f2329;--field:#272c33;--line:#3a414a;--line2:#2e343c;
+  --text:#e3e7ec;--muted:#a1aab5;--accent:#4c9bf0;--accent-ink:#0c1624;--hover:#2b323b;
+  --log-bg:#0d1013;--log-prompt:#8b949e;--log-rx:#7fe0a6;--log-tx:#8cc2ff;--log-sys:#e5b54a;--mark:#6b5a12;
+  --on:#3ccf7a;--off:#ef5b50;--lamp-idle:#4a525c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:14px/1.45 var(--sans);color:var(--text);background:var(--win);overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{height:100vh;display:grid;grid-template-rows:48px 36px minmax(0,1fr) 30px;min-width:1280px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:15px}
+.brand em{font-style:normal;color:var(--accent);margin-left:10px;font-weight:500;font-size:12px}
+.proto-switch{display:flex;gap:4px;background:var(--win);padding:4px;border-radius:8px;border:1px solid var(--line)}
+.proto-switch button{border:0;background:transparent;color:var(--muted);height:28px;padding:0 14px;border-radius:6px;cursor:pointer;font-weight:600;font-size:12px}
+.proto-switch button.on{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.tabs{display:flex;align-items:stretch;gap:0;background:var(--win);border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{display:flex;align-items:center;gap:8px;padding:0 14px;border-right:1px solid var(--line);color:var(--muted);cursor:pointer;white-space:nowrap;min-width:160px}
+.tab.on{background:var(--panel);color:var(--text);border-bottom:2px solid var(--accent)}
+.tab .dot{width:8px;height:8px;border-radius:50%;background:var(--lamp-idle)}
+.tab .dot.on{background:var(--on)}
+.add-tab{padding:0 14px;color:var(--accent);cursor:pointer;display:flex;align-items:center;font-size:18px}
+.body{display:grid;grid-template-columns:minmax(0,1fr) 300px;min-height:0}
+.work{display:grid;grid-template-rows:minmax(0,1fr) 150px;min-height:0}
+.log{margin:8px 0 0 8px;border:1px solid var(--line);border-radius:6px;background:var(--log-bg);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.log-head{height:34px;display:flex;align-items:center;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--line);gap:10px}
+.log-head strong{font-size:13px}
+.log-head span{color:var(--muted);font:12px var(--mono)}
+.log-body{flex:1;overflow:auto;padding:12px;font:13px/1.7 var(--mono)}
+.line .ts{color:var(--log-prompt)}
+.line.rx{color:var(--log-rx)}.line.tx{color:var(--log-tx)}.line.sys{color:var(--log-sys)}
+.composer{margin:8px 0 8px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-columns:1fr 110px;overflow:hidden}
+.composer textarea{resize:none;border:0;outline:0;background:var(--field);color:var(--text);padding:10px;font:14px var(--mono)}
+.side-btns{display:grid;gap:8px;padding:10px;border-left:1px solid var(--line)}
+.btn{height:32px;border:1px solid var(--line);background:var(--field);color:var(--text);border-radius:6px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.tools{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0;margin:8px 8px 8px 0;border-radius:6px;border:1px solid var(--line);overflow:hidden}
+.tools h3{margin:0;padding:12px 14px;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line2)}
+.tools .block{padding:12px 14px;border-bottom:1px solid var(--line2);display:grid;gap:8px}
+.tools label{display:grid;grid-template-columns:80px 1fr;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.tools input,.tools select{height:26px;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--text)}
+.foot{display:flex;align-items:center;gap:18px;padding:0 14px;border-top:1px solid var(--line);color:var(--muted);font:12px var(--mono);background:var(--panel)}
+.kinds{display:flex;gap:6px;flex-wrap:wrap}
+.kind-chip{height:24px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--field);color:var(--muted);font-size:11px;cursor:pointer}
+.kind-chip:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">设备调试工具 <em>多协议工具箱 · 方向 B</em></div>
+    <div class="proto-switch" id="protoSwitch">
+      <button data-k="serial" class="on">串口</button>
+      <button data-k="ble">蓝牙</button>
+      <button data-k="mqtt">MQTT</button>
+      <button data-k="ws">WebSocket</button>
+    </div>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <div class="body">
+    <div class="work">
+      <div class="log">
+        <div class="log-head"><strong id="title">工作区</strong><span id="meta">—</span></div>
+        <div class="log-body" id="log"></div>
+      </div>
+      <div class="composer">
+        <textarea id="tx" placeholder="输入发送内容（Ctrl+Enter）"></textarea>
+        <div class="side-btns">
+          <button class="btn primary" id="send">发送</button>
+          <button class="btn" id="clear">清空</button>
+          <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px"><input type="checkbox" id="hex"> HEX</label>
+        </div>
+      </div>
+    </div>
+    <aside class="tools" id="tools"></aside>
+  </div>
+  <footer class="foot"><span id="st">就绪</span><span>标签工作区 · 每个连接一个独立标签页</span></footer>
+</div>
+<!-- @multi-engine -->
+<script>
+(function () {
+  var createKind = 'serial';
+  var sessions = [];
+  var activeId = null;
+  function label(k) { return { serial: 'SERIAL', ble: 'BLE', mqtt: 'MQTT', ws: 'WS' }[k]; }
+  function color(k) { return { serial: '#3ccf7a', ble: '#5b9fff', mqtt: '#f0a04b', ws: '#b388ff' }[k]; }
+  function title(s) {
+    if (s.kind === 'serial') return s.cfg.port || 'Serial';
+    if (s.kind === 'ble') return s.cfg.device || 'BLE';
+    if (s.kind === 'mqtt') return s.cfg.host || 'MQTT';
+    return s.cfg.url || 'WebSocket';
+  }
+  function subtitle(s) {
+    if (s.kind === 'serial') return s.cfg.baud + ' 8N1';
+    if (s.kind === 'ble') return (s.cfg.service || '—') + ' / ' + (s.cfg.notify || '—');
+    if (s.kind === 'mqtt') return (s.cfg.sub || '#') + ' · QoS ' + s.cfg.qos;
+    return 'heartbeat ' + s.cfg.heartbeat + 's';
+  }
+  function defaultCfg(k) {
+    if (k === 'serial') return { port: '', baud: 115200, parity: 'N', dataBits: 8, stopBits: 1, flow: '无' };
+    if (k === 'ble') return { device: '', service: 'FFF0', notify: 'FFF1', write: 'FFF2' };
+    if (k === 'mqtt') return { host: '127.0.0.1', port: 1883, client: 'ddt-desk-1', user: '', pass: '', sub: '#', pub: '', qos: 1, tls: false };
+    return { url: 'ws://127.0.0.1:8080', protocols: '', heartbeat: 30 };
+  }
+  function active() { return sessions.find(function (s) { return s.id === activeId; }); }
+  function create(kind) {
+    var id = kind + '-' + Date.now();
+    sessions.push({ id: id, kind: kind, open: false, rx: 0, tx: 0, lines: [], cfg: defaultCfg(kind) });
+    activeId = id;
+    if (kind === 'serial') sessions[sessions.length - 1].cfg.port = 'COM3';
+    if (kind === 'mqtt') sessions[sessions.length - 1].cfg.host = 'broker.local';
+    if (kind === 'ws') sessions[sessions.length - 1].cfg.url = 'ws://192.168.1.20/ws';
+    open(id);
+    render();
+  }
+  function log(s, dir, text) {
+    var now = new Date();
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+    var t = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds()) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    if (dir === 'rx') s.rx += new TextEncoder().encode(text).length;
+    s.lines.push({ t: t, dir: dir, text: text });
+  }
+  function open(id) {
+    var s = sessions.find(function (x) { return x.id === id; }); if (!s) return;
+    if (s.kind === 'ble') { log(s, 'sys', 'BLE 桌面端暂未接入适配器'); render(); return; }
+    s.open = true;
+    log(s, 'sys', label(s.kind) + ' CONNECTED ' + title(s));
+    setTimeout(function () {
+      if (s.kind === 'serial') log(s, 'rx', 'A5 5A 03 00 F6 02 09 0E');
+      if (s.kind === 'mqtt') log(s, 'rx', 'home/temp {"c":23.4}');
+      if (s.kind === 'ws') log(s, 'rx', '{"event":"hello","id":7}');
+      render();
+    }, 300);
+    render();
+  }
+  function close(id) { var s = sessions.find(function (x) { return x.id === id; }); if (s) { s.open = false; log(s, 'sys', label(s.kind) + ' CLOSED'); render(); } }
+  function remove(id) { sessions = sessions.filter(function (x) { return x.id !== id; }); if (activeId === id) activeId = sessions.length ? sessions[0].id : null; render(); }
+  function esc(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function render() {
+    var tabs = document.getElementById('tabs');
+    tabs.innerHTML = sessions.map(function (s) {
+      return '<div class="tab ' + (s.id === activeId ? 'on' : '') + '" data-id="' + s.id + '">' +
+        '<span class="dot ' + (s.open ? 'on' : '') + '"></span>' +
+        '<span style="font-size:10px;font-weight:700;color:' + color(s.kind) + ';border:1px solid ' + color(s.kind) + ';padding:1px 4px;border-radius:3px">' + label(s.kind) + '</span>' +
+        '<span>' + esc(title(s)) + '</span>' +
+        '<span class="x" data-close="' + s.id + '" style="margin-left:auto;opacity:.5">×</span></div>';
+    }).join('') + '<div class="add-tab" id="addTab">＋</div>';
+    tabs.querySelectorAll('.tab').forEach(function (el) {
+      el.onclick = function (e) {
+        if (e.target.dataset.close) { remove(e.target.dataset.close); return; }
+        activeId = el.dataset.id; render();
+      };
+    });
+    document.getElementById('addTab').onclick = function () { create(createKind); };
+    var s = active(); if (!s) return;
+    document.getElementById('title').textContent = title(s);
+    document.getElementById('meta').textContent = label(s.kind) + ' · ' + (s.open ? '已连接' : '未连接') + ' · ' + s.lines.length + ' 条';
+    document.getElementById('log').innerHTML = s.lines.map(function (l) {
+      return '<div class="line ' + l.dir + '"><span class="ts">[' + l.t + ']# </span>' +
+        (l.dir === 'tx' ? 'SEND> ' : l.dir === 'rx' ? 'RECV> ' : '') + esc(l.text) + '</div>';
+    }).join('');
+    document.getElementById('st').textContent = sessions.filter(function (x) { return x.open; }).length + ' 个活动连接 · 当前 ' + title(s);
+    renderTools(s);
+  }
+  function input(label, value, onChange) {
+    var col = document.createElement('div'); col.className = 'col';
+    var lb = document.createElement('label'); lb.textContent = label;
+    var inp = document.createElement('input'); inp.value = value; inp.onchange = function () { onChange(inp.value); };
+    col.appendChild(lb); col.appendChild(inp); return col;
+  }
+  function select(label, value, items, onChange) {
+    var col = document.createElement('div'); col.className = 'col';
+    var lb = document.createElement('label'); lb.textContent = label;
+    var sel = document.createElement('select');
+    items.forEach(function (it) {
+      var opt = document.createElement('option'); opt.value = it.value; opt.textContent = it.label;
+      if (String(it.value) === String(value)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.onchange = function () { onChange(sel.value); };
+    col.appendChild(lb); col.appendChild(sel); return col;
+  }
+  function renderTools(s) {
+    var tools = document.getElementById('tools');
+    tools.innerHTML = '<h3>' + label(s.kind) + ' 工具</h3>';
+    var block = document.createElement('div'); block.className = 'block';
+    var up = function (patch) { Object.assign(s.cfg, patch); render(); };
+    if (s.kind === 'serial') {
+      block.appendChild(select('端口', s.cfg.port, [
+        { value: '', label: '无可用串口' },
+        { value: 'COM3', label: 'COM3 · CH340' },
+        { value: 'COM5', label: 'COM5 · Bluetooth Link' },
+        { value: 'USB0', label: 'USB0 · FTDI' }
+      ], function (v) { up({ port: v }); }));
+      block.appendChild(select('波特率', s.cfg.baud, [
+        { value: 9600, label: '9600' }, { value: 19200, label: '19200' },
+        { value: 38400, label: '38400' }, { value: 57600, label: '57600' }, { value: 115200, label: '115200' }
+      ], function (v) { up({ baud: Number(v) }); }));
+      block.appendChild(select('校验', s.cfg.parity, [
+        { value: 'N', label: 'NONE' }, { value: 'O', label: 'ODD' }, { value: 'E', label: 'EVEN' }, { value: 'M', label: 'MARK' }, { value: 'S', label: 'SPACE' }
+      ], function (v) { up({ parity: v }); }));
+    } else if (s.kind === 'mqtt') {
+      block.appendChild(input('Broker', s.cfg.host, function (v) { up({ host: v }); }));
+      block.appendChild(input('端口', String(s.cfg.port), function (v) { up({ port: Number(v) }); }));
+      block.appendChild(input('订阅', s.cfg.sub, function (v) { up({ sub: v }); }));
+      block.appendChild(input('发布', s.cfg.pub, function (v) { up({ pub: v }); }));
+      block.appendChild(select('QoS', s.cfg.qos, [{ value: 0, label: '0' }, { value: 1, label: '1' }, { value: 2, label: '2' }], function (v) { up({ qos: Number(v) }); }));
+    } else if (s.kind === 'ws') {
+      block.appendChild(input('URL', s.cfg.url, function (v) { up({ url: v }); }));
+      block.appendChild(input('心跳', String(s.cfg.heartbeat), function (v) { up({ heartbeat: Number(v) }); }));
+    } else if (s.kind === 'ble') {
+      block.appendChild(input('设备', s.cfg.device, function (v) { up({ device: v }); }));
+      block.appendChild(input('Service', s.cfg.service, function (v) { up({ service: v }); }));
+      block.appendChild(input('Notify', s.cfg.notify, function (v) { up({ notify: v }); }));
+      block.appendChild(input('Write', s.cfg.write, function (v) { up({ write: v }); }));
+      var err = document.createElement('div'); err.style = 'color:var(--off);font-size:12px'; err.textContent = '桌面端 BLE 暂未接入适配器';
+      block.appendChild(err);
+    }
+    tools.appendChild(block);
+    var btnBlock = document.createElement('div'); btnBlock.className = 'block';
+    var btn = document.createElement('button'); btn.className = 'btn primary'; btn.textContent = s.open ? '关闭 / 断开' : '打开 / 连接';
+    btn.onclick = function () { if (s.open) close(s.id); else open(s.id); };
+    btnBlock.appendChild(btn);
+    tools.appendChild(btnBlock);
+  }
+  document.querySelectorAll('#protoSwitch button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('#protoSwitch button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on'); createKind = b.dataset.k;
+    };
+  });
+  document.getElementById('send').onclick = function () {
+    var s = active(); if (!s || !s.open) { alert('连接未打开'); return; }
+    var text = document.getElementById('tx').value;
+    var asHex = document.getElementById('hex').checked;
+    var bytes = asHex ? text.replace(/[^0-9a-fA-F]/g, '').length / 2 : new TextEncoder().encode(text).length;
+    s.tx += Math.floor(bytes);
+    log(s, 'tx', asHex ? 'SEND HEX> ' + text : 'SEND ASCII> ' + text);
+    if (s.kind === 'serial' && text.toUpperCase().includes('A5 01')) setTimeout(function () { log(s, 'rx', 'A5 5A 03 00 F6 02 09 0E'); render(); }, 80);
+    if (s.kind === 'mqtt') setTimeout(function () { log(s, 'rx', 'device/ack {"ok":1}'); render(); }, 200);
+    render();
+  };
+  document.getElementById('clear').onclick = function () { document.getElementById('tx').value = ''; };
+  document.getElementById('tx').addEventListener('keydown', function (e) { if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); document.getElementById('send').click(); } });
+  create('serial'); create('mqtt'); create('ws');
+  render();
+})();
+</script>
+</body>
+</html>

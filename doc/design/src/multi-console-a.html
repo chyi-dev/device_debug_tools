@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>多协议调试台 · 方向 A · 原串口继承式</title>
+<style>
+<!-- @multi-css -->
+</style>
+</head>
+<body>
+<div id="app"></div>
+<!-- @multi-workbench -->
+<script>MultiWorkbench.mount({root:'#app',mode:'a'});</script>
+</body>
+</html>
+:root{
+  --win:#e9edf1;--panel:#f7f8fa;--field:#fff;--line:#c5ced7;--line2:#dfe4e9;
+  --text:#1f2933;--muted:#56616e;--accent:#1769c2;--accent-ink:#fff;--hover:#e3ebf5;
+  --log-bg:#fff;--log-prompt:#6b7480;--log-rx:#1b2630;--log-tx:#1461b8;--log-sys:#9a5a00;--mark:#ffe28a;
+  --on:#1f9d55;--off:#c8392f;--lamp-idle:#b9c1ca;
+  --serial:#3ccf7a;--ble:#5b9fff;--mqtt:#f0a04b;--ws:#b388ff;
+  --sans:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --win:#16191d;--panel:#1f2329;--field:#272c33;--line:#3a414a;--line2:#2e343c;
+  --text:#e3e7ec;--muted:#a1aab5;--accent:#4c9bf0;--accent-ink:#0c1624;--hover:#2b323b;
+  --log-bg:#0d1013;--log-prompt:#8b949e;--log-rx:#7fe0a6;--log-tx:#8cc2ff;--log-sys:#e5b54a;--mark:#6b5a12;
+  --on:#3ccf7a;--off:#ef5b50;--lamp-idle:#4a525c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:14px/1.45 var(--sans);color:var(--text);background:var(--win);overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{height:100vh;display:grid;grid-template-rows:34px minmax(0,1fr) 30px;min-width:1280px}
+.menubar{display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:20}
+.menubar .title{font-weight:600;margin-right:14px;padding-left:4px}
+.main{display:grid;grid-template-columns:252px minmax(0,1fr) 300px;gap:8px;padding:8px;min-height:0}
+.group{background:var(--panel);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.group>h3{margin:0;padding:8px 10px;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.04em;border-bottom:1px solid var(--line2)}
+.filter{display:flex;gap:4px;padding:8px;flex-wrap:wrap;border-bottom:1px solid var(--line2)}
+.chip{height:22px;padding:0 8px;border:1px solid var(--line);background:var(--field);border-radius:999px;font-size:11px;color:var(--muted)}
+.chip.on{border-color:var(--accent);color:var(--text);background:var(--hover)}
+.conn-list{flex:1;overflow:auto;padding:6px}
+.conn{display:grid;grid-template-columns:8px 1fr auto;gap:8px;align-items:center;padding:8px;border-radius:5px;cursor:pointer;margin-bottom:4px}
+.conn:hover{background:var(--hover)}
+.conn.active{background:var(--hover);outline:1px solid var(--accent)}
+.conn .lamp{width:8px;height:8px;border-radius:50%;background:var(--lamp-idle)}
+.conn .lamp.on{box-shadow:0 0 0 2px color-mix(in srgb,currentColor 20%,transparent)}
+.conn .name{font-weight:600;font-size:13px}
+.conn .meta{color:var(--muted);font:11px var(--mono)}
+.tag{font:10px var(--mono);font-weight:700;padding:2px 5px;border:1px solid currentColor;border-radius:3px}
+.add-row{padding:8px;border-top:1px solid var(--line2);display:grid;gap:6px}
+.btn{height:28px;border-radius:4px;border:1px solid var(--line);background:var(--field);color:var(--text);padding:0 10px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.add-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mid{display:grid;grid-template-rows:minmax(0,1fr) 150px;gap:8px;min-height:0}
+.log{background:var(--log-bg);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;min-height:0}
+.log-head{height:36px;display:flex;align-items:center;gap:10px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.log-head strong{font-size:13px}
+.log-head .meta{color:var(--muted);font:12px var(--mono);flex:1}
+.log-head .search{width:150px;height:24px;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--text)}
+.log-body{flex:1;overflow:auto;padding:10px;font:13px/1.6 var(--mono)}
+.line .ts{color:var(--log-prompt)}
+.line.rx{color:var(--log-rx)}.line.tx{color:var(--log-tx)}.line.sys{color:var(--log-sys)}
+.send{background:var(--panel);border:1px solid var(--line);border-radius:6px;display:grid;grid-template-columns:1fr 100px;min-height:0}
+.send textarea{resize:none;border:0;outline:0;background:var(--field);color:var(--text);padding:10px;font:14px var(--mono)}
+.send-side{border-left:1px solid var(--line);padding:8px;display:grid;gap:6px}
+.send-side .btn{height:auto}
+.send-foot{grid-column:1/-1;border-top:1px solid var(--line2);height:24px;display:flex;align-items:center;padding:0 10px}
+.send-foot span{color:var(--muted);font:12px var(--mono)}
+.send-foot .right{margin-left:auto}
+.cfg{overflow:auto}
+.cfg .form{padding:10px}
+.col{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.col label{color:var(--muted);font-size:12px}
+.col input,.col select{height:26px;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:0 6px}
+.row{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.row label{color:var(--muted);font-size:12px}
+.row input,.row select{height:26px;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:0 6px}
+.cfg .btn{width:100%;margin-top:4px}
+.status{display:flex;align-items:center;gap:16px;padding:0 12px;background:var(--panel);border-top:1px solid var(--line);font:12px var(--mono);color:var(--muted)}
+.status .ok{color:var(--on)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="menubar"><span class="title">设备调试工具</span><span style="color:var(--muted)">方向 A · 经典 IDE 式</span></header>
+  <div class="main">
+    <aside class="group">
+      <h3>连接列表</h3>
+      <div class="filter" id="filter">
+        <button class="chip on" data-f="all">全部</button>
+        <button class="chip" data-f="serial">S</button>
+        <button class="chip" data-f="ble">B</button>
+        <button class="chip" data-f="mqtt">M</button>
+        <button class="chip" data-f="ws">W</button>
+      </div>
+      <div class="conn-list" id="connList"></div>
+      <div class="add-row">
+        <button class="btn primary" id="btnAdd">＋ 新建连接</button>
+        <div class="add-btns" id="addKinds">
+          <button class="btn" data-k="serial">串口</button>
+          <button class="btn" data-k="ble">BLE</button>
+          <button class="btn" data-k="mqtt">MQTT</button>
+          <button class="btn" data-k="ws">WebSocket</button>
+        </div>
+      </div>
+    </aside>
+    <section class="mid">
+      <div class="log">
+        <div class="log-head">
+          <strong id="logTitle">日志</strong>
+          <span class="meta" id="logMeta">—</span>
+          <input class="search" id="search" placeholder="搜索…">
+          <button class="btn" id="btnClearLog">清空</button>
+        </div>
+        <div class="log-body" id="logBody"></div>
+      </div>
+      <div class="send">
+        <textarea id="tx" placeholder="输入发送内容（Ctrl+Enter）"></textarea>
+        <div class="send-side">
+          <button class="btn primary" id="btnSend">发送</button>
+          <button class="btn" id="btnClearTx">清空</button>
+        </div>
+        <div class="send-foot">
+          <span id="txPreview">0 bytes</span>
+          <label class="right"><input type="checkbox" id="hex"> HEX</label>
+        </div>
+      </div>
+    </section>
+    <aside class="group cfg">
+      <h3 id="cfgTitle">协议设置</h3>
+      <div class="form" id="cfgForm"></div>
+    </aside>
+  </div>
+  <footer class="status">
+    <span id="stLink">未选择连接</span>
+    <span id="stRx">RX —</span>
+    <span id="stTx">TX —</span>
+    <span id="stCount" style="margin-left:auto">并发 0</span>
+  </footer>
+</div>
+<!-- @multi-engine -->
+<script>
+(function () {
+  var filter = 'all';
+  var search = '';
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function render() {
+    var c = Multi.active();
+    var list = document.getElementById('connList');
+    list.innerHTML = '';
+    Multi.conns().filter(function (x) { return filter === 'all' || x.kind === filter; }).forEach(function (x) {
+      var el = document.createElement('div');
+      el.className = 'conn' + (x.id === Multi.activeId() ? ' active' : '');
+      el.innerHTML = '<span class="lamp ' + (x.open ? 'on' : '') + '" style="color:' + Multi.colorOf(x.kind) + '"></span>' +
+        '<div><div class="name">' + esc(Multi.titleOf(x)) + '</div><div class="meta">' + esc(Multi.subtitleOf(x)) + '</div></div>' +
+        '<span class="tag" style="color:' + Multi.colorOf(x.kind) + '">' + Multi.labelOf(x.kind) + '</span>';
+      el.onclick = function () { Multi.select(x.id); };
+      list.appendChild(el);
+    });
+    if (!c) {
+      document.getElementById('logTitle').textContent = '日志';
+      document.getElementById('logMeta').textContent = '—';
+      document.getElementById('logBody').innerHTML = '';
+      document.getElementById('stLink').textContent = '未选择连接';
+      document.getElementById('stRx').textContent = 'RX —';
+      document.getElementById('stTx').textContent = 'TX —';
+      document.getElementById('cfgForm').innerHTML = '';
+      document.getElementById('cfgTitle').textContent = '协议设置';
+    } else {
+      document.getElementById('logTitle').textContent = Multi.titleOf(c);
+      document.getElementById('logMeta').textContent = c.lines.length + ' 条记录 · 自动滚动';
+      document.getElementById('cfgTitle').textContent = { serial: '串口设置', ble: '蓝牙设置', mqtt: 'MQTT 设置', ws: 'WebSocket 设置' }[c.kind];
+      var body = document.getElementById('logBody');
+      body.innerHTML = c.lines.map(function (l) {
+        return '<div class="line ' + l.dir + '"><span class="ts">[' + l.t + ']# </span>' +
+          (l.dir === 'tx' ? 'SEND> ' : l.dir === 'rx' ? 'RECV> ' : '') + esc(l.text) + '</div>';
+      }).join('');
+      body.scrollTop = body.scrollHeight;
+      document.getElementById('stLink').textContent = (c.open ? '● ' : '○ ') + Multi.titleOf(c) + (c.open ? ' 已打开' : ' 已关闭');
+      document.getElementById('stLink').className = c.open ? 'ok' : '';
+      document.getElementById('stRx').textContent = 'RX ' + c.rx + ' B';
+      document.getElementById('stTx').textContent = 'TX ' + c.tx + ' B';
+      renderCfg(c);
+    }
+    document.getElementById('stCount').textContent = '并发 ' + Multi.conns().filter(function (x) { return x.open; }).length;
+  }
+  function input(label, value, onChange) {
+    var col = document.createElement('div'); col.className = 'col';
+    var lb = document.createElement('label'); lb.textContent = label;
+    var inp = document.createElement('input'); inp.value = value;
+    inp.onchange = function () { onChange(inp.value); };
+    col.appendChild(lb); col.appendChild(inp);
+    return col;
+  }
+  function select(label, value, items, onChange) {
+    var col = document.createElement('div'); col.className = 'col';
+    var lb = document.createElement('label'); lb.textContent = label;
+    var s = document.createElement('select');
+    items.forEach(function (it) {
+      var opt = document.createElement('option'); opt.value = it.value; opt.textContent = it.label;
+      if (String(it.value) === String(value)) opt.selected = true;
+      s.appendChild(opt);
+    });
+    s.onchange = function () { onChange(s.value); };
+    col.appendChild(lb); col.appendChild(s);
+    return col;
+  }
+  function renderCfg(c) {
+    var form = document.getElementById('cfgForm');
+    form.innerHTML = '';
+    var cfg = c.config;
+    var update = function (patch) { Multi.update(c.id, Object.assign({}, cfg, patch)); };
+    if (c.kind === 'serial') {
+      form.appendChild(select('串口', cfg.port || '', [
+        { value: '', label: '无可用串口' },
+        { value: 'COM3', label: 'COM3 · USB-SERIAL CH340' },
+        { value: 'COM5', label: 'COM5 · Bluetooth Link' },
+        { value: 'USB0', label: 'USB0 · FTDI FT232R' }
+      ], function (v) { update({ port: v }); }));
+      form.appendChild(select('波特率', cfg.baud, [
+        { value: 9600, label: '9600' }, { value: 19200, label: '19200' },
+        { value: 38400, label: '38400' }, { value: 57600, label: '57600' },
+        { value: 115200, label: '115200' }
+      ], function (v) { update({ baud: Number(v) }); }));
+      form.appendChild(select('校验', cfg.parity, [
+        { value: 'N', label: 'NONE' }, { value: 'O', label: 'ODD' },
+        { value: 'E', label: 'EVEN' }, { value: 'M', label: 'MARK' }, { value: 'S', label: 'SPACE' }
+      ], function (v) { update({ parity: v }); }));
+      form.appendChild(select('数据位', cfg.dataBits, [
+        { value: 5, label: '5' }, { value: 6, label: '6' },
+        { value: 7, label: '7' }, { value: 8, label: '8' }
+      ], function (v) { update({ dataBits: Number(v) }); }));
+      form.appendChild(select('停止位', cfg.stopBits, [
+        { value: 1, label: '1' }, { value: 1.5, label: '1.5' }, { value: 2, label: '2' }
+      ], function (v) { update({ stopBits: Number(v) }); }));
+      form.appendChild(select('流控', cfg.flow, [
+        { value: '无', label: 'NONE' }, { value: 'RTS/CTS', label: 'RTS/CTS' },
+        { value: 'DTR/DSR', label: 'DTR/DSR' }, { value: 'XON/XOFF', label: 'XON/XOFF' }
+      ], function (v) { update({ flow: v }); }));
+      var pins = document.createElement('div');
+      pins.innerHTML = '<label style="color:var(--muted);font-size:12px">引脚</label>' +
+        '<div style="display:flex;gap:12px;color:var(--muted);font:12px var(--mono);margin-top:4px">' +
+        '<span>DCD</span><span>DSR</span><span>CTS</span><span>RI</span></div>';
+      form.appendChild(pins);
+    } else if (c.kind === 'ble') {
+      form.appendChild(input('设备名', cfg.device, function (v) { update({ device: v }); }));
+      form.appendChild(input('Service UUID', cfg.service, function (v) { update({ service: v }); }));
+      form.appendChild(input('Notify UUID', cfg.notify, function (v) { update({ notify: v }); }));
+      form.appendChild(input('Write UUID', cfg.write, function (v) { update({ write: v }); }));
+      var err = document.createElement('div');
+      err.className = 'col'; err.innerHTML = '<label>状态</label><div style="color:var(--off);font-size:12px">桌面端 BLE 暂未接入适配器，配置可保存。</div>';
+      form.appendChild(err);
+    } else if (c.kind === 'mqtt') {
+      form.appendChild(input('Broker', cfg.host, function (v) { update({ host: v }); }));
+      form.appendChild(input('端口', String(cfg.port), function (v) { update({ port: Number(v) }); }));
+      form.appendChild(input('Client ID', cfg.client, function (v) { update({ client: v }); }));
+      form.appendChild(input('用户名', cfg.user || '', function (v) { update({ user: v }); }));
+      form.appendChild(input('密码', cfg.pass || '', function (v) { update({ pass: v }); }));
+      form.appendChild(input('订阅 Topic', cfg.sub, function (v) { update({ sub: v }); }));
+      form.appendChild(input('发布 Topic', cfg.pub, function (v) { update({ pub: v }); }));
+      form.appendChild(select('QoS', cfg.qos, [
+        { value: 0, label: '0 最多一次' }, { value: 1, label: '1 至少一次' }, { value: 2, label: '2 恰好一次' }
+      ], function (v) { update({ qos: Number(v) }); }));
+      var tlsWrap = document.createElement('label');
+      tlsWrap.innerHTML = '<input type="checkbox" ' + (cfg.tls ? 'checked' : '') + '> TLS';
+      tlsWrap.querySelector('input').onchange = function (e) { update({ tls: e.target.checked }); };
+      tlsWrap.style.cssText = 'display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;margin-bottom:8px';
+      form.appendChild(tlsWrap);
+    } else if (c.kind === 'ws') {
+      form.appendChild(input('URL', cfg.url, function (v) { update({ url: v }); }));
+      form.appendChild(input('子协议', cfg.protocols, function (v) { update({ protocols: v }); }));
+      form.appendChild(input('心跳(秒)', String(cfg.heartbeat), function (v) { update({ heartbeat: Number(v) }); }));
+    }
+    var openBtn = document.createElement('button');
+    openBtn.className = 'btn primary';
+    openBtn.textContent = c.open ? '关闭 / 断开' : '打开 / 连接';
+    openBtn.onclick = function () { if (c.open) Multi.close(c.id); else Multi.open(c.id); };
+    form.appendChild(openBtn);
+  }
+  document.querySelectorAll('#filter .chip').forEach(function (el) {
+    el.onclick = function () {
+      document.querySelectorAll('#filter .chip').forEach(function (x) { x.classList.remove('on'); });
+      el.classList.add('on'); filter = el.dataset.f; render();
+    };
+  });
+  document.querySelectorAll('#addKinds .btn').forEach(function (el) {
+    el.onclick = function () { Multi.create(el.dataset.k); };
+  });
+  document.getElementById('btnSend').onclick = function () {
+    var c = Multi.active(); if (!c) return;
+    var err = Multi.send(c.id, document.getElementById('tx').value, document.getElementById('hex').checked);
+    if (err) alert(err);
+  };
+  document.getElementById('btnClearTx').onclick = function () { document.getElementById('tx').value = ''; };
+  document.getElementById('btnClearLog').onclick = function () { var c = Multi.active(); if (c) Multi.clear(c.id); };
+  document.getElementById('tx').addEventListener('keydown', function (e) { if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); document.getElementById('btnSend').click(); } });
+  document.getElementById('search').oninput = function (e) {
+    search = e.target.value.toLowerCase();
+    document.querySelectorAll('#logBody .line').forEach(function (n) { n.style.display = !search || n.textContent.toLowerCase().includes(search) ? '' : 'none'; });
+  };
+  Multi.on('change', render);
+  Multi.create('serial'); Multi.create('mqtt'); Multi.create('ws');
+  Multi.open(Multi.conns()[0].id); Multi.open(Multi.conns()[1].id); Multi.open(Multi.conns()[2].id);
+  render();
+})();
+</script>
+</body>
+</html>

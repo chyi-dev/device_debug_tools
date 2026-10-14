@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>封面 B · 终端日志裁切</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1200px; height: 510px; overflow: hidden;
+    font-family: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+    background: #16191d; color: #e3e7ec;
+  }
+  .stage {
+    width: 1200px; height: 510px;
+    display: grid; grid-template-columns: 420px 1fr; gap: 0;
+  }
+  .left {
+    padding: 48px 40px 40px 48px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    border-right: 1px solid #3a414a;
+    background: #1f2329;
+  }
+  .prod { font-size: 14px; color: #a1aab5; letter-spacing: 0.04em; }
+  h1 {
+    font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.08;
+    margin-top: 28px; color: #e3e7ec;
+  }
+  .sub { margin-top: 14px; font-size: 18px; color: #a1aab5; line-height: 1.45; }
+  .meta {
+    font: 13px "Cascadia Mono", Consolas, monospace; color: #4c9bf0;
+  }
+  .log {
+    background: #0d1013; padding: 48px 44px 40px 40px;
+    font: 16px/1.7 "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  }
+  .p { color: #8b949e; }
+  .rx { color: #7fe0a6; }
+  .tx { color: #8cc2ff; }
+  .sys { color: #e5b54a; }
+  .line { white-space: nowrap; }
+  .fade { opacity: 0.35; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="left">
+      <div>
+        <div class="prod">设备调试工具</div>
+        <h1>自动应答</h1>
+        <p class="sub">匹配教程<br>命中规则，按列表回帧</p>
+      </div>
+      <div class="meta">RECV → 命中 → SEND</div>
+    </div>
+    <div class="log">
+      <div class="line fade"><span class="p">[13:04:02.018]# </span><span class="p">RECV HEX&gt;</span></div>
+      <div class="line fade"><span class="rx">A5 5A 03 00 F6 02 09 03</span></div>
+      <div class="line"><span class="p">[13:04:02.019]# </span><span class="sys">自动响应「温湿度回包确认」命中，按顺序回复 2 条</span></div>
+      <div class="line"><span class="p">[13:04:02.100]# </span><span class="p">SEND HEX&gt;</span></div>
+      <div class="line"><span class="tx">A5 A0 00 A0</span></div>
+      <div class="line"><span class="p">[13:04:02.181]# </span><span class="p">SEND HEX&gt;</span></div>
+      <div class="line"><span class="tx">A5 A1 01 A2</span></div>
+    </div>
+  </div>
+</body>
+</html>

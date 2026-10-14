@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>多协议调试台 · 方向 C · 仪表盘卡片式</title>
+<style>
+:root{
+  --win:#e9edf1;--panel:#f7f8fa;--field:#fff;--line:#c5ced7;--line2:#dfe4e9;
+  --text:#1f2933;--muted:#56616e;--accent:#1769c2;--accent-ink:#fff;--hover:#e3ebf5;
+  --log-bg:#fff;--log-prompt:#6b7480;--log-rx:#1b2630;--log-tx:#1461b8;--log-sys:#9a5a00;--mark:#ffe28a;
+  --on:#1f9d55;--off:#c8392f;--lamp-idle:#b9c1ca;
+  --serial:#3ccf7a;--ble:#5b9fff;--mqtt:#f0a04b;--ws:#b388ff;
+  --sans:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --win:#16191d;--panel:#1f2329;--field:#272c33;--line:#3a414a;--line2:#2e343c;
+  --text:#e3e7ec;--muted:#a1aab5;--accent:#4c9bf0;--accent-ink:#0c1624;--hover:#2b323b;
+  --log-bg:#0d1013;--log-prompt:#8b949e;--log-rx:#7fe0a6;--log-tx:#8cc2ff;--log-sys:#e5b54a;--mark:#6b5a12;
+  --on:#3ccf7a;--off:#ef5b50;--lamp-idle:#4a525c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:14px/1.45 var(--sans);color:var(--text);background:var(--win);overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{height:100vh;display:grid;grid-template-columns:88px 1fr;min-width:1280px}
+.nav{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:10px}
+.logo{width:44px;height:44px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;font-size:18px}
+.nav button{width:64px;height:64px;border-radius:12px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;gap:4px;font-size:10px;font-weight:700}
+.nav button.on{background:var(--field);border-color:var(--line);color:var(--text)}
+.nav button .icon{font:18px var(--mono);line-height:1}
+.main{display:grid;grid-template-rows:auto 1fr;min-height:0}
+.hero{padding:28px 32px 10px}
+.hero h1{margin:0;font-size:30px;font-weight:600}
+.hero p{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.grid{padding:16px 28px 28px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-content:start;overflow:auto}
+.card{background:linear-gradient(160deg,var(--panel),var(--field));border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;min-height:170px;display:grid;grid-template-rows:auto 1fr auto;transition:transform .12s ease,border-color .12s ease}
+.card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.card .top{display:flex;justify-content:space-between;align-items:center}
+.badge{font:11px var(--mono);font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid currentColor}
+.lamp{width:10px;height:10px;border-radius:50%;background:var(--lamp-idle)}
+.lamp.on{box-shadow:0 0 0 3px color-mix(in srgb,currentColor 25%,transparent)}
+.card h2{margin:18px 0 6px;font-size:24px;font-weight:600}
+.card .meta{color:var(--muted);font:12px var(--mono)}
+.card .foot{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:14px}
+.add{border:1px dashed var(--line);background:transparent;border-radius:12px;min-height:170px;display:grid;place-items:center;color:var(--muted);cursor:pointer;font-size:15px}
+.overlay{position:fixed;inset:0;background:rgba(10,14,18,.75);display:none;place-items:center;padding:24px;z-index:30}
+.overlay.show{display:grid}
+.terminal{width:min(1100px,100%);height:min(780px,100%);background:var(--win);border:1px solid var(--line);border-radius:12px;display:grid;grid-template-rows:48px 1fr 130px;overflow:hidden}
+.t-head{display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.t-head strong{font-size:16px}
+.t-head .right{display:flex;gap:8px;align-items:center}
+.t-body{padding:14px 16px;font:13px/1.7 var(--mono);overflow:auto;background:var(--log-bg)}
+.line .ts{color:var(--log-prompt)}
+.line.rx{color:var(--log-rx)}.line.tx{color:var(--log-tx)}.line.sys{color:var(--log-sys)}
+.t-send{display:grid;grid-template-columns:1fr 100px;border-top:1px solid var(--line)}
+.t-send textarea{resize:none;border:0;outline:0;background:var(--field);color:var(--text);padding:12px;font:14px var(--mono)}
+.t-send button{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer}
+.cfg-drawer{border-left:1px solid var(--line);width:260px;background:var(--panel);display:flex;flex-direction:column;overflow:auto;padding:14px}
+.cfg-drawer h3{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.col{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.col label{color:var(--muted);font-size:12px}
+.col input,.col select{height:26px;background:var(--field);border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--text)}
+.btn{height:30px;border-radius:4px;border:1px solid var(--line);background:var(--field);color:var(--text);cursor:pointer;padding:0 10px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.kinds{display:flex;gap:6px;margin-top:14px}
+.kind-chip{height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--field);color:var(--muted);font-size:12px;cursor:pointer}
+.kind-chip:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <div class="logo">D</div>
+    <button class="on" data-f="all"><span class="icon">◉</span>全部</button>
+    <button data-f="serial"><span class="icon" style="color:var(--serial)">S</span>串口</button>
+    <button data-f="ble"><span class="icon" style="color:var(--ble)">B</span>蓝牙</button>
+    <button data-f="mqtt"><span class="icon" style="color:var(--mqtt)">M</span>MQTT</button>
+    <button data-f="ws"><span class="icon" style="color:var(--ws)">W</span>WebSocket</button>
+  </nav>
+  <section class="main">
+    <header class="hero">
+      <h1>连接概览</h1>
+      <p>以卡片俯瞰全部通道。点击任意连接进入沉浸式终端；各通道日志、配置、生命周期相互独立。</p>
+    </header>
+    <div class="grid" id="grid"></div>
+  </section>
+</div>
+<div class="overlay" id="overlay">
+  <div class="terminal">
+    <div class="t-head">
+      <strong id="tTitle">终端</strong>
+      <div class="right">
+        <span id="tMeta" style="color:var(--muted);font:12px var(--mono)">—</span>
+        <button class="btn" id="close">返回概览</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto;min-height:0">
+      <div class="t-body" id="tBody"></div>
+      <div class="cfg-drawer" id="cfgDrawer"></div>
+    </div>
+    <div class="t-send">
+      <textarea id="tx" placeholder="输入发送内容（Ctrl+Enter）"></textarea>
+      <button id="send">发送</button>
+    </div>
+  </div>
+</div>
+<!-- @multi-engine -->
+<script>
+(function () {
+  var items = [];
+  var filter = 'all';
+  var currentId = null;
+  function label(k) { return { serial: 'SERIAL', ble: 'BLE', mqtt: 'MQTT', ws: 'WS' }[k]; }
+  function color(k) { return { serial: '#3ccf7a', ble: '#5b9fff', mqtt: '#f0a04b', ws: '#b388ff' }[k]; }
+  function defaultCfg(k) {
+    if (k === 'serial') return { port: '', baud: 115200, parity: 'N', dataBits: 8, stopBits: 1, flow: '无' };
+    if (k === 'ble') return { device: '', service: 'FFF0', notify: 'FFF1', write: 'FFF2' };
+    if (k === 'mqtt') return { host: '127.0.0.1', port: 1883, client: 'ddt-desk-1', user: '', pass: '', sub: '#', pub: '', qos: 1, tls: false };
+    return { url: 'ws://127.0.0.1:8080', protocols: '', heartbeat: 30 };
+  }
+  function title(i) {
+    if (i.kind === 'serial') return i.cfg.port || 'Serial';
+    if (i.kind === 'ble') return i.cfg.device || 'BLE';
+    if (i.kind === 'mqtt') return i.cfg.host || 'MQTT';
+    return i.cfg.url || 'WebSocket';
+  }
+  function subtitle(i) {
+    if (i.kind === 'serial') return i.cfg.baud + ' 8N1';
+    if (i.kind === 'ble') return (i.cfg.service || '—') + ' / ' + (i.cfg.notify || '—');
+    if (i.kind === 'mqtt') return (i.cfg.sub || '#') + ' · QoS ' + i.cfg.qos;
+    return 'heartbeat ' + i.cfg.heartbeat + 's';
+  }
+  function create(kind) {
+    var id = kind + '-' + Date.now();
+    items.push({ id: id, kind: kind, open: false, rx: 0, tx: 0, lines: [], cfg: defaultCfg(kind) });
+    if (kind === 'serial') items[items.length - 1].cfg.port = 'COM3';
+    if (kind === 'mqtt') items[items.length - 1].cfg.host = 'broker.local';
+    if (kind === 'ws') items[items.length - 1].cfg.url = 'ws://192.168.1.20/ws';
+    open(id);
+    renderGrid();
+    openTerm(id);
+  }
+  function log(i, dir, text) {
+    var now = new Date();
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+    var t = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds()) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    if (dir === 'rx') i.rx += new TextEncoder().encode(text).length;
+    i.lines.push({ t: t, dir: dir, text: text });
+  }
+  function open(id) {
+    var i = items.find(function (x) { return x.id === id; }); if (!i) return;
+    if (i.kind === 'ble') { log(i, 'sys', 'BLE 桌面端暂未接入适配器'); renderGrid(); return; }
+    i.open = true;
+    log(i, 'sys', label(i.kind) + ' CONNECTED ' + title(i));
+    setTimeout(function () {
+      if (i.kind === 'serial') log(i, 'rx', 'A5 5A 03 00 F6 02 09 0E');
+      if (i.kind === 'mqtt') log(i, 'rx', 'home/temp {"c":23.4}');
+      if (i.kind === 'ws') log(i, 'rx', '{"event":"hello","id":7}');
+      renderGrid(); if (currentId === id) renderTerm();
+    }, 300);
+    renderGrid();
+  }
+  function close(id) { var i = items.find(function (x) { return x.id === id; }); if (i) { i.open = false; log(i, 'sys', label(i.kind) + ' CLOSED'); renderGrid(); if (currentId === id) renderTerm(); } }
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function renderGrid() {
+    var grid = document.getElementById('grid');
+    var list = items.filter(function (i) { return filter === 'all' || i.kind === filter; });
+    grid.innerHTML = list.map(function (i) {
+      return '<article class="card" data-id="' + i.id + '">' +
+        '<div class="top"><span class="badge" style="color:' + color(i.kind) + '">' + label(i.kind) + '</span>' +
+        '<span class="lamp ' + (i.open ? 'on' : '') + '" style="color:' + color(i.kind) + ';background:' + (i.open ? color(i.kind) : '') + '"></span></div>' +
+        '<div><h2>' + esc(title(i)) + '</h2><div class="meta">' + esc(subtitle(i)) + '</div></div>' +
+        '<div class="foot"><span>RX ' + i.rx + ' B</span><span>TX ' + i.tx + ' B</span></div></article>';
+    }).join('') + '<div class="add" id="add">＋ 新建 ' + (filter === 'all' ? '连接' : label(filter)) + '</div>';
+    grid.querySelectorAll('.card').forEach(function (c) { c.onclick = function () { openTerm(c.dataset.id); }; });
+    document.getElementById('add').onclick = function () { create(filter === 'all' ? 'serial' : filter); };
+  }
+  function openTerm(id) {
+    currentId = id; document.getElementById('overlay').classList.add('show'); renderTerm();
+  }
+  function renderTerm() {
+    var i = items.find(function (x) { return x.id === currentId; }); if (!i) return;
+    document.getElementById('tTitle').textContent = title(i) + ' · ' + label(i.kind);
+    document.getElementById('tMeta').textContent = (i.open ? '已连接' : '已关闭') + ' · ' + i.lines.length + ' 条';
+    document.getElementById('tBody').innerHTML = i.lines.map(function (l) {
+      return '<div class="line ' + l.dir + '"><span class="ts">[' + l.t + ']# </span>' +
+        (l.dir === 'tx' ? 'SEND> ' : l.dir === 'rx' ? 'RECV> ' : '') + esc(l.text) + '</div>';
+    }).join('');
+    document.getElementById('tBody').scrollTop = document.getElementById('tBody').scrollHeight;
+    renderDrawer(i);
+  }
+  function input(label, value, onChange) {
+    var col = document.createElement('div'); col.className = 'col';
+    var lb = document.createElement('label'); lb.textContent = label;
+    var inp = document.createElement('input'); inp.value = value; inp.onchange = function () { onChange(inp.value); };
+    col.appendChild(lb); col.appendChild(inp); return col;
+  }
+  function select(label, value, items, onChange) {
+    var col = document.createElement('div'); col.className = 'col';
+    var lb = document.createElement('label'); lb.textContent = label;
+    var sel = document.createElement('select');
+    items.forEach(function (it) { var opt = document.createElement('option'); opt.value = it.value; opt.textContent = it.label; if (String(it.value) === String(value)) opt.selected = true; sel.appendChild(opt); });
+    sel.onchange = function () { onChange(sel.value); };
+    col.appendChild(lb); col.appendChild(sel); return col;
+  }
+  function renderDrawer(i) {
+    var drawer = document.getElementById('cfgDrawer');
+    drawer.innerHTML = '<h3>' + { serial: '串口设置', ble: '蓝牙设置', mqtt: 'MQTT 设置', ws: 'WebSocket 设置' }[i.kind] + '</h3>';
+    var up = function (patch) { Object.assign(i.cfg, patch); renderGrid(); renderTerm(); };
+    if (i.kind === 'serial') {
+      drawer.appendChild(select('串口', i.cfg.port, [
+        { value: '', label: '无可用串口' },
+        { value: 'COM3', label: 'COM3 · CH340' }, { value: 'COM5', label: 'COM5 · Bluetooth Link' }, { value: 'USB0', label: 'USB0 · FTDI' }
+      ], function (v) { up({ port: v }); }));
+      drawer.appendChild(select('波特率', i.cfg.baud, [
+        { value: 9600, label: '9600' }, { value: 19200, label: '19200' }, { value: 38400, label: '38400' },
+        { value: 57600, label: '57600' }, { value: 115200, label: '115200' }
+      ], function (v) { up({ baud: Number(v) }); }));
+      drawer.appendChild(select('校验', i.cfg.parity, [
+        { value: 'N', label: 'NONE' }, { value: 'O', label: 'ODD' }, { value: 'E', label: 'EVEN' },
+        { value: 'M', label: 'MARK' }, { value: 'S', label: 'SPACE' }
+      ], function (v) { up({ parity: v }); }));
+      drawer.appendChild(select('数据位', i.cfg.dataBits, [
+        { value: 5, label: '5' }, { value: 6, label: '6' }, { value: 7, label: '7' }, { value: 8, label: '8' }
+      ], function (v) { up({ dataBits: Number(v) }); }));
+      drawer.appendChild(select('停止位', i.cfg.stopBits, [
+        { value: 1, label: '1' }, { value: 1.5, label: '1.5' }, { value: 2, label: '2' }
+      ], function (v) { up({ stopBits: Number(v) }); }));
+    } else if (i.kind === 'ble') {
+      drawer.appendChild(input('设备名', i.cfg.device, function (v) { up({ device: v }); }));
+      drawer.appendChild(input('Service UUID', i.cfg.service, function (v) { up({ service: v }); }));
+      drawer.appendChild(input('Notify UUID', i.cfg.notify, function (v) { up({ notify: v }); }));
+      drawer.appendChild(input('Write UUID', i.cfg.write, function (v) { up({ write: v }); }));
+      var err = document.createElement('div'); err.style = 'color:var(--off);font-size:12px;margin-top:6px'; err.textContent = '桌面端 BLE 暂未接入适配器';
+      drawer.appendChild(err);
+    } else if (i.kind === 'mqtt') {
+      drawer.appendChild(input('Broker', i.cfg.host, function (v) { up({ host: v }); }));
+      drawer.appendChild(input('端口', String(i.cfg.port), function (v) { up({ port: Number(v) }); }));
+      drawer.appendChild(input('Client ID', i.cfg.client, function (v) { up({ client: v }); }));
+      drawer.appendChild(input('用户名', i.cfg.user, function (v) { up({ user: v }); }));
+      drawer.appendChild(input('密码', i.cfg.pass, function (v) { up({ pass: v }); }));
+      drawer.appendChild(input('订阅 Topic', i.cfg.sub, function (v) { up({ sub: v }); }));
+      drawer.appendChild(input('发布 Topic', i.cfg.pub, function (v) { up({ pub: v }); }));
+      drawer.appendChild(select('QoS', i.cfg.qos, [{ value: 0, label: '0' }, { value: 1, label: '1' }, { value: 2, label: '2' }], function (v) { up({ qos: Number(v) }); }));
+    } else if (i.kind === 'ws') {
+      drawer.appendChild(input('URL', i.cfg.url, function (v) { up({ url: v }); }));
+      drawer.appendChild(input('子协议', i.cfg.protocols, function (v) { up({ protocols: v }); }));
+      drawer.appendChild(input('心跳(秒)', String(i.cfg.heartbeat), function (v) { up({ heartbeat: Number(v) }); }));
+    }
+    var btn = document.createElement('button'); btn.className = 'btn primary'; btn.textContent = i.open ? '关闭 / 断开' : '打开 / 连接';
+    btn.onclick = function () { if (i.open) close(i.id); else open(i.id); };
+    drawer.appendChild(btn);
+  }
+  document.querySelectorAll('.nav button').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('.nav button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on'); filter = b.dataset.f; renderGrid();
+    };
+  });
+  document.getElementById('close').onclick = function () { document.getElementById('overlay').classList.remove('show'); currentId = null; };
+  document.getElementById('send').onclick = function () {
+    var i = items.find(function (x) { return x.id === currentId; }); if (!i || !i.open) { alert('连接未打开'); return; }
+    var text = document.getElementById('tx').value;
+    var bytes = new TextEncoder().encode(text).length;
+    i.tx += bytes;
+    log(i, 'tx', 'SEND ASCII> ' + text);
+    if (i.kind === 'serial' && text.toUpperCase().includes('A5 01')) setTimeout(function () { log(i, 'rx', 'A5 5A 03 00 F6 02 09 0E'); renderTerm(); }, 80);
+    if (i.kind === 'mqtt') setTimeout(function () { log(i, 'rx', 'device/ack {"ok":1}'); renderTerm(); }, 200);
+    renderTerm();
+  };
+  document.getElementById('tx').addEventListener('keydown', function (e) { if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); document.getElementById('send').click(); } });
+  create('serial'); create('mqtt'); create('ws'); create('ble');
+  renderGrid();
+})();
+</script>
+</body>
+</html>
