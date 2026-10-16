@@ -76,6 +76,20 @@ class _Translations$home$en extends Translations$home$zh {
 	// Translations
 	@override String get welcome => 'Welcome to Device Debug Tools';
 	@override String get placeholder => 'Add feature modules under lib/features';
+	@override String get addConnection => '+ New';
+	@override String get kindSerial => 'Serial';
+	@override String get kindBle => 'Bluetooth LE';
+	@override String get kindMqtt => 'MQTT';
+	@override String get kindWebSocket => 'WebSocket';
+	@override String get badgeSerial => 'SERIAL';
+	@override String get badgeBle => 'BLE';
+	@override String get badgeMqtt => 'MQTT';
+	@override String get badgeWs => 'WS';
+	@override String get later => 'Coming later';
+	@override String get emptyConnections => 'No connections yet. Use New to add a serial tab.';
+	@override String get rename => 'Rename';
+	@override String get renameTitle => 'Rename tab';
+	@override String get renameName => 'Name';
 }
 
 // Path: common
@@ -918,6 +932,20 @@ extension on TranslationsEn {
 			'nav.serial' => 'Serial',
 			'home.welcome' => 'Welcome to Device Debug Tools',
 			'home.placeholder' => 'Add feature modules under lib/features',
+			'home.addConnection' => '+ New',
+			'home.kindSerial' => 'Serial',
+			'home.kindBle' => 'Bluetooth LE',
+			'home.kindMqtt' => 'MQTT',
+			'home.kindWebSocket' => 'WebSocket',
+			'home.badgeSerial' => 'SERIAL',
+			'home.badgeBle' => 'BLE',
+			'home.badgeMqtt' => 'MQTT',
+			'home.badgeWs' => 'WS',
+			'home.later' => 'Coming later',
+			'home.emptyConnections' => 'No connections yet. Use New to add a serial tab.',
+			'home.rename' => 'Rename',
+			'home.renameTitle' => 'Rename tab',
+			'home.renameName' => 'Name',
 			'common.confirm' => 'Confirm',
 			'common.cancel' => 'Cancel',
 			'common.retry' => 'Retry',

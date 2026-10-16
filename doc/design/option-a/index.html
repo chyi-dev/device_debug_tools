@@ -43,7 +43,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 .mw-panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;min-height:0;overflow:hidden;display:flex;flex-direction:column}
 .mw-panel-title{height:34px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line2);color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.03em}
 .mw-panel-title .grow{flex:1}.mw-scroll{overflow:auto;min-height:0}
-.mw-tabs{height:36px;display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+.mw-tabs{position:relative;z-index:5;height:36px;display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--line);overflow:visible}
+.mw-tab-scroll{flex:1;min-width:0;display:flex;align-items:stretch;overflow-x:auto}
 .mw-profile-tab{min-width:158px;display:flex;align-items:center;gap:7px;padding:0 10px;border-right:1px solid var(--line);color:var(--muted);cursor:pointer;white-space:nowrap}
 .mw-profile-tab.active{color:var(--text);background:var(--field);box-shadow:inset 0 -2px var(--accent)}
 .mw-profile-tab .tab-title{overflow:hidden;text-overflow:ellipsis}.mw-profile-tab .close{margin-left:auto;color:var(--muted)}
@@ -51,6 +52,10 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
 .mw-dot.open{background:var(--kind);box-shadow:0 0 0 2px color-mix(in srgb,var(--kind) 20%,transparent)}
 .mw-kind{font:10px var(--mono);font-weight:700;color:var(--kind);border:1px solid var(--kind);border-radius:3px;padding:1px 4px}
 .mw-add-strip{display:flex;align-items:center;gap:4px;padding:0 7px;white-space:nowrap}
+.mw-add{position:relative;display:flex;align-items:center;padding:0 7px;flex:0 0 auto}
+.mw-add-menu{position:absolute;top:calc(100% + 4px);right:7px;z-index:6;min-width:156px;padding:4px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 8px 24px color-mix(in srgb,#000 18%,transparent);display:grid;gap:2px}
+.mw-add-item{height:30px;display:flex;align-items:center;gap:8px;padding:0 8px;border:0;border-radius:4px;background:transparent;text-align:left}
+.mw-add-item:hover{background:var(--hover)}
 .mw-form{padding:9px;overflow:auto}.mw-section{border-bottom:1px solid var(--line2);padding-bottom:9px;margin-bottom:9px}
 .mw-section:last-child{border-bottom:0;margin-bottom:0}
 .mw-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:600}
@@ -438,15 +443,27 @@ window.MultiWorkbench = (function () {
       '<div class="mw-compose-foot"><span>实发 ' + bytes(p.tx.text,p.tx.format) + ' bytes</span><span>' + esc(targetText(p,{inherit:true})) + '</span>' +
       '<span class="mw-grow"></span><span>' + p.tx.format.toUpperCase() + '</span><span>Ctrl+Enter</span></div></div>';
   }
+  function profileAdder(state) {
+    if (state.mode !== 'a') {
+      return '<div class="mw-add-strip">' +
+        Object.keys(KIND).map(function (k) { return '<button class="mw-btn small" data-action="add-profile" data-kind="' + k + '">' + KIND[k].name + '</button>'; }).join('') +
+        '</div>';
+    }
+    var menu = state.addMenuOpen
+      ? '<div class="mw-add-menu">' + Object.keys(KIND).map(function (k) {
+          return '<button class="mw-add-item" data-action="add-profile" data-kind="' + k + '" style="--kind:' + KIND[k].color + '">' +
+            '<span class="mw-kind">' + KIND[k].label + '</span><span>' + KIND[k].name + '</span></button>';
+        }).join('') + '</div>'
+      : '';
+    return '<div class="mw-add"><button class="mw-btn small" data-action="add-menu">＋ 新增</button>' + menu + '</div>';
+  }
   function profileTabs(state) {
     var tabs = state.profiles.map(function (p) {
       return '<div class="mw-profile-tab ' + (p.id === state.activeId ? 'active' : '') + '" data-action="select-profile" data-id="' + p.id + '" style="--kind:' + KIND[p.kind].color + '">' +
         '<span class="mw-dot ' + (p.open ? 'open' : '') + '"></span><span class="mw-kind">' + KIND[p.kind].label + '</span>' +
         '<span class="tab-title">' + esc(profileTitle(p)) + '</span><span class="close" data-action="remove-profile" data-id="' + p.id + '">×</span></div>';
     }).join('');
-    return '<div class="mw-tabs">' + tabs + '<div class="mw-add-strip">' +
-      Object.keys(KIND).map(function (k) { return '<button class="mw-btn small" data-action="add-profile" data-kind="' + k + '">' + KIND[k].name + '</button>'; }).join('') +
-      '</div></div>';
+    return '<div class="mw-tabs"><div class="mw-tab-scroll">' + tabs + '</div>' + profileAdder(state) + '</div>';
   }
   function toolTabs(p) {
     return '<div class="mw-tool-tabs">' + TOOL_TABS.map(function (x) {
@@ -598,7 +615,7 @@ window.MultiWorkbench = (function () {
     var state = {
       mode:options.mode || 'a',
       profiles:[newProfile('serial'),newProfile('ble'),newProfile('mqtt'),newProfile('ws')],
-      activeId:null,theme:'dark'
+      activeId:null,theme:'dark',addMenuOpen:false
     };
     state.activeId = state.profiles[0].id;
     document.documentElement.dataset.theme = state.theme;
@@ -655,12 +672,21 @@ window.MultiWorkbench = (function () {
       if(q){q.name=name;q.data=data;q.target=target;}else p.quick.push({id:id('q-'),name:name,data:data,format:p.tx.format,key:'',target:target});
       render();
     }
+    function closeAddMenu() {
+      if (!state.addMenuOpen) return;
+      state.addMenuOpen = false;
+      var menu = root.querySelector('.mw-add-menu');
+      if (menu) menu.remove();
+    }
     root.addEventListener('click',function(e){
-      var el=e.target.closest('[data-action]');if(!el)return;
+      var el=e.target.closest('[data-action]');
+      if(!el){closeAddMenu();return;}
       var action=el.dataset.action,p=getProfile(el.dataset.id && action==='select-profile'?el.dataset.id:state.activeId);
       e.stopPropagation();
+      if(action==='add-menu'){state.addMenuOpen=!state.addMenuOpen;render();return;}
+      if(action!=='add-profile') closeAddMenu();
       if(action==='select-profile'){state.activeId=el.dataset.id;render();}
-      else if(action==='add-profile'){var np=newProfile(el.dataset.kind);state.profiles.push(np);state.activeId=np.id;render();}
+      else if(action==='add-profile'){var np=newProfile(el.dataset.kind);state.profiles.push(np);state.activeId=np.id;state.addMenuOpen=false;render();}
       else if(action==='remove-profile'){var rid=el.dataset.id||p.id;if(!confirm('删除该连接工作区及其专属工具数据？'))return;state.profiles=state.profiles.filter(function(x){return x.id!==rid;});state.activeId=state.profiles[0]&&state.profiles[0].id;render();}
       else if(action==='toggle-open'){p.open=!p.open;p.status=p.open?'open':'idle';log(p,'sys',KIND[p.kind].label+(p.open?' CONNECTED ':' CLOSED ')+profileTitle(p));render();}
       else if(action==='tool-tab'){p.activeTool=el.dataset.tool;render();}

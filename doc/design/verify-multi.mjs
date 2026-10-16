@@ -100,6 +100,44 @@ for (const variant of variants) {
     fullPage: false,
   });
 
+  let addOk = true;
+  if (variant === 'a') {
+    const before = await page.evaluate(() => window.__workbench.state.profiles.length);
+    await page.locator('[data-action="add-menu"]').click();
+    const opened = await page.evaluate(() => ({
+      count: window.__workbench.state.profiles.length,
+      open: window.__workbench.state.addMenuOpen,
+      labels: [...document.querySelectorAll('.mw-add-item')].map((node) => node.textContent),
+    }));
+    const menuBox = await page.locator('.mw-add-menu').boundingBox();
+    const menuVisible = await page.evaluate(() => {
+      const menu = document.querySelector('.mw-add-menu');
+      const rect = menu.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + 24, rect.top + 18);
+      return !!hit && menu.contains(hit);
+    });
+    await page.locator('[data-action="add-profile"][data-kind="mqtt"]').click();
+    const created = await page.evaluate(() => {
+      const wb = window.__workbench;
+      const active = wb.state.profiles.find((profile) => profile.id === wb.state.activeId);
+      return {
+        count: wb.state.profiles.length,
+        kind: active && active.kind,
+        open: wb.state.addMenuOpen,
+      };
+    });
+    addOk =
+      opened.count === before &&
+      opened.open &&
+      opened.labels.length === 4 &&
+      menuBox &&
+      menuBox.height > 80 &&
+      menuVisible &&
+      created.count === before + 1 &&
+      created.kind === 'mqtt' &&
+      !created.open;
+  }
+
   const ok =
     kindsOk &&
     toolsOk &&
@@ -107,11 +145,12 @@ for (const variant of variants) {
     toolCoverage &&
     tabs >= 6 &&
     sendAfter === sendBefore + 1 &&
+    addOk &&
     errors.length === 0;
   console.log(
     `${ok ? 'PASS' : 'FAIL'} ${variant.toUpperCase()} ` +
       `protocols=${kindsOk} settings=${settingsCoverage} tools=${toolsOk && toolCoverage} ` +
-      `tabs=${tabs} send=${sendAfter > sendBefore}`,
+      `tabs=${tabs} send=${sendAfter > sendBefore} add=${addOk}`,
   );
   if (errors.length) console.log(errors.join('\n'));
   failed ||= !ok;

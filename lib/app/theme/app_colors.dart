@@ -68,4 +68,14 @@ abstract final class AppColors {
   static const Color serialOnDark = Color(0xFF3CCF7A);
   static const Color serialOffDark = Color(0xFFEF5B50);
   static const Color serialLampIdleDark = Color(0xFF4A525C);
+
+  // 连接页签协议色（doc/design/option-a）
+  static const Color protocolSerial = Color(0xFF1F9D55);
+  static const Color protocolBle = Color(0xFF2F76D2);
+  static const Color protocolMqtt = Color(0xFFB86B0A);
+  static const Color protocolWs = Color(0xFF7757B8);
+  static const Color protocolSerialDark = Color(0xFF3CCF7A);
+  static const Color protocolBleDark = Color(0xFF5B9FFF);
+  static const Color protocolMqttDark = Color(0xFFF0A04B);
+  static const Color protocolWsDark = Color(0xFFB388FF);
 }

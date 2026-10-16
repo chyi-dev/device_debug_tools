@@ -10,6 +10,7 @@ abstract final class SerialMetrics {
   static const double sidebar = 272;
   static const double tools = 352;
   static const double logHead = 36;
+  static const double connectionTab = 240;
   static const double sendHeight = 104;
   static const double sendSide = 120;
   static const double control = 28;

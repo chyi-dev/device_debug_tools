@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>项目连接 · 会话矩阵</title>
+<style>
+/* 色与字体锁在 design.md。轮盘抽到的天文图录色板与衬线不用，只借「一页一块图版、一条横线挂四个端子」。 */
+:root {
+  --win:#e9edf1; --panel:#f7f8fa; --field:#fff; --line:#c5ced7; --line2:#dfe4e9;
+  --text:#1f2933; --muted:#56616e; --accent:#1769c2; --hover:#e3ebf5;
+  --on:#1f9d55; --off:#c8392f; --idle:#b9c1ca; --log-bg:#fff;
+  --log-prompt:#6b7480; --log-sys:#9a5a00;
+  --sans:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+* { box-sizing:border-box; margin:0; }
+html, body, #app { height:100%; }
+body { font:14px/1.45 var(--sans); color:var(--text); background:var(--win); overflow:hidden; text-wrap:pretty; }
+button, input, select, textarea { font:inherit; color:inherit; }
+button { cursor:pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.app { height:100%; min-width:1180px; display:grid; grid-template-rows:34px minmax(0,1fr) 30px; }
+.top { display:flex; align-items:center; gap:10px; padding:0 0 0 10px; background:var(--panel); border-bottom:1px solid var(--line); user-select:none; }
+.mark { display:block; }
+.brand { font-weight:600; }
+.spacer { flex:1; }
+.here { display:flex; align-items:baseline; gap:8px; font-weight:600; }
+.here span, .sub, .k, .hint, .sheet-note { font-size:12px; color:var(--muted); font-weight:400; }
+.wins { display:flex; align-self:stretch; margin-left:8px; }
+.wins button { width:46px; border:0; border-radius:0; background:transparent; }
+.wins button:hover { background:var(--hover); }
+.wins .close:hover { background:var(--off); color:#fff; }
+.btn { height:28px; padding:0 10px; border:1px solid var(--line); border-radius:4px; background:var(--field); }
+.btn:hover { background:var(--hover); }
+.btn.sm { height:24px; padding:0 8px; font-size:12px; }
+.btn.pri { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.btn.danger { color:var(--off); }
+.home { height:100%; min-height:0; }
+.status { display:flex; align-items:center; gap:16px; padding:0 12px; background:var(--panel); border-top:1px solid var(--line); font-size:12px; color:var(--muted); }
+.tag { display:inline-block; margin-left:8px; padding:0 5px; border:1px solid var(--line); border-radius:4px; font-size:12px; font-weight:400; color:var(--muted); vertical-align:1px; }
+.sum, .sfacts, .no { font-family:var(--mono); }
+.empty { height:100%; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:12px; padding:28px; }
+.empty p { max-width:460px; }
+
+/* 接线总线：一页一个项目，四类连接挂在同一条横线上 */
+.plate { height:100%; margin:8px; background:var(--field); border:1px solid var(--line); border-radius:6px; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+.runhead, .plates { display:flex; align-items:center; gap:8px; padding:0 12px; background:var(--panel); }
+.runhead { height:44px; border-bottom:1px solid var(--line); }
+.plates { min-height:44px; border-top:1px solid var(--line); flex-wrap:wrap; padding-top:8px; padding-bottom:8px; }
+.pname { font-size:22px; font-weight:600; letter-spacing:-0.02em; }
+.bays { flex:1; min-height:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid var(--line); }
+.bay { min-height:0; overflow:auto; padding:14px 14px 16px; border-right:1px solid var(--line2); }
+.bay:last-child { border-right:0; }
+.bay .k { font-weight:600; margin-bottom:12px; }
+.plug { padding:8px 0 10px; border-top:1px solid var(--line2); }
+.plug:first-of-type { border-top:0; padding-top:0; }
+.plug .name { font-weight:600; }
+.plug .sum { margin:2px 0 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fact { display:grid; grid-template-columns:48px minmax(0,1fr); gap:6px; margin-top:2px; }
+.fact span { font-size:12px; color:var(--muted); }
+.mute { color:var(--muted); }
+.plate-btn { height:28px; display:inline-flex; align-items:center; gap:6px; padding:0 8px; border:1px solid transparent; border-radius:4px; background:transparent; }
+.plate-btn:hover { background:var(--hover); }
+.plate-btn.on { background:var(--field); border-color:var(--accent); color:var(--accent); font-weight:600; }
+.no { font-size:12px; color:var(--muted); }
+.plate-btn.on .no { color:var(--accent); }
+
+/* 会话矩阵：行是项目，列是协议，格子里是连接本身 */
+.matrix { height:100%; padding:8px; min-height:0; }
+.mx { height:100%; background:var(--field); border:1px solid var(--line); border-radius:6px; display:flex; flex-direction:column; overflow:hidden; }
+.mx-row { flex:1 1 160px; display:grid; grid-template-columns:228px repeat(4,minmax(0,1fr)); border-bottom:1px solid var(--line2); min-height:160px; }
+.mx-head { flex:0 0 32px; min-height:32px; height:32px; background:var(--panel); color:var(--muted); font-size:12px; font-weight:600; }
+.mx-head span, .who, .cell { min-width:0; border-left:1px solid var(--line2); padding:10px 12px; }
+.mx-head span:first-child, .who { border-left:0; }
+.mx-head span { display:flex; align-items:center; }
+.who .name { font-weight:600; }
+.who .sub { margin:2px 0 8px; }
+.ops { display:flex; flex-wrap:wrap; gap:6px; }
+.cell { display:flex; flex-direction:column; gap:8px; }
+.cell .btn { align-self:flex-start; }
+.cell.add { width:100%; border-top:0; border-right:0; border-bottom:0; border-radius:0; background:transparent; color:var(--muted); align-items:center; justify-content:center; }
+.cell.add:hover { background:var(--hover); color:var(--text); }
+.clip .name { font-weight:600; }
+.clip .sum { color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mx-rest { display:none; }
+.mx-rest i { border-left:1px solid var(--line2); }
+.mx-rest i:first-child { border-left:0; }
+
+/* 设定召回：上面一排档位，下面只展开当前这一档的参数 */
+.recall { height:100%; min-height:0; display:flex; flex-direction:column; padding:8px; gap:8px; }
+.bank { display:flex; flex-wrap:wrap; gap:8px; }
+.slot { flex:1 1 220px; min-height:76px; text-align:left; padding:8px 12px; border:1px solid var(--line); border-radius:6px; background:var(--panel); }
+.slot:hover { background:var(--hover); }
+.slot.on { background:var(--field); box-shadow:inset 0 -2px var(--accent); }
+.slot .sn { font:12px var(--mono); color:var(--muted); }
+.slot .nm { font-weight:600; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.slot .meta { margin-top:2px; }
+.slot.addslot { flex:0 0 120px; color:var(--muted); }
+.spec { flex:1; min-height:0; background:var(--field); border:1px solid var(--line); border-radius:6px; display:flex; flex-direction:column; overflow:hidden; }
+.spec-h { height:44px; display:flex; align-items:center; gap:8px; padding:0 12px; border-bottom:1px solid var(--line); background:var(--panel); }
+.spec-h strong { font-size:16px; }
+.spec-b { overflow:auto; min-height:0; }
+.spec-split { flex:1; min-height:0; display:grid; grid-template-columns:240px minmax(0,1fr); }
+.conn-list { border-right:1px solid var(--line); overflow:auto; background:var(--panel); }
+.conn-item { display:block; width:100%; text-align:left; padding:10px 12px; border:0; border-bottom:1px solid var(--line2); border-radius:0; background:transparent; }
+.conn-item:hover { background:var(--hover); }
+.conn-item.on { background:var(--field); }
+.conn-item.on:hover { background:var(--field); }
+.spec-form { overflow:auto; padding:14px 16px; background:var(--field); }
+.srow { display:grid; grid-template-columns:minmax(160px,220px) minmax(0,1fr) auto; gap:12px; align-items:center; min-height:56px; padding:8px 12px; border-bottom:1px solid var(--line2); }
+.srow .k { margin-top:2px; }
+.sfacts { display:flex; flex-wrap:wrap; gap:6px 14px; }
+.sfacts b { font-weight:400; color:var(--muted); margin-right:6px; }
+
+.console { height:100%; min-height:0; display:grid; grid-template-rows:36px minmax(0,1fr); gap:8px; padding:8px; }
+.tabs { display:flex; align-items:stretch; min-width:0; background:var(--panel); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.tabscroll { display:flex; min-width:0; overflow:auto; }
+.tab { min-width:148px; max-width:240px; display:flex; align-items:center; gap:7px; padding:0 10px; border-right:1px solid var(--line); color:var(--muted); cursor:pointer; }
+.tab.active { background:var(--field); color:var(--text); box-shadow:inset 0 -2px var(--accent); }
+.tab .tname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tab .x { margin-left:auto; border:0; background:transparent; color:var(--muted); height:22px; padding:0 4px; }
+.tabadd { margin-left:auto; border:0; border-radius:0; background:transparent; padding:0 12px; }
+.tabadd:hover, .tab:hover { background:var(--hover); }
+.tab.active:hover { background:var(--field); }
+.work { min-height:0; display:grid; grid-template-columns:272px minmax(0,1fr) 352px; gap:8px; }
+.panel { min-height:0; background:var(--panel); border:1px solid var(--line); border-radius:6px; display:flex; flex-direction:column; overflow:hidden; }
+.panel-cap { height:34px; display:flex; align-items:center; padding:0 10px; border-bottom:1px solid var(--line2); color:var(--muted); font-size:12px; font-weight:600; }
+.form { padding:8px 10px; overflow:auto; }
+.field { display:grid; grid-template-columns:62px minmax(0,1fr); gap:8px; align-items:center; margin-bottom:6px; }
+.field span { font-size:12px; color:var(--muted); }
+.field input, .field select, .dfield input, .dfield select { width:100%; height:26px; border:1px solid var(--line); border-radius:4px; background:var(--field); padding:0 6px; }
+.log { min-height:0; display:grid; grid-template-rows:minmax(0,1fr) 104px; gap:8px; }
+.logbox, .compose { border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.logbox { display:flex; flex-direction:column; background:var(--log-bg); }
+.log-cap { height:36px; display:flex; align-items:center; gap:8px; padding:0 10px; background:var(--panel); border-bottom:1px solid var(--line); }
+.log-cap .sum { color:var(--muted); font:12px var(--mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.log-body { flex:1; overflow:auto; padding:10px 12px; font:14px/1.6 var(--mono); }
+.stamp { color:var(--log-prompt); }
+.sys { color:var(--log-sys); }
+.compose { display:grid; grid-template-columns:minmax(0,1fr) 120px; grid-template-rows:minmax(0,1fr) 28px; background:var(--panel); }
+.compose textarea { border:0; resize:none; padding:8px; background:var(--field); font:14px/1.45 var(--mono); }
+.compose-act { border-left:1px solid var(--line); padding:8px; display:grid; gap:6px; align-content:start; }
+.compose-foot { grid-column:1 / -1; display:flex; align-items:center; padding:0 10px; border-top:1px solid var(--line2); font:12px var(--mono); color:var(--muted); }
+.tools { display:flex; border-bottom:1px solid var(--line); }
+.tools button { flex:1; height:34px; border:0; border-radius:0; background:transparent; color:var(--muted); font-size:12px; white-space:nowrap; }
+.tools button.on { color:var(--text); font-weight:600; box-shadow:inset 0 -2px var(--accent); }
+.tool-body { padding:12px; }
+.tool-body p { color:var(--muted); font-size:12px; margin-top:6px; }
+.mono-status { font-family:var(--mono); }
+.mask { position:fixed; inset:0; z-index:20; background:rgba(0,0,0,.4); display:grid; place-items:center; padding:20px; }
+.dialog { width:min(480px,100%); background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:0 16px 48px rgba(0,0,0,.3); }
+.dialog-h, .dialog-f { display:flex; align-items:center; gap:8px; padding:10px 12px; }
+.dialog-h { border-bottom:1px solid var(--line); font-weight:600; }
+.dialog-f { border-top:1px solid var(--line); justify-content:flex-end; }
+.dialog-b { padding:12px; }
+.dialog-b .lead { margin-bottom:12px; }
+.icon-btn { margin-left:auto; width:24px; height:24px; border:0; background:transparent; border-radius:4px; }
+.icon-btn:hover { background:var(--hover); }
+.kinds { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:12px; }
+.kinds button { height:32px; border:1px solid var(--line); border-radius:4px; background:var(--field); }
+.kinds button.on { border-color:var(--accent); color:var(--accent); font-weight:600; }
+.dfield { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+.dfield span { font-size:12px; color:var(--muted); }
+.err { min-height:18px; font-size:12px; color:var(--off); }
+.toast { position:fixed; left:50%; bottom:42px; transform:translateX(-50%); z-index:30; background:var(--text); color:var(--win); padding:7px 14px; border-radius:5px; }
+.toast.bad { background:var(--off); color:#fff; }
+</style>
+</head>
+<body>
+<!--
+  上一版台账表、左右分栏、分组框工位已放弃。
+  本文件：会话矩阵。行是项目，列是四种连接，格子里是连接本身。
+  两行项目把网格铺满。进入后仍是 A 方案调试台壳。
+  localStorage 键 device-debug-projects。导出 kind=device-debug-project，workspace 预留，日志不写入。
+-->
+<div id="app"></div>
+<script>
+const KEY = 'device-debug-projects';
+const LAYOUT = 'matrix';
+const ORDER = ['serial', 'ble', 'mqtt', 'websocket'];
+const KIND = { serial: { name: '串口' }, ble: { name: '蓝牙' }, mqtt: { name: 'MQTT' }, websocket: { name: 'WebSocket' } };
+const COPY = { bus: '项目连接 · 接线总线', matrix: '项目连接 · 会话矩阵', recall: '项目连接 · 设定召回' };
+const DEFAULT_NAME = { serial: '新串口', ble: '新蓝牙', mqtt: '新 MQTT', websocket: '新 WebSocket' };
+let db = load();
+let selectedId = db.projects[0] ? db.projects[0].id : null;
+let view = { screen: 'home', projectId: null, connectionId: null };
+let modal = null;
+let selectTimer = 0;
+let focusId = null;
+document.title = COPY[LAYOUT];
+document.addEventListener('click', onClick);
+document.addEventListener('input', onField);
+document.addEventListener('dblclick', onDbl);
+document.addEventListener('keydown', onKey);
+render();
+
+function load() {
+  const raw = localStorage.getItem(KEY);
+  if (!raw) return seed();
+  try {
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.projects)) return seed();
+    return data;
+  } catch (err) { return seed(); }
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+function seed() {
+  return { version: 1, projects: [
+    { id: 'p-sensor', name: '传感器工位', sample: true, updatedAt: '2026-10-16T09:24:00+08:00', connections: [
+      conn('c-com3', '工位串口', 'serial', { port: 'COM3', baud: 115200, parity: 'NONE', dataBits: 8, stopBits: '1', flow: 'NONE' }),
+      conn('c-ble', '温湿度', 'ble', { device: 'Sensor-A4', address: 'C8:2E:18:91:7A:04', service: 'FFF0', write: 'FFF2' }),
+      conn('c-mqtt', '车间 Broker', 'mqtt', { host: 'broker.local', port: 1883, clientId: 'ddt-sensor-01', publishTopic: 'device/demo/command' })
+    ] },
+    { id: 'p-gw', name: '网关联调', sample: true, updatedAt: '2026-10-15T16:08:00+08:00', connections: [
+      conn('c-ws', '调试通道', 'websocket', { url: 'ws://10.0.0.8:8080/debug', subprotocol: 'device-v1', frameType: 'Text' }),
+      conn('c-m2', '遥测', 'mqtt', { host: '10.0.0.8', port: 1883, clientId: 'ddt-gw-01', publishTopic: 'gateway/command' })
+    ] }
+  ] };
+}
+function conn(id, name, kind, config) {
+  return { id: id, name: name, kind: kind, config: Object.assign(defaultConfig(kind), config), workspace: null };
+}
+function defaultConfig(kind) {
+  if (kind === 'serial') return { port: 'COM4', baud: 115200, parity: 'NONE', dataBits: 8, stopBits: '1', flow: 'NONE' };
+  if (kind === 'ble') return { device: '', address: '', service: 'FFF0', write: 'FFF2' };
+  if (kind === 'mqtt') return { host: '127.0.0.1', port: 1883, clientId: 'ddt-desktop', publishTopic: 'device/command' };
+  return { url: 'ws://127.0.0.1:8080/debug', subprotocol: '', frameType: 'Text' };
+}
+function uid(prefix) { return prefix + '-' + Math.random().toString(36).slice(2, 8); }
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+  });
+}
+function findProject(id) { return db.projects.find(function (p) { return p.id === id; }) || null; }
+function pad(n) { return String(n).padStart(2, '0'); }
+function formatTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+function stampNow() {
+  const d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+}
+function summary(c) {
+  const g = c.config || {};
+  if (c.kind === 'serial') return (g.port || '—') + ' · ' + (g.baud || '—') + ' ' + (g.dataBits || 8) + String(g.parity || 'NONE').charAt(0) + (g.stopBits || '1');
+  if (c.kind === 'ble') return (g.device || c.name) + (g.address ? ' · ' + g.address : '');
+  if (c.kind === 'mqtt') return (g.host || '—') + ':' + (g.port || '—');
+  return g.url || '—';
+}
+function facts(c) {
+  const g = c.config || {};
+  if (c.kind === 'serial') return [['端口', g.port], ['波特率', g.baud], ['校验', g.parity], ['数据位', g.dataBits], ['停止位', g.stopBits]];
+  if (c.kind === 'ble') return [['设备', g.device], ['地址', g.address || '—'], ['服务', g.service], ['写入', g.write]];
+  if (c.kind === 'mqtt') return [['主机', g.host], ['端口', g.port], ['标识', g.clientId], ['主题', g.publishTopic]];
+  return [['地址', g.url], ['子协议', g.subprotocol || '—'], ['帧类型', g.frameType]];
+}
+function statusLine(c) {
+  if (!c) return '未选择连接';
+  const g = c.config || {};
+  if (c.kind === 'serial') return (g.port || '—') + ' CLOSED, ' + (g.baud || '—') + ', ' + String(g.parity || 'NONE').charAt(0) + ', ' + (g.dataBits || 8) + ', ' + (g.stopBits || '1') + ', ' + (g.flow || 'NONE');
+  if (c.kind === 'ble') return (g.device || c.name) + ' IDLE';
+  if (c.kind === 'mqtt') return (g.host || '—') + ':' + (g.port || '—') + ' DISCONNECTED';
+  return (g.url || '—') + ' CLOSED';
+}
+function ofKind(project, kind) { return project.connections.filter(function (c) { return c.kind === kind; }); }
+function nameTaken(name, exceptId) { return db.projects.some(function (p) { return p.name === name && p.id !== exceptId; }); }
+function uniqueName(name) {
+  if (!nameTaken(name)) return name;
+  let next = name + ' 副本';
+  let i = 2;
+  while (nameTaken(next)) { next = name + ' 副本 ' + i; i += 1; }
+  return next;
+}
+function fileStem(name) { return String(name).replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim() || 'project'; }
+function icon() {
+  return '<svg class="mark" viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><rect x="0" y="6" width="48" height="36" rx="1.5" fill="#1f2329"/><path d="M1.5 6 H46.5 Q48 6 48 7.5 V12 H0 V7.5 Q0 6 1.5 6 Z" fill="#1769c2"/><path d="M6 21 H15 V33 H33 V21 H42" fill="none" stroke="#f7f8fa" stroke-width="6" stroke-linejoin="miter"/></svg>';
+}
+function wins() {
+  return '<span class="wins" aria-hidden="true"><button type="button" tabindex="-1">—</button><button type="button" tabindex="-1">□</button><button type="button" class="close" tabindex="-1">×</button></span>';
+}
+function nameHtml(project) { return esc(project.name) + (project.sample ? '<span class="tag">示例</span>' : ''); }
+function homeStatus() {
+  const links = db.projects.reduce(function (sum, p) { return sum + p.connections.length; }, 0);
+  return '本机已保存 ' + db.projects.length + ' 个项目、' + links + ' 条连接，下次打开会载入这些配置';
+}
+function currentProject() { return findProject(selectedId) || db.projects[0]; }
+
+function render() {
+  const top = view.screen === 'console' ? consoleTop() : homeTop();
+  const body = view.screen === 'console' ? renderConsole() : renderHome();
+  const bar = view.screen === 'console' ? consoleStatus() : '<footer class="status">' + esc(homeStatus()) + '</footer>';
+  document.getElementById('app').innerHTML = '<div class="app">' + top + body + bar + '</div>' + renderModal();
+}
+function homeTop() {
+  return '<header class="top">' + icon() + '<b class="brand">设备调试工具</b><span class="spacer"></span>' +
+    '<button class="btn" type="button" data-act="import">导入项目</button>' +
+    '<button class="btn pri" type="button" data-act="new">新建项目</button>' + wins() + '</header>';
+}
+function consoleTop() {
+  const project = findProject(view.projectId);
+  return '<header class="top">' + icon() + '<b class="brand">设备调试工具</b>' +
+    '<button class="btn sm" type="button" data-act="back">全部项目</button>' +
+    '<button class="btn sm" type="button" data-act="export" data-id="' + esc(project ? project.id : '') + '">导出此项目</button>' +
+    '<span class="spacer"></span><span class="here"><span>当前项目</span>' + esc(project ? project.name : '') + '</span>' + wins() + '</header>';
+}
+function consoleStatus() {
+  const project = findProject(view.projectId);
+  const current = project && project.connections.find(function (c) { return c.id === view.connectionId; });
+  return '<footer class="status mono-status"><span data-live="status">' + esc(statusLine(current)) + '</span><span class="spacer"></span><span>设计稿 · 未连接设备</span></footer>';
+}
+function renderHome() {
+  if (!db.projects.length) {
+    return '<main class="home"><div class="empty"><p>还没有项目。新建一个，用来收纳串口、蓝牙、MQTT 和 WebSocket；也可以导入以前导出的项目文件。</p><button class="btn pri" type="button" data-act="new">新建项目</button></div></main>';
+  }
+  if (LAYOUT === 'matrix') return renderMatrix();
+  if (LAYOUT === 'recall') return renderRecall();
+  return renderBus();
+}
+function renderBus() {
+  const project = currentProject();
+  const index = db.projects.findIndex(function (p) { return p.id === project.id; });
+  const bays = ORDER.map(function (kind) {
+    const list = ofKind(project, kind);
+    const body = list.length ? list.map(function (c) {
+      return '<div class="plug"><div class="name">' + esc(c.name) + '</div><div class="sum" title="' + esc(summary(c)) + '">' + esc(summary(c)) + '</div>' +
+        facts(c).map(function (pair) { return '<div class="fact"><span>' + esc(pair[0]) + '</span>' + esc(pair[1]) + '</div>'; }).join('') +
+        '<div style="margin-top:8px"><button class="btn sm danger" type="button" data-act="ask-remove" data-id="' + esc(project.id) + '" data-cid="' + esc(c.id) + '">移除</button></div></div>';
+    }).join('') : '<p class="mute">这一类还没有连接</p>';
+    return '<section class="bay"><div class="k">' + esc(KIND[kind].name) + '</div>' + body +
+      '<div style="margin-top:10px"><button class="btn sm" type="button" data-act="add" data-id="' + esc(project.id) + '" data-kind="' + kind + '">添加</button></div></section>';
+  }).join('');
+  const plates = db.projects.map(function (p, i) {
+    return '<button class="plate-btn' + (p.id === project.id ? ' on' : '') + '" type="button" data-act="select" data-id="' + esc(p.id) + '" data-open="' + esc(p.id) + '"><span class="no">' + pad(i + 1) + '</span>' + esc(p.name) + '</button>';
+  }).join('');
+  return '<main class="home"><section class="plate"><div class="runhead"><span class="no">' + pad(index + 1) + ' / ' + pad(db.projects.length) + '</span>' +
+    '<span class="pname">' + nameHtml(project) + '</span><span class="sub">' + esc(formatTime(project.updatedAt)) + '</span><span class="spacer"></span>' +
+    '<button class="btn pri" type="button" data-act="enter" data-id="' + esc(project.id) + '">进入</button>' +
+    '<button class="btn" type="button" data-act="export" data-id="' + esc(project.id) + '">导出</button>' +
+    '<button class="btn" type="button" data-act="rename" data-id="' + esc(project.id) + '">重命名</button>' +
+    '<button class="btn danger" type="button" data-act="ask-delete" data-id="' + esc(project.id) + '">删除</button></div>' +
+    '<div class="bays">' + bays + '</div><div class="plates">' + plates + '</div></section></main>';
+}
+function renderMatrix() {
+  const head = '<div class="mx-row mx-head"><span>项目</span>' + ORDER.map(function (kind) { return '<span>' + esc(KIND[kind].name) + '</span>'; }).join('') + '</div>';
+  const rows = db.projects.map(function (p) {
+    const cells = ORDER.map(function (kind) {
+      const list = ofKind(p, kind);
+      if (!list.length) return '<button class="cell add" type="button" data-act="add" data-id="' + esc(p.id) + '" data-kind="' + kind + '">添加</button>';
+      return '<div class="cell">' + list.map(function (c) {
+        return '<div class="clip"><div class="name">' + esc(c.name) + '</div><div class="sum" title="' + esc(summary(c)) + '">' + esc(summary(c)) + '</div>' +
+          '<button class="btn sm danger" type="button" data-act="ask-remove" data-id="' + esc(p.id) + '" data-cid="' + esc(c.id) + '">移除</button></div>';
+      }).join('') + '<button class="btn sm" type="button" data-act="add" data-id="' + esc(p.id) + '" data-kind="' + kind + '">添加</button></div>';
+    }).join('');
+    return '<div class="mx-row"><div class="who" data-open="' + esc(p.id) + '"><div class="name">' + nameHtml(p) + '</div><div class="sub">' + esc(formatTime(p.updatedAt)) + '</div><div class="ops">' +
+      '<button class="btn sm pri" type="button" data-act="enter" data-id="' + esc(p.id) + '">进入</button>' +
+      '<button class="btn sm" type="button" data-act="export" data-id="' + esc(p.id) + '">导出</button>' +
+      '<button class="btn sm" type="button" data-act="rename" data-id="' + esc(p.id) + '">重命名</button>' +
+      '<button class="btn sm danger" type="button" data-act="ask-delete" data-id="' + esc(p.id) + '">删除</button></div></div>' + cells + '</div>';
+  }).join('');
+  return '<main class="home matrix"><section class="mx">' + head + rows + '<div class="mx-rest" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></section></main>';
+}
+function renderRecall() {
+  const project = currentProject();
+  const bank = db.projects.map(function (p, i) {
+    const bits = ORDER.map(function (kind) { return KIND[kind].name + ' ' + ofKind(p, kind).length; }).join(' · ');
+    return '<button class="slot' + (p.id === project.id ? ' on' : '') + '" type="button" data-act="select" data-id="' + esc(p.id) + '" data-open="' + esc(p.id) + '">' +
+      '<div class="sn">' + pad(i + 1) + '</div><div class="nm">' + nameHtml(p) + '</div><div class="meta sub">' + bits + '</div></button>';
+  }).join('') + '<button class="slot addslot" type="button" data-act="new">新建项目</button>';
+  const active = focused(project);
+  const list = project.connections.length ? project.connections.map(function (c) {
+    const on = active && c.id === active.id;
+    return '<button class="conn-item' + (on ? ' on' : '') + '" type="button" data-act="focus-conn" data-cid="' + esc(c.id) + '"><div class="name">' + esc(c.name) + '</div><div class="k">' + esc(KIND[c.kind].name) + ' · ' + esc(summary(c)) + '</div></button>';
+  }).join('') : '<div class="empty"><p>这个设定档还没有连接。</p></div>';
+  const editor = active ? renderFields(active) : '<p class="hint">新增一条连接后，参数写在这里，并随项目留在本机。</p>';
+  return '<main class="home recall"><div class="bank">' + bank + '</div><section class="spec"><div class="spec-h"><strong>' + esc(project.name) + '</strong>' +
+    (project.sample ? '<span class="tag">示例</span>' : '') + '<span class="sub">' + esc(formatTime(project.updatedAt)) + '</span><span class="spacer"></span>' +
+    '<button class="btn sm pri" type="button" data-act="enter" data-id="' + esc(project.id) + '">进入</button>' +
+    '<button class="btn sm" type="button" data-act="add" data-id="' + esc(project.id) + '">新增连接</button>' +
+    '<button class="btn sm" type="button" data-act="export" data-id="' + esc(project.id) + '">导出</button>' +
+    '<button class="btn sm" type="button" data-act="rename" data-id="' + esc(project.id) + '">重命名</button>' +
+    '<button class="btn sm danger" type="button" data-act="ask-delete" data-id="' + esc(project.id) + '">删除</button></div>' +
+    '<div class="spec-split"><div class="conn-list">' + list + '</div><div class="spec-form">' + editor + '</div></div></section></main>';
+}
+function focused(project) {
+  if (!project) return null;
+  return project.connections.find(function (c) { return c.id === focusId; }) || project.connections[0] || null;
+}
+
+function renderConsole() {
+  const project = findProject(view.projectId);
+  if (!project) return '<main class="console"></main>';
+  const current = project.connections.find(function (c) { return c.id === view.connectionId; }) || null;
+  const tabs = project.connections.map(function (c) {
+    const on = current && c.id === current.id;
+    return '<div class="tab' + (on ? ' active' : '') + '" data-act="tab" data-id="' + esc(c.id) + '"><span class="k">' + esc(KIND[c.kind].name) + '</span><span class="tname">' + esc(c.name) + '</span>' +
+      '<button class="x" type="button" data-act="ask-remove" data-id="' + esc(project.id) + '" data-cid="' + esc(c.id) + '" aria-label="移除连接">×</button></div>';
+  }).join('');
+  return '<main class="console"><div class="tabs"><div class="tabscroll">' + tabs + '</div><button class="tabadd" type="button" data-act="add" data-id="' + esc(project.id) + '">+ 新增</button></div>' +
+    '<div class="work"><section class="panel"><div class="panel-cap">连接设置</div><div class="form">' + renderFields(current) + '</div></section>' +
+    '<section class="log"><div class="logbox"><div class="log-cap"><strong>数据日志</strong><span class="sum" data-live="summary">' + esc(current ? summary(current) : '无连接') + '</span></div>' +
+    '<div class="log-body"><div class="sys"><span class="stamp">[' + esc(stampNow()) + ']# </span>已从本机恢复「' + esc(project.name) + '」的 ' + project.connections.length + ' 条连接配置</div></div></div>' +
+    '<div class="compose"><textarea class="tx" spellcheck="false" aria-label="发送框"></textarea><div class="compose-act"><button class="btn pri" type="button" data-act="send">发送</button><button class="btn" type="button" data-act="clear-tx">清除</button></div><div class="compose-foot">实发 0 字节</div></div></section>' +
+    '<section class="panel"><div class="tools">' + ['快捷', '批量', '应答', '历史', '校验', '脚本'].map(function (name, i) {
+      return '<button type="button" class="' + (i === 0 ? 'on' : '') + '" data-act="tool">' + name + '</button>';
+    }).join('') + '</div><div class="tool-body"><strong>沿用现有调试台</strong><p>每个连接自己的快捷指令、自动应答、批量和脚本仍在 A 方案工作区。此页只把项目里的连接配置带进来。</p></div></section></div></main>';
+}
+function renderFields(c) {
+  if (!c) return '<p class="hint">这个项目还没有连接。</p><button class="btn pri" type="button" data-act="add" data-id="' + esc(view.projectId) + '">新增连接</button>';
+  const g = c.config;
+  const rows = [field('名称', input('name', c.name))];
+  if (c.kind === 'serial') {
+    rows.push(field('端口', input('port', g.port)), field('波特率', input('baud', g.baud, 'int')), field('校验', select('parity', g.parity, ['NONE', 'ODD', 'EVEN', 'MARK', 'SPACE'])), field('数据位', select('dataBits', String(g.dataBits), ['5', '6', '7', '8'])), field('停止位', select('stopBits', String(g.stopBits), ['1', '1.5', '2'])));
+  } else if (c.kind === 'ble') {
+    rows.push(field('设备', input('device', g.device)), field('地址', input('address', g.address)), field('服务', input('service', g.service)), field('写入', input('write', g.write)));
+  } else if (c.kind === 'mqtt') {
+    rows.push(field('主机', input('host', g.host)), field('端口', input('port', g.port, 'int')), field('标识', input('clientId', g.clientId)), field('主题', input('publishTopic', g.publishTopic)));
+  } else {
+    rows.push(field('地址', input('url', g.url)), field('子协议', input('subprotocol', g.subprotocol)), field('帧类型', select('frameType', g.frameType, ['Text', 'Binary'])));
+  }
+  rows.push('<p class="hint">改动写回本机项目。证书、遗嘱、扫描过滤等仍在调试台左栏。</p>');
+  return rows.join('');
+}
+function field(label, control) { return '<label class="field"><span>' + label + '</span>' + control + '</label>'; }
+function input(key, value, cast) { return '<input data-field="' + key + '"' + (cast ? ' data-cast="' + cast + '"' : '') + ' value="' + esc(value) + '" spellcheck="false">'; }
+function select(key, value, options) {
+  return '<select data-field="' + key + '">' + options.map(function (opt) {
+    return '<option' + (String(opt) === String(value) ? ' selected' : '') + '>' + esc(opt) + '</option>';
+  }).join('') + '</select>';
+}
+function renderModal() {
+  if (!modal) return '';
+  let title = '', body = '', foot = '';
+  if (modal.type === 'new' || modal.type === 'rename') {
+    title = modal.type === 'new' ? '新建项目' : '重命名项目';
+    body = '<p class="lead">' + (modal.type === 'new' ? '项目用来收纳一组连接。名称会写进导出文件。' : '只改项目名称，里面的连接配置保持不动。') + '</p><label class="dfield"><span>名称</span><input id="dlg-name" value="' + esc(modal.draft || '') + '" spellcheck="false"></label><p class="err" id="dlg-err"></p>';
+    foot = '<button class="btn" type="button" data-act="cancel">取消</button><button class="btn pri" type="button" data-act="' + (modal.type === 'new' ? 'create-project' : 'save-name') + '">' + (modal.type === 'new' ? '创建' : '保存') + '</button>';
+  } else if (modal.type === 'add') {
+    title = '新增连接';
+    body = '<div class="kinds">' + ORDER.map(function (kind) {
+      return '<button type="button" class="' + (kind === modal.kind ? 'on' : '') + '" data-act="pick-kind" data-kind="' + kind + '">' + esc(KIND[kind].name) + '</button>';
+    }).join('') + '</div>' + addFields() + '<p class="err" id="dlg-err"></p>';
+    foot = '<button class="btn" type="button" data-act="cancel">取消</button><button class="btn pri" type="button" data-act="create-conn">添加</button>';
+  } else if (modal.type === 'delete') {
+    const project = findProject(modal.projectId);
+    title = '删除项目';
+    body = '<p class="lead">删除「' + esc(project ? project.name : '') + '」？其中 ' + (project ? project.connections.length : 0) + ' 条连接配置会从本机移除。已经导出的文件不受影响。</p><p class="err"></p>';
+    foot = '<button class="btn" type="button" data-act="cancel">取消</button><button class="btn danger" type="button" data-act="delete-project">删除</button>';
+  } else if (modal.type === 'remove') {
+    const project = findProject(modal.projectId);
+    const current = project && project.connections.find(function (c) { return c.id === modal.connectionId; });
+    title = '移除连接';
+    body = '<p class="lead">从「' + esc(project ? project.name : '') + '」移除「' + esc(current ? current.name : '') + '」？这条连接的配置会从本机项目里去掉。</p><p class="err"></p>';
+    foot = '<button class="btn" type="button" data-act="cancel">取消</button><button class="btn danger" type="button" data-act="remove-conn">移除</button>';
+  } else if (modal.type === 'conflict') {
+    title = '同名项目';
+    body = '<p class="lead">「' + esc(modal.incoming.name) + '」已在本机。替换会用文件里的连接配置覆盖它。另存则两边都留下。</p><p class="err"></p>';
+    foot = '<button class="btn" type="button" data-act="cancel">取消</button><button class="btn" type="button" data-act="import-copy">另存为新项目</button><button class="btn danger" type="button" data-act="import-replace">替换</button>';
+  }
+  return '<div class="mask" data-act="cancel"><div class="dialog" role="dialog" aria-modal="true"><div class="dialog-h"><span>' + esc(title) + '</span><button class="icon-btn" type="button" data-act="cancel" aria-label="关闭">×</button></div><div class="dialog-b">' + body + '</div><div class="dialog-f">' + foot + '</div></div></div>';
+}
+function addFields() {
+  const draft = modal.draft || {};
+  const kind = modal.kind;
+  const bits = ['<label class="dfield"><span>名称</span><input id="dlg-name" value="' + esc(draft.name || '') + '" spellcheck="false"></label>'];
+  if (kind === 'serial') { bits.push(draftField('端口', 'port', draft.port), draftField('波特率', 'baud', draft.baud, 'int')); }
+  else if (kind === 'ble') { bits.push(draftField('设备', 'device', draft.device), draftField('地址', 'address', draft.address)); }
+  else if (kind === 'mqtt') { bits.push(draftField('主机', 'host', draft.host), draftField('端口', 'port', draft.port, 'int')); }
+  else bits.push(draftField('地址', 'url', draft.url));
+  return bits.join('');
+}
+function draftField(label, key, value, cast) {
+  return '<label class="dfield"><span>' + label + '</span><input data-draft="' + key + '"' + (cast ? ' data-cast="' + cast + '"' : '') + ' value="' + esc(value == null ? '' : value) + '" spellcheck="false"></label>';
+}
+function onClick(e) {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  if (act === 'cancel' && el.classList.contains('mask') && e.target !== el) return;
+  if (act === 'focus-conn') { focusId = el.dataset.cid; render(); return; }
+  if (act === 'select') {
+    const id = el.dataset.id;
+    clearTimeout(selectTimer);
+    selectTimer = setTimeout(function () { selectedId = id; render(); }, 200);
+    return;
+  }
+  if (act === 'enter') return enterProject(el.dataset.id);
+  if (act === 'back') { selectedId = view.projectId || selectedId; view = { screen: 'home', projectId: null, connectionId: null }; modal = null; render(); return; }
+  if (act === 'new') { modal = { type: 'new', draft: '' }; render(); focusName(); return; }
+  if (act === 'rename') { const project = findProject(el.dataset.id); modal = { type: 'rename', projectId: project.id, draft: project.name }; render(); focusName(); return; }
+  if (act === 'create-project' || act === 'save-name') return saveProjectName();
+  if (act === 'ask-delete') { modal = { type: 'delete', projectId: el.dataset.id }; render(); return; }
+  if (act === 'delete-project') return deleteProject();
+  if (act === 'add') return openAdd(el.dataset.id, el.dataset.kind || 'serial');
+  if (act === 'pick-kind') return pickKind(el.dataset.kind);
+  if (act === 'create-conn') return createConn();
+  if (act === 'ask-remove') { modal = { type: 'remove', projectId: el.dataset.id, connectionId: el.dataset.cid }; render(); return; }
+  if (act === 'remove-conn') return removeConn();
+  if (act === 'export') return exportProject(el.dataset.id);
+  if (act === 'import') return pickImport();
+  if (act === 'import-replace') return commitImport('replace');
+  if (act === 'import-copy') return commitImport('copy');
+  if (act === 'tab') { view.connectionId = el.dataset.id; render(); return; }
+  if (act === 'cancel') { modal = null; render(); return; }
+  if (act === 'send') return toast('设计稿不连接设备，发送已拦截', true);
+  if (act === 'clear-tx') { const box = document.querySelector('.tx'); if (box) box.value = ''; return; }
+  if (act === 'tool') return toast('工具面板沿用现有调试台。此稿只带连接配置进入。');
+}
+function onDbl(e) {
+  const node = e.target.closest('[data-open]');
+  if (!node || e.target.closest('button, input, select, textarea')) return;
+  clearTimeout(selectTimer);
+  enterProject(node.dataset.open);
+}
+function onKey(e) {
+  if (e.key === 'Escape' && modal) { modal = null; render(); return; }
+  if (e.key === 'Enter' && modal && e.target.matches('input')) { const pri = document.querySelector('.dialog .btn.pri'); if (pri) { e.preventDefault(); pri.click(); } }
+}
+function onField(e) {
+  const el = e.target.closest('[data-field]');
+  if (!el) return;
+  const project = view.screen === 'console' ? findProject(view.projectId) : (LAYOUT === 'recall' ? currentProject() : null);
+  const current = !project ? null : (view.screen === 'console'
+    ? project.connections.find(function (c) { return c.id === view.connectionId; })
+    : focused(project));
+  if (!current) return;
+  let value = el.value;
+  if (el.tagName === 'SELECT' && el.dataset.field === 'dataBits') value = parseInt(value, 10);
+  else if (el.dataset.cast === 'int') { const n = parseInt(value, 10); value = Number.isFinite(n) ? n : value; }
+  if (el.dataset.field === 'name') current.name = value;
+  else current.config[el.dataset.field] = value;
+  project.updatedAt = new Date().toISOString();
+  save();
+  const sum = document.querySelector('[data-live="summary"]');
+  if (sum) sum.textContent = summary(current);
+  const st = document.querySelector('[data-live="status"]');
+  if (st) st.textContent = statusLine(current);
+  const tab = document.querySelector('.tab.active .tname');
+  if (tab) tab.textContent = current.name;
+  const item = document.querySelector('.conn-item.on .name');
+  if (item && el.dataset.field === 'name') item.textContent = current.name;
+  const kindLine = document.querySelector('.conn-item.on .k');
+  if (kindLine) kindLine.textContent = KIND[current.kind].name + ' · ' + summary(current);
+}
+function focusName() { requestAnimationFrame(function () { const el = document.getElementById('dlg-name'); if (el) { el.focus(); el.select(); } }); }
+function showErr(msg) { const node = document.getElementById('dlg-err'); if (node) node.textContent = msg; }
+function saveProjectName() {
+  const name = document.getElementById('dlg-name').value.trim();
+  if (!name) return showErr('请填写项目名称');
+  const except = modal.type === 'rename' ? modal.projectId : null;
+  if (nameTaken(name, except)) return showErr('已有同名项目');
+  if (modal.type === 'new') {
+    const project = { id: uid('p'), name: name, sample: false, updatedAt: new Date().toISOString(), connections: [] };
+    db.projects.unshift(project); selectedId = project.id; toast('已创建「' + name + '」');
+  } else {
+    const project = findProject(modal.projectId);
+    project.name = name; project.sample = false; project.updatedAt = new Date().toISOString();
+    toast('已重命名为「' + name + '」');
+  }
+  modal = null; save(); render();
+}
+function openAdd(projectId, kind) {
+  modal = { type: 'add', projectId: projectId, kind: kind, draft: Object.assign({ name: DEFAULT_NAME[kind] }, defaultConfig(kind)) };
+  render(); focusName();
+}
+function pickKind(kind) {
+  const name = document.getElementById('dlg-name').value;
+  const keep = name && name !== DEFAULT_NAME[modal.kind];
+  modal.kind = kind;
+  modal.draft = Object.assign({ name: keep ? name : DEFAULT_NAME[kind] }, defaultConfig(kind));
+  render();
+}
+function createConn() {
+  const project = findProject(modal.projectId);
+  const name = document.getElementById('dlg-name').value.trim();
+  const config = Object.assign(defaultConfig(modal.kind), {});
+  document.querySelectorAll('[data-draft]').forEach(function (el) {
+    if (el.dataset.cast === 'int') { const n = parseInt(el.value, 10); config[el.dataset.draft] = Number.isFinite(n) ? n : ''; }
+    else config[el.dataset.draft] = el.value.trim();
+  });
+  const msg = validateConn(modal.kind, name, config);
+  if (msg) return showErr(msg);
+  const created = conn(uid('c'), name, modal.kind, config);
+  project.connections.push(created); project.sample = false; project.updatedAt = new Date().toISOString();
+  if (view.screen === 'console' && view.projectId === project.id) view.connectionId = created.id;
+  modal = null; save(); toast('已添加「' + name + '」'); render();
+}
+function validateConn(kind, name, config) {
+  if (!name) return '请填写名称';
+  if (kind === 'serial') { if (!config.port) return '请填写端口'; if (!(Number(config.baud) > 0)) return '波特率须为正整数'; }
+  else if (kind === 'ble') { if (!config.device) return '请填写设备名'; }
+  else if (kind === 'mqtt') { if (!config.host) return '请填写主机'; const port = Number(config.port); if (!(port >= 1 && port <= 65535)) return '端口须为 1 到 65535'; }
+  else if (!/^wss?:\/\//i.test(config.url || '')) return '地址须以 ws:// 或 wss:// 开头';
+  return '';
+}
+function deleteProject() {
+  const project = findProject(modal.projectId);
+  db.projects = db.projects.filter(function (p) { return p.id !== modal.projectId; });
+  if (selectedId === modal.projectId) selectedId = db.projects[0] ? db.projects[0].id : null;
+  if (view.projectId === modal.projectId) view = { screen: 'home', projectId: null, connectionId: null };
+  modal = null; save(); toast('已删除「' + (project ? project.name : '') + '」'); render();
+}
+function removeConn() {
+  const project = findProject(modal.projectId);
+  project.connections = project.connections.filter(function (c) { return c.id !== modal.connectionId; });
+  project.updatedAt = new Date().toISOString();
+  if (view.connectionId === modal.connectionId) view.connectionId = project.connections[0] ? project.connections[0].id : null;
+  modal = null; save(); toast('已移除连接'); render();
+}
+function enterProject(id) {
+  const project = findProject(id);
+  if (!project) return;
+  selectedId = id;
+  view = { screen: 'console', projectId: id, connectionId: project.connections[0] ? project.connections[0].id : null };
+  modal = null; render();
+}
+function exportProject(id) {
+  const project = findProject(id);
+  if (!project) return;
+  const payload = { kind: 'device-debug-project', version: 1, name: project.name, connections: project.connections.map(function (c) {
+    return { id: c.id, name: c.name, kind: c.kind, config: c.config, workspace: c.workspace == null ? null : c.workspace };
+  }) };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = fileStem(project.name) + '.ddproj.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  toast('已导出「' + project.name + '」');
+}
+function pickImport() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json,application/json';
+  input.onchange = function () {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () { takeImport(String(reader.result)); };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+function takeImport(text) {
+  const parsed = parseProject(text);
+  if (parsed.error) return toast(parsed.error, true);
+  if (nameTaken(parsed.project.name)) { modal = { type: 'conflict', incoming: parsed.project }; render(); return; }
+  db.projects.unshift(parsed.project); selectedId = parsed.project.id; save(); toast('已导入「' + parsed.project.name + '」'); render();
+}
+function commitImport(mode) {
+  const incoming = modal.incoming;
+  if (mode === 'replace') {
+    const existing = db.projects.find(function (p) { return p.name === incoming.name; });
+    existing.connections = incoming.connections; existing.updatedAt = new Date().toISOString(); existing.sample = false; selectedId = existing.id;
+    toast('已替换「' + existing.name + '」');
+  } else {
+    incoming.name = uniqueName(incoming.name); incoming.id = uid('p'); db.projects.unshift(incoming); selectedId = incoming.id;
+    toast('已另存为「' + incoming.name + '」');
+  }
+  modal = null; save(); render();
+}
+function parseProject(text) {
+  let raw;
+  try { raw = JSON.parse(text); } catch (err) { return { error: '文件不是 JSON' }; }
+  if (!raw || raw.kind !== 'device-debug-project') return { error: '不是本工具导出的项目文件' };
+  if (raw.version !== 1) return { error: '项目文件版本无法读取' };
+  if (typeof raw.name !== 'string' || !raw.name.trim()) return { error: '项目缺少名称' };
+  if (!Array.isArray(raw.connections)) return { error: '项目缺少连接列表' };
+  const seen = new Set();
+  const connections = [];
+  for (let i = 0; i < raw.connections.length; i += 1) {
+    const item = raw.connections[i];
+    if (!item || !KIND[item.kind]) return { error: '含有无法识别的连接类型' };
+    if (typeof item.name !== 'string' || !item.name.trim()) return { error: '有连接缺少名称' };
+    if (!item.config || typeof item.config !== 'object' || Array.isArray(item.config)) return { error: '有连接缺少配置' };
+    let id = typeof item.id === 'string' && item.id ? item.id : uid('c');
+    if (seen.has(id)) id = uid('c');
+    seen.add(id);
+    const made = conn(id, item.name.trim(), item.kind, item.config);
+    made.workspace = item.workspace == null ? null : item.workspace;
+    connections.push(made);
+  }
+  return { project: { id: uid('p'), name: raw.name.trim(), sample: false, updatedAt: new Date().toISOString(), connections: connections } };
+}
+let toastTimer = 0;
+function toast(msg, bad) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const node = document.createElement('div');
+  node.className = 'toast' + (bad ? ' bad' : '');
+  node.textContent = msg;
+  document.body.appendChild(node);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { node.remove(); }, 1900);
+}
+</script>
+</body>
+</html>

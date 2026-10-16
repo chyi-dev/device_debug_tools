@@ -11,7 +11,6 @@ import '../../../i18n/i18n.dart';
 import '../cubit/serial_console_cubit.dart';
 import '../cubit/serial_console_state.dart';
 import '../model/serial_models.dart';
-import '../repository/serial_console_repository.dart';
 import '../serial_metrics.dart';
 import '../widget/serial_config_dialog.dart';
 import '../widget/serial_editors.dart';
@@ -24,22 +23,18 @@ import '../widget/serial_side_panel.dart';
 import '../widget/serial_status_bar.dart';
 import '../widget/serial_tools_panel.dart';
 
-class SerialConsolePage extends StatelessWidget {
-  const SerialConsolePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SerialConsoleCubit(
-        repository: context.read<SerialConsoleRepository>(),
-      )..start(),
-      child: const SerialConsoleView(),
-    );
-  }
-}
-
 class SerialConsoleView extends StatefulWidget {
-  const SerialConsoleView({super.key});
+  const SerialConsoleView({
+    super.key,
+    this.belowMenu,
+    this.shortcutsEnabled = true,
+  });
+
+  /// 放在菜单栏下方，例如首页连接页签。
+  final Widget? belowMenu;
+
+  /// 只有当前页签响应全局快捷键。
+  final bool shortcutsEnabled;
 
   @override
   State<SerialConsoleView> createState() => _SerialConsoleViewState();
@@ -55,7 +50,20 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
   @override
   void initState() {
     super.initState();
-    HardwareKeyboard.instance.addHandler(_onKey);
+    if (widget.shortcutsEnabled) {
+      HardwareKeyboard.instance.addHandler(_onKey);
+    }
+  }
+
+  @override
+  void didUpdateWidget(SerialConsoleView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.shortcutsEnabled == widget.shortcutsEnabled) return;
+    if (widget.shortcutsEnabled) {
+      HardwareKeyboard.instance.addHandler(_onKey);
+    } else {
+      HardwareKeyboard.instance.removeHandler(_onKey);
+    }
   }
 
   @override
@@ -169,6 +177,7 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                       onKeys: () => showShortcutHelp(context),
                       onAbout: () => showSerialAbout(context),
                     ),
+                    if (widget.belowMenu != null) widget.belowMenu!,
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.sm),

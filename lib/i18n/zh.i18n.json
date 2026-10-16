@@ -8,7 +8,21 @@
   },
   "home": {
     "welcome": "欢迎使用设备调试工具",
-    "placeholder": "在 lib/features 下添加功能模块"
+    "placeholder": "在 lib/features 下添加功能模块",
+    "addConnection": "＋ 新增",
+    "kindSerial": "串口",
+    "kindBle": "蓝牙 BLE",
+    "kindMqtt": "MQTT",
+    "kindWebSocket": "WebSocket",
+    "badgeSerial": "SERIAL",
+    "badgeBle": "BLE",
+    "badgeMqtt": "MQTT",
+    "badgeWs": "WS",
+    "later": "后续扩展",
+    "emptyConnections": "还没有连接。点「新增」创建串口页签。",
+    "rename": "重命名",
+    "renameTitle": "重命名页签",
+    "renameName": "名称"
   },
   "common": {
     "confirm": "确认",

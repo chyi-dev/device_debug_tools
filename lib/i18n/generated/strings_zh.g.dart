@@ -88,6 +88,48 @@ class Translations$home$zh {
 
 	/// zh: '在 lib/features 下添加功能模块'
 	String get placeholder => '在 lib/features 下添加功能模块';
+
+	/// zh: '＋ 新增'
+	String get addConnection => '＋ 新增';
+
+	/// zh: '串口'
+	String get kindSerial => '串口';
+
+	/// zh: '蓝牙 BLE'
+	String get kindBle => '蓝牙 BLE';
+
+	/// zh: 'MQTT'
+	String get kindMqtt => 'MQTT';
+
+	/// zh: 'WebSocket'
+	String get kindWebSocket => 'WebSocket';
+
+	/// zh: 'SERIAL'
+	String get badgeSerial => 'SERIAL';
+
+	/// zh: 'BLE'
+	String get badgeBle => 'BLE';
+
+	/// zh: 'MQTT'
+	String get badgeMqtt => 'MQTT';
+
+	/// zh: 'WS'
+	String get badgeWs => 'WS';
+
+	/// zh: '后续扩展'
+	String get later => '后续扩展';
+
+	/// zh: '还没有连接。点「新增」创建串口页签。'
+	String get emptyConnections => '还没有连接。点「新增」创建串口页签。';
+
+	/// zh: '重命名'
+	String get rename => '重命名';
+
+	/// zh: '重命名页签'
+	String get renameTitle => '重命名页签';
+
+	/// zh: '名称'
+	String get renameName => '名称';
 }
 
 // Path: common
@@ -1791,6 +1833,20 @@ extension on Translations {
 			'nav.serial' => '串口',
 			'home.welcome' => '欢迎使用设备调试工具',
 			'home.placeholder' => '在 lib/features 下添加功能模块',
+			'home.addConnection' => '＋ 新增',
+			'home.kindSerial' => '串口',
+			'home.kindBle' => '蓝牙 BLE',
+			'home.kindMqtt' => 'MQTT',
+			'home.kindWebSocket' => 'WebSocket',
+			'home.badgeSerial' => 'SERIAL',
+			'home.badgeBle' => 'BLE',
+			'home.badgeMqtt' => 'MQTT',
+			'home.badgeWs' => 'WS',
+			'home.later' => '后续扩展',
+			'home.emptyConnections' => '还没有连接。点「新增」创建串口页签。',
+			'home.rename' => '重命名',
+			'home.renameTitle' => '重命名页签',
+			'home.renameName' => '名称',
 			'common.confirm' => '确认',
 			'common.cancel' => '取消',
 			'common.retry' => '重试',

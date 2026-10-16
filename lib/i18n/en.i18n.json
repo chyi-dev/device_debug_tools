@@ -8,7 +8,21 @@
   },
   "home": {
     "welcome": "Welcome to Device Debug Tools",
-    "placeholder": "Add feature modules under lib/features"
+    "placeholder": "Add feature modules under lib/features",
+    "addConnection": "+ New",
+    "kindSerial": "Serial",
+    "kindBle": "Bluetooth LE",
+    "kindMqtt": "MQTT",
+    "kindWebSocket": "WebSocket",
+    "badgeSerial": "SERIAL",
+    "badgeBle": "BLE",
+    "badgeMqtt": "MQTT",
+    "badgeWs": "WS",
+    "later": "Coming later",
+    "emptyConnections": "No connections yet. Use New to add a serial tab.",
+    "rename": "Rename",
+    "renameTitle": "Rename tab",
+    "renameName": "Name"
   },
   "common": {
     "confirm": "Confirm",

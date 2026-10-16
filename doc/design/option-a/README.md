@@ -16,18 +16,12 @@
 - 每个连接独立保存快捷指令、批量发送、自动应答、历史、校验及 Lua 脚本。
 - BLE、MQTT、WebSocket 具备完整连接设置和协议目标覆盖。
 
-## 源文件
+## 新增连接
 
-- 页面骨架：`../src/multi-pro-a.html`
-- 共享样式：`../src/multi-workbench.css`
-- 交互与数据：`../src/multi-workbench.js`
-- 设计规格：`../multi-protocol-redesign-spec.md`
+标签栏右侧是「＋ 新增」。点击后选择串口、蓝牙 BLE、MQTT 或 WebSocket，才会创建连接并切换过去。再次点击「新增」或点击菜单外会关闭菜单，不会创建连接。
 
-调整源文件后，在项目根目录执行：
+## 维护
 
-```powershell
-node doc/design/build.mjs
-node doc/design/verify-multi.mjs
-```
+本目录中的 `index.html` 是 A 方案的独立设计稿，直接修改此文件。不要用共享构建覆盖它。
 
-实现阶段须等待设计再次确认，不应直接依据当前稿修改 `lib/`。
+设计规格见 `../multi-protocol-redesign-spec.md`。实现阶段须等待设计再次确认，不应直接依据当前稿修改 `lib/`。

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/serial/page/serial_console_page.dart';
+import '../../features/home/page/home_page.dart';
 import '../widgets/main_shell.dart';
 import 'route_names.dart';
 
@@ -23,7 +23,7 @@ GoRouter createRouter() {
             routes: [
               GoRoute(
                 path: RouteNames.serial,
-                builder: (context, state) => const SerialConsolePage(),
+                builder: (context, state) => const HomePage(),
               ),
             ],
           ),
