@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>封面 B · 终端日志裁切</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1200px; height: 510px; overflow: hidden;
+    font-family: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+    background: #16191d; color: #e3e7ec;
+  }
+  .stage { width: 1200px; height: 510px; display: grid; grid-template-columns: 400px 1fr; }
+  .left {
+    padding: 48px 36px 40px 48px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: #1f2329; border-right: 1px solid #3a414a;
+  }
+  .prod { font-size: 14px; color: #a1aab5; }
+  h1 { margin-top: 28px; font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+  .sub { margin-top: 14px; font-size: 18px; color: #a1aab5; line-height: 1.5; }
+  .meta { font: 14px "Cascadia Mono", Consolas, monospace; color: #4c9bf0; }
+  .log {
+    background: #0d1013; padding: 56px 40px;
+    font: 18px/1.75 "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .p { color: #8b949e; }
+  .rx { color: #7fe0a6; }
+  .sys { color: #e5b54a; }
+  .line { white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="left">
+      <div>
+        <div class="prod">设备调试工具</div>
+        <h1>Lua 脚本</h1>
+        <p class="sub">on_receive 解析回包<br>运行日志直接是读数</p>
+      </div>
+      <div class="meta">parse_sensor.lua</div>
+    </div>
+    <div class="log">
+      <div class="line"><span class="p">[08:49:32.461]# </span><span class="p">RECV HEX&gt;</span></div>
+      <div class="line"><span class="rx">A5 5A 03 00 F6 02 09 03</span></div>
+      <div class="line" style="height:18px"></div>
+      <div class="line"><span class="p">08:49:32.461 </span><span class="sys">parse_sensor.lua</span></div>
+      <div class="line"><span class="sys">temp=24.6℃ hum=52.1%</span></div>
+    </div>
+  </div>
+</body>
+</html>

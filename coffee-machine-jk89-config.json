@@ -1,0 +1,772 @@
+{
+  "kind": "device-debug-config",
+  "version": 1,
+  "quick": [
+    {
+      "type": "folder",
+      "id": "f-status",
+      "name": "状态查询",
+      "expanded": true,
+      "commands": [
+        {
+          "type": "command",
+          "id": "q-1e",
+          "name": "查询设备状态",
+          "data": "AA 55 02 1E 1F",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-1f",
+          "name": "查询制作状态",
+          "data": "AA 55 02 1F 20",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-2c",
+          "name": "控制板基本信息",
+          "data": "AA 55 03 2C 01 2F",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-2a",
+          "name": "多落杯器状态",
+          "data": "AA 55 02 2A 2B",
+          "format": "hex",
+          "key": ""
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "id": "f-make",
+      "name": "制作控制",
+      "expanded": true,
+      "commands": [
+        {
+          "type": "command",
+          "id": "q-01-hot",
+          "name": "制作热饮1",
+          "data": "AA 55 04 01 01 02 07",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-01-cold",
+          "name": "制作冷饮1",
+          "data": "AA 55 04 01 11 02 17",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-17",
+          "name": "现磨制作完成",
+          "data": "AA 55 03 17 01 1A",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-1d-tea",
+          "name": "设置制作流程-萃茶热饮",
+          "data": "AA 55 13 1D 01 03 01 01 08 0B 00 55 00 32 00 64 0A 1E 0A 00 01 66",
+          "format": "hex",
+          "key": ""
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "id": "f-param",
+      "name": "设备参数",
+      "expanded": true,
+      "commands": [
+        {
+          "type": "command",
+          "id": "q-04",
+          "name": "设置热水温度 90/85",
+          "data": "AA 55 04 04 5A 55 B6",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-05",
+          "name": "设置冷水温度 10/5",
+          "data": "AA 55 04 05 0A 05 17",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-07-auto",
+          "name": "出杯方式-自动落杯",
+          "data": "AA 55 03 07 00 09",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-07-manual",
+          "name": "出杯方式-手动放杯",
+          "data": "AA 55 03 07 01 0A",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-24",
+          "name": "送杯 等待20秒",
+          "data": "AA 55 04 24 00 14 3B",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-1c",
+          "name": "补水",
+          "data": "AA 55 02 1C 1D",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-26",
+          "name": "复位主控",
+          "data": "AA 55 03 26 04 2C",
+          "format": "hex",
+          "key": ""
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "id": "f-clean",
+      "name": "清洗维护",
+      "expanded": true,
+      "commands": [
+        {
+          "type": "command",
+          "id": "q-0a",
+          "name": "清洗全部速溶管道",
+          "data": "AA 55 03 0A 01 0D",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-27",
+          "name": "整机管路清洗",
+          "data": "AA 55 0C 27 5A 3C 01 01 0A 03 01 1E 02 02 FA",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-29-start",
+          "name": "排空水路-开始",
+          "data": "AA 55 05 29 01 01 00 2F",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-29-query",
+          "name": "排空水路-查询",
+          "data": "AA 55 05 29 02 00 00 2F",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-29-auth",
+          "name": "排空水路-授权继续",
+          "data": "AA 55 05 29 03 01 00 31",
+          "format": "hex",
+          "key": ""
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "id": "f-test",
+      "name": "测试调试",
+      "expanded": true,
+      "commands": [
+        {
+          "type": "command",
+          "id": "q-1a-powder",
+          "name": "1通道出粉5秒",
+          "data": "AA 55 06 1A 01 01 01 32 54",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-1a-hot",
+          "name": "1通道出热水5秒",
+          "data": "AA 55 06 1A 01 02 01 32 55",
+          "format": "hex",
+          "key": ""
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "id": "f-modbus",
+      "name": "模组透传",
+      "expanded": true,
+      "commands": [
+        {
+          "type": "command",
+          "id": "q-20-main",
+          "name": "查询主控模组",
+          "data": "AA 55 08 20 01 03 00 1F 00 02 4C",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-20-door",
+          "name": "查询前门模组",
+          "data": "AA 55 08 20 02 03 00 00 00 02 2E",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-20-ice",
+          "name": "查询制冰模组",
+          "data": "AA 55 08 20 03 03 00 00 00 02 2F",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-20-ground",
+          "name": "查询现磨模组",
+          "data": "AA 55 08 20 04 03 80 01 00 02 B1",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-20-tea",
+          "name": "查询萃茶模组",
+          "data": "AA 55 08 20 05 03 80 01 00 02 B2",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-20-soda",
+          "name": "查询苏打模组",
+          "data": "AA 55 08 20 06 03 00 A4 00 02 D6",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-20-top",
+          "name": "查询小料模组",
+          "data": "AA 55 08 20 80 03 00 00 00 02 AC",
+          "format": "hex",
+          "key": ""
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "id": "f-lock",
+      "name": "电子锁",
+      "expanded": true,
+      "commands": [
+        {
+          "type": "command",
+          "id": "q-1b-open",
+          "name": "开1号电子锁",
+          "data": "AA 55 04 1B 01 00 1F",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-1b-close",
+          "name": "关1号电子锁",
+          "data": "AA 55 04 1B 01 01 20",
+          "format": "hex",
+          "key": ""
+        },
+        {
+          "type": "command",
+          "id": "q-1b-query",
+          "name": "查询1号电子锁",
+          "data": "AA 55 04 1B 01 02 21",
+          "format": "hex",
+          "key": ""
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "r-1e",
+      "name": "应答-设备状态正常",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 1E",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 0A 1E 00 00 00 00 00 00 00 00 27",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-1f",
+      "name": "应答-制作成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 1F",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 06 1F 80 00 00 A1 45",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-2c",
+      "name": "应答-控制板信息",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 2C",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 44 2C 00 01 00 03 00 01 00 03 00 00 01 00 00 00 03 01 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7F",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-2a",
+      "name": "应答-多落杯器正常",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 2A",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 09 2A 00 00 3F 00 00 92 49 4C",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-01",
+      "name": "应答-制作饮品成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 01",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 01 00 03",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-17",
+      "name": "应答-现磨完成成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 17",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 17 00 19",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-1d",
+      "name": "应答-设置制作流程成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 1D",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 1D 00 1F",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-04",
+      "name": "应答-热水温度成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 04",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 04 00 06",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-05",
+      "name": "应答-冷水温度成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 05",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 05 00 07",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-07",
+      "name": "应答-出杯方式成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 07",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 07 00 09",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-24",
+      "name": "应答-送杯成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 24",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 24 00 26",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-1c",
+      "name": "应答-补水成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 1C",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 1C 00 1E",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-26",
+      "name": "应答-复位成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 26",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 26 00 28",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-0a",
+      "name": "应答-清洗速溶管道成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 0A",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 0A 00 0C",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-27",
+      "name": "应答-整机清洗成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 27",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 27 00 29",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-29-start",
+      "name": "应答-排空开始",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 05 29 01",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 05 29 00 40 01 6E",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-29-query",
+      "name": "应答-排空完成",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 05 29 02",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 05 29 00 80 07 B4",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-29-auth",
+      "name": "应答-排空授权",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 05 29 03",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 05 29 00 80 07 B4",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-1a",
+      "name": "应答-单元测试成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 1A",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 03 1A 00 1C",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-20-main",
+      "name": "应答-主控模组",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 08 20 01 03 00 1F",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 0B 20 01 03 04 00 00 00 00 FA 33 5F",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-20-door",
+      "name": "应答-前门模组",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 08 20 02 03 00 00",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 0B 20 02 03 04 00 00 00 00 C9 33 2F",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-20-ice",
+      "name": "应答-制冰模组",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 08 20 03 03 00 00",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 0B 20 03 03 04 00 00 00 00 D9 F3 00",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-20-ground",
+      "name": "应答-现磨模组",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 08 20 04 03 80 01",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 0B 20 04 03 04 00 00 00 00 AF 33 17",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-20-tea",
+      "name": "应答-萃茶模组",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 08 20 05 03 80 01",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 0B 20 05 03 04 00 00 00 00 BF F3 E8",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-20-soda",
+      "name": "应答-苏打模组",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 08 20 06 03 00 A4",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 0B 20 06 03 04 00 00 00 00 8C F3 B6",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-20-top",
+      "name": "应答-小料模组",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 08 20 80 03 00 00",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 0B 20 80 03 04 00 00 00 00 6B 3B 57",
+          "delay": 10
+        }
+      ]
+    },
+    {
+      "id": "r-1b",
+      "name": "应答-电子锁成功",
+      "match": "prefix",
+      "kind": "template",
+      "format": "hex",
+      "ignoreCase": false,
+      "pattern": "AA 55 ?? 1B",
+      "enabled": true,
+      "replies": [
+        {
+          "data": "A5 5A 04 1B 00 80 9E",
+          "delay": 10
+        }
+      ]
+    }
+  ],
+  "scripts": [
+    {
+      "id": "s-jk89-checksum",
+      "name": "jk89_checksum.lua",
+      "enabled": true,
+      "code": "-- AA 55 帧若末字节还不是 SUM8，则补上；已带正确校验的快捷指令保持原样\nfunction before_send(frame)\n  if frame:len() < 4 then return frame end\n  if frame:u8(1) ~= 0xAA or frame:u8(2) ~= 0x55 then return frame end\n  local body = frame:sub(1, frame:len() - 1)\n  if sum8(body) == frame:u8(frame:len()) then\n    return frame\n  end\n  return frame:append(sum8(frame))\nend\n"
+    },
+    {
+      "id": "s-jk89-status",
+      "name": "jk89_parse_status.lua",
+      "enabled": true,
+      "code": "-- 解析 0x1E 查询设备状态应答\nlocal function bit(v, n)\n  return (v >> n) & 1\nend\n\nfunction on_receive(frame)\n  if frame:len() < 8 then return end\n  if frame:u8(1) ~= 0xA5 or frame:u8(2) ~= 0x5A or frame:u8(4) ~= 0x1E then\n    return\n  end\n  local v = (frame:u8(5) << 24) | (frame:u8(6) << 16) | (frame:u8(7) << 8) | frame:u8(8)\n  local names = {\"正常空闲\", \"正常忙\", \"异常\", \"故障\"}\n  log(\"0x1E 整机\", names[(v & 3) + 1])\n  local faults = {\n    {2, \"E14前门离线\"}, {3, \"E15制冰离线\"}, {4, \"E10现磨离线\"},\n    {6, \"制冰故障\"}, {7, \"现磨故障\"}, {8, \"E02无杯\"},\n    {9, \"A01无盖\"}, {10, \"E01缺水\"}, {12, \"E25首次加热\"},\n    {13, \"A09杯托有杯\"}, {14, \"A165无豆\"}, {15, \"E04主控传感器\"},\n    {30, \"E12轨道故障\"}, {31, \"A116电子锁故障\"},\n  }\n  local hit = {}\n  for i = 1, #faults do\n    if bit(v, faults[i][1]) == 1 then\n      hit[#hit + 1] = faults[i][2]\n    end\n  end\n  if frame:len() >= 13 then\n    local v2 = (frame:u8(9) << 24) | (frame:u8(10) << 16) | (frame:u8(11) << 8) | frame:u8(12)\n    local more = {\n      {0, \"E28废盘\"}, {1, \"E29集粉盘\"}, {4, \"萃茶离线\"},\n      {5, \"萃茶故障\"}, {6, \"小料离线\"}, {7, \"小料故障\"}, {9, \"苏打故障\"},\n    }\n    for i = 1, #more do\n      if bit(v2, more[i][1]) == 1 then\n        hit[#hit + 1] = more[i][2]\n      end\n    end\n  end\n  if #hit == 0 then\n    log(\"0x1E 故障\", \"无\")\n  else\n    log(\"0x1E 故障\", table.concat(hit, \" \"))\n  end\nend\n"
+    },
+    {
+      "id": "s-jk89-making",
+      "name": "jk89_parse_making.lua",
+      "enabled": true,
+      "code": "-- 解析 0x1F 制作状态应答\nfunction on_receive(frame)\n  if frame:len() < 8 then return end\n  if frame:u8(1) ~= 0xA5 or frame:u8(2) ~= 0x5A or frame:u8(4) ~= 0x1F then\n    return\n  end\n  local v = (frame:u8(5) << 24) | (frame:u8(6) << 16) | (frame:u8(7) << 8) | frame:u8(8)\n  local drink = v & 0x0F\n  local hot = ((v >> 4) & 1) == 0\n  local dropped = ((v >> 7) & 1) == 1\n  local waiting = ((v >> 6) & 1) == 1\n  local step = (v >> 10) & 0x7F\n  local total = (v >> 17) & 0x7F\n  local fail = (v >> 24) & 0x3F\n  local result = (v >> 30) & 3\n  local results = {\"未执行\", \"制作中\", \"成功\", \"失败\"}\n  local failText = fail == 0 and \"无\" or string.format(\"EM%02d\", fail)\n  log(string.format(\n    \"0x1F 饮品%d %s 落杯%s 取杯%s 步骤%d/%d 失败%s 结果%s\",\n    drink,\n    hot and \"热\" or \"冷\",\n    dropped and \"是\" or \"否\",\n    waiting and \"是\" or \"否\",\n    step,\n    total,\n    failText,\n    results[result + 1]\n  ))\nend\n"
+    }
+  ]
+}

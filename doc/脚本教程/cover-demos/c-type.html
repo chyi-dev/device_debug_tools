@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>封面 C · 大字少图</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1200px; height: 510px; overflow: hidden;
+    font-family: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+    background: #f7f8fa; color: #1f2933;
+  }
+  .stage {
+    width: 1200px; height: 510px; padding: 52px 64px 44px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .prod { font-size: 15px; color: #56616e; font-weight: 500; }
+  .chip {
+    font: 14px "Cascadia Mono", Consolas, monospace;
+    color: #1769c2; border: 1px solid #c5ced7; background: #fff;
+    border-radius: 4px; padding: 6px 10px;
+  }
+  h1 { font-size: 92px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-top: 10px; }
+  .rule { width: 72px; height: 3px; background: #1769c2; margin: 26px 0 18px; }
+  .sub { font-size: 22px; color: #56616e; }
+  .flow { display: flex; align-items: center; gap: 16px; font: 16px/1 "Cascadia Mono", Consolas, monospace; }
+  .box { background: #fff; border: 1px solid #c5ced7; border-radius: 4px; padding: 12px 16px; }
+  .box.rx { color: #1b2630; }
+  .box.tx { color: #1461b8; }
+  .arrow { color: #1769c2; font-size: 20px; font-weight: 700; }
+  .hit { font-size: 14px; color: #9a5a00; background: #fff8e0; border: 1px solid #e0c45a; border-radius: 4px; padding: 12px 14px; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div>
+      <div class="top">
+        <span class="prod">设备调试工具</span>
+        <span class="chip">on_receive · before_send</span>
+      </div>
+      <h1>Lua 脚本</h1>
+      <div class="rule"></div>
+      <p class="sub">收到就解析，发出前再改一帧</p>
+    </div>
+    <div class="flow">
+      <span class="box rx">on_receive</span>
+      <span class="arrow">→</span>
+      <span class="hit">温度 24.6℃</span>
+      <span class="arrow">→</span>
+      <span class="box tx">before_send</span>
+    </div>
+  </div>
+</body>
+</html>

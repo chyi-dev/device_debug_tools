@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>封面 A · 白底仪器面板</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1200px; height: 510px; overflow: hidden;
+    font-family: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+    background: #e9edf1; color: #1f2933;
+  }
+  .stage {
+    width: 1200px; height: 510px; padding: 36px 44px 32px;
+    display: grid; grid-template-columns: 380px 1fr; gap: 36px; align-items: center;
+  }
+  .prod { font-size: 15px; color: #56616e; font-weight: 500; }
+  h1 {
+    margin-top: 18px;
+    font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05;
+  }
+  .sub { margin-top: 14px; font-size: 18px; color: #56616e; line-height: 1.45; }
+  .chip {
+    display: inline-block; margin-top: 22px;
+    font: 14px "Cascadia Mono", Consolas, monospace;
+    color: #1769c2; background: #fff; border: 1px solid #c5ced7;
+    border-radius: 4px; padding: 6px 10px;
+  }
+  .panel {
+    background: #f7f8fa; border: 1px solid #c5ced7; border-radius: 6px;
+    padding: 16px 18px 14px;
+  }
+  .lab { font-size: 12px; color: #56616e; font-weight: 600; margin-bottom: 10px; }
+  pre {
+    font: 14px/1.55 "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+    color: #1f2933; white-space: pre; background: #fff;
+    border: 1px solid #dfe4e9; border-radius: 4px; padding: 12px 14px;
+  }
+  .out {
+    margin-top: 12px; font: 15px/1.4 "Cascadia Mono", Consolas, monospace; color: #1461b8;
+  }
+  .out em { font-style: normal; color: #9a5a00; font-size: 12px; display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div>
+      <div class="prod">设备调试工具</div>
+      <h1>Lua 脚本</h1>
+      <p class="sub">收到一帧就解析<br>发出之前还能改</p>
+      <span class="chip">on_receive · before_send</span>
+    </div>
+    <div class="panel">
+      <div class="lab">认帧头、取数值</div>
+      <pre>function on_receive(frame)
+  if not frame:starts_with(0xA5, 0x5A, 0x03) then return end
+  local t = frame:u16(4) / 10
+  local h = frame:u16(6) / 10
+  log(string.format("温度 %.1f℃ 湿度 %.1f%%", t, h))
+end</pre>
+      <div class="out"><em>样例 A5 5A 03 00 F6 02 09 03</em>温度 24.6℃　湿度 52.1%</div>
+    </div>
+  </div>
+</body>
+</html>
