@@ -8,6 +8,7 @@ import '../../../i18n/i18n.dart';
 import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
 import '../../serial/widget/serial_chrome.dart';
+import '../../serial/widget/serial_editors.dart';
 import '../cubit/ble_console_cubit.dart';
 import '../cubit/ble_console_state.dart';
 import '../model/ble_models.dart';
@@ -24,6 +25,7 @@ class BleToolsPanel extends StatelessWidget {
       buildWhen: (a, b) => a.tab != b.tab,
       builder: (context, state) {
         final cubit = context.read<BleConsoleCubit>();
+        final tabs = kBleToolTabs;
         return DecoratedBox(
           decoration: BoxDecoration(
             color: palette.panel,
@@ -33,19 +35,34 @@ class BleToolsPanel extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(
-                height: SerialMetrics.logHead,
+                height: 38,
                 child: Row(
                   children: [
-                    for (final tab in kBleToolTabs)
-                      _Tab(
-                        label: _label(t, tab),
-                        on: state.tab == tab,
-                        onTap: () => cubit.setTab(tab),
-                        script: tab == ToolTab.script,
-                      ),
+                    for (final tab in tabs)
+                      if (tab == ToolTab.script) ...[
+                        const SizedBox(width: AppSpacing.xs),
+                        Container(width: 1, height: 18, color: palette.line),
+                        const SizedBox(width: AppSpacing.xs),
+                        _tabButton(
+                          context,
+                          label: _label(t, tab),
+                          active: state.tab == tab,
+                          onTap: () => cubit.setTab(tab),
+                          padded: true,
+                        ),
+                      ] else
+                        Expanded(
+                          child: _tabButton(
+                            context,
+                            label: _label(t, tab),
+                            active: state.tab == tab,
+                            onTap: () => cubit.setTab(tab),
+                          ),
+                        ),
                   ],
                 ),
               ),
+              Divider(height: 1, color: palette.line),
               Expanded(
                 child: switch (bleToolTab(state.tab)) {
                   ToolTab.quick => const _QuickTab(),
@@ -73,50 +90,43 @@ String _label(Translations t, ToolTab tab) => switch (tab) {
   ToolTab.calc => t.serial.tab.quick,
 };
 
-class _Tab extends StatelessWidget {
-  const _Tab({
-    required this.label,
-    required this.on,
-    required this.onTap,
-    this.script = false,
-  });
-
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  final bool script;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = SerialPalette.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            border: Border(
-              left: script ? BorderSide(color: palette.line) : BorderSide.none,
-              bottom: BorderSide(
-                color: on ? palette.accent : palette.line,
-                width: on ? 2 : 1,
-              ),
-            ),
-          ),
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.caption(cs).copyWith(
-              color: on ? palette.text : palette.muted,
-              fontWeight: on ? FontWeight.w600 : FontWeight.w400,
-            ),
+Widget _tabButton(
+  BuildContext context, {
+  required String label,
+  required bool active,
+  required VoidCallback onTap,
+  bool padded = false,
+}) {
+  final palette = SerialPalette.of(context);
+  return InkWell(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: SerialMetrics.motion,
+      curve: SerialMetrics.motionCurve,
+      padding: padded
+          ? const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4)
+          : EdgeInsets.zero,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: active ? palette.accent : Colors.transparent,
+            width: 2,
           ),
         ),
       ),
-    );
-  }
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
+          color: active ? palette.text : palette.muted,
+          fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+          fontSize: 12,
+        ),
+      ),
+    ),
+  );
 }
 
 class _QuickTab extends StatelessWidget {
@@ -125,59 +135,64 @@ class _QuickTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    final palette = SerialPalette.of(context);
     return BlocBuilder<BleConsoleCubit, BleConsoleState>(
       buildWhen: (a, b) => a.quick != b.quick || a.pinWrite != b.pinWrite,
       builder: (context, state) {
         final cubit = context.read<BleConsoleCubit>();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      state.pinWrite == null
-                          ? t.ble.quick.targetNone
-                          : t.ble.quick.target(uuid: state.pinWrite!.uuid),
-                      style: AppTextStyles.caption(
-                        Theme.of(context).colorScheme,
-                      ).copyWith(color: palette.muted),
-                    ),
-                  ),
-                  SerialButton(
-                    label: t.common.add,
-                    small: true,
-                    onPressed: () async {
-                      final item = await showBleQuickEditor(context);
-                      if (item != null) cubit.saveQuick(item);
-                    },
-                  ),
-                ],
-              ),
+            SerialToolBar(
+              note: state.pinWrite == null
+                  ? t.ble.quick.targetNone
+                  : t.ble.quick.target(uuid: state.pinWrite!.uuid),
+              actions: [
+                SerialButton(
+                  label: t.common.add,
+                  small: true,
+                  onPressed: () async {
+                    final item = await showBleQuickEditor(context);
+                    if (item != null) cubit.saveQuick(item);
+                  },
+                ),
+              ],
             ),
             Expanded(
               child: ListView(
                 children: [
                   for (final item in state.quick)
-                    _Row(
+                    SerialItemRow(
                       leading: SerialButton(
                         label: t.ble.send,
                         small: true,
                         primary: true,
                         onPressed: () => cubit.sendQuick(item.id),
                       ),
-                      title: '${item.name} ${item.key}',
-                      subtitle: item.data,
-                      onEdit: () async {
-                        final next = await showBleQuickEditor(
-                          context,
-                          initial: item,
-                        );
-                        if (next != null) cubit.saveQuick(next);
-                      },
-                      onDelete: () => cubit.deleteQuick(item.id),
+                      title: item.name,
+                      detail: item.data,
+                      trailing: [
+                        if (item.key.isNotEmpty) SerialKeyChip(item.key),
+                      ],
+                      menu: [
+                        SerialMenuAction(
+                          label: t.common.edit,
+                          onTap: () async {
+                            final next = await showBleQuickEditor(
+                              context,
+                              initial: item,
+                            );
+                            if (next != null) cubit.saveQuick(next);
+                          },
+                        ),
+                        SerialMenuAction(
+                          label: t.common.delete,
+                          danger: true,
+                          onTap: () => showSerialDelete(
+                            context,
+                            message: t.ble.dialog.deleteQuick,
+                            onDelete: () => cubit.deleteQuick(item.id),
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
@@ -201,34 +216,24 @@ class _BatchTab extends StatelessWidget {
         final cubit = context.read<BleConsoleCubit>();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      t.ble.batch.bar,
-                      style: AppTextStyles.caption(
-                        Theme.of(context).colorScheme,
-                      ).copyWith(color: SerialPalette.of(context).muted),
-                    ),
-                  ),
-                  SerialButton(
-                    label: t.common.add,
-                    small: true,
-                    onPressed: () async {
-                      final job = await showBleBatchEditor(context);
-                      if (job != null) cubit.saveBatch(job);
-                    },
-                  ),
-                ],
-              ),
+            SerialToolBar(
+              note: t.ble.batch.bar,
+              actions: [
+                SerialButton(
+                  label: t.common.add,
+                  small: true,
+                  onPressed: () async {
+                    final job = await showBleBatchEditor(context);
+                    if (job != null) cubit.saveBatch(job);
+                  },
+                ),
+              ],
             ),
             Expanded(
               child: ListView(
                 children: [
                   for (final job in state.batch)
-                    _Row(
+                    SerialItemRow(
                       leading: SerialButton(
                         label: t.serial.batch.start,
                         small: true,
@@ -236,15 +241,28 @@ class _BatchTab extends StatelessWidget {
                         onPressed: () => cubit.runBatch(job.id),
                       ),
                       title: job.name,
-                      subtitle: '${job.steps.length}',
-                      onEdit: () async {
-                        final next = await showBleBatchEditor(
-                          context,
-                          initial: job,
-                        );
-                        if (next != null) cubit.saveBatch(next);
-                      },
-                      onDelete: () => cubit.deleteBatch(job.id),
+                      detail: '${job.steps.length}',
+                      menu: [
+                        SerialMenuAction(
+                          label: t.common.edit,
+                          onTap: () async {
+                            final next = await showBleBatchEditor(
+                              context,
+                              initial: job,
+                            );
+                            if (next != null) cubit.saveBatch(next);
+                          },
+                        ),
+                        SerialMenuAction(
+                          label: t.common.delete,
+                          danger: true,
+                          onTap: () => showSerialDelete(
+                            context,
+                            message: t.ble.dialog.deleteBatch,
+                            onDelete: () => cubit.deleteBatch(job.id),
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
@@ -268,48 +286,51 @@ class _ReplyTab extends StatelessWidget {
         final cubit = context.read<BleConsoleCubit>();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      t.ble.reply.explain,
-                      style: AppTextStyles.caption(
-                        Theme.of(context).colorScheme,
-                      ).copyWith(color: SerialPalette.of(context).muted),
-                    ),
-                  ),
-                  SerialButton(
-                    label: t.common.add,
-                    small: true,
-                    onPressed: () async {
-                      final rule = await showBleRuleEditor(context);
-                      if (rule != null) cubit.saveRule(rule);
-                    },
-                  ),
-                ],
-              ),
+            SerialToolBar(
+              note: t.ble.reply.explain,
+              actions: [
+                SerialButton(
+                  label: t.common.add,
+                  small: true,
+                  onPressed: () async {
+                    final rule = await showBleRuleEditor(context);
+                    if (rule != null) cubit.saveRule(rule);
+                  },
+                ),
+              ],
             ),
             Expanded(
               child: ListView(
                 children: [
                   for (final rule in state.rules)
-                    _Row(
+                    SerialItemRow(
                       leading: SerialSwitch(
                         on: rule.enabled,
                         onTap: () => cubit.toggleRule(rule.id),
                       ),
                       title: rule.name,
-                      subtitle: '${rule.pattern} · ${rule.hits}',
-                      onEdit: () async {
-                        final next = await showBleRuleEditor(
-                          context,
-                          initial: rule,
-                        );
-                        if (next != null) cubit.saveRule(next);
-                      },
-                      onDelete: () => cubit.deleteRule(rule.id),
+                      detail: '${rule.pattern} · ${rule.hits}',
+                      menu: [
+                        SerialMenuAction(
+                          label: t.common.edit,
+                          onTap: () async {
+                            final next = await showBleRuleEditor(
+                              context,
+                              initial: rule,
+                            );
+                            if (next != null) cubit.saveRule(next);
+                          },
+                        ),
+                        SerialMenuAction(
+                          label: t.common.delete,
+                          danger: true,
+                          onTap: () => showSerialDelete(
+                            context,
+                            message: t.ble.dialog.deleteRule,
+                            onDelete: () => cubit.deleteRule(rule.id),
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
@@ -345,14 +366,15 @@ class _HistoryTab extends StatelessWidget {
         return ListView(
           children: [
             for (final item in state.history)
-              _Row(
+              SerialItemRow(
                 leading: SerialButton(
                   label: t.ble.send,
                   small: true,
                   onPressed: () => cubit.resendHistory(item.text),
                 ),
                 title: item.text,
-                subtitle: state.pinWrite?.uuid ?? t.ble.pin.unpinned,
+                detail: state.pinWrite?.uuid ?? t.ble.pin.unpinned,
+                monoTitle: true,
               ),
           ],
         );
@@ -373,50 +395,53 @@ class _ScriptTab extends StatelessWidget {
         final cubit = context.read<BleConsoleCubit>();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      t.ble.script.explain,
-                      style: AppTextStyles.caption(
-                        Theme.of(context).colorScheme,
-                      ).copyWith(color: SerialPalette.of(context).muted),
-                    ),
-                  ),
-                  SerialButton(
-                    label: t.common.add,
-                    small: true,
-                    onPressed: () async {
-                      final script = await showBleScriptEditor(context);
-                      if (script != null) cubit.saveScript(script);
-                    },
-                  ),
-                ],
-              ),
+            SerialToolBar(
+              note: t.ble.script.explain,
+              actions: [
+                SerialButton(
+                  label: t.common.add,
+                  small: true,
+                  onPressed: () async {
+                    final script = await showBleScriptEditor(context);
+                    if (script != null) cubit.saveScript(script);
+                  },
+                ),
+              ],
             ),
             Expanded(
               child: ListView(
                 children: [
                   for (final script in state.scripts)
-                    _Row(
+                    SerialItemRow(
                       leading: SerialSwitch(
                         on: script.enabled,
                         onTap: () => cubit.toggleScript(script.id),
                       ),
                       title: script.name,
-                      subtitle: script.enabled
+                      detail: script.enabled
                           ? t.serial.script.autoOn
                           : t.serial.script.autoOff,
-                      onEdit: () async {
-                        final next = await showBleScriptEditor(
-                          context,
-                          initial: script,
-                        );
-                        if (next != null) cubit.saveScript(next);
-                      },
-                      onDelete: () => cubit.deleteScript(script.id),
+                      menu: [
+                        SerialMenuAction(
+                          label: t.common.edit,
+                          onTap: () async {
+                            final next = await showBleScriptEditor(
+                              context,
+                              initial: script,
+                            );
+                            if (next != null) cubit.saveScript(next);
+                          },
+                        ),
+                        SerialMenuAction(
+                          label: t.common.delete,
+                          danger: true,
+                          onTap: () => showSerialDelete(
+                            context,
+                            message: t.ble.dialog.deleteScript,
+                            onDelete: () => cubit.deleteScript(script.id),
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
@@ -427,70 +452,3 @@ class _ScriptTab extends StatelessWidget {
     );
   }
 }
-
-class _Row extends StatelessWidget {
-  const _Row({
-    required this.leading,
-    required this.title,
-    required this.subtitle,
-    this.onEdit,
-    this.onDelete,
-  });
-
-  final Widget leading;
-  final String title;
-  final String subtitle;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = SerialPalette.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      child: Row(
-        children: [
-          leading,
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption(
-                    cs,
-                  ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.mono(
-                    cs,
-                    fontSize: 12,
-                    color: palette.muted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (onEdit != null)
-            SerialLinkButton(label: tEdit(context), onPressed: onEdit!),
-          if (onDelete != null)
-            SerialLinkButton(label: tDelete(context), onPressed: onDelete!),
-        ],
-      ),
-    );
-  }
-}
-
-String tEdit(BuildContext context) => Translations.of(context).common.edit;
-
-String tDelete(BuildContext context) => Translations.of(context).common.delete;

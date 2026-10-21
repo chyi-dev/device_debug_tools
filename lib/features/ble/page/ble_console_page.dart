@@ -5,12 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../../home/widget/workbench_menu_bar.dart';
 import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
+import '../../serial/widget/serial_chrome.dart';
 import '../../serial/widget/serial_editors.dart';
 import '../ble_metrics.dart';
 import '../cubit/ble_console_cubit.dart';
@@ -131,7 +131,7 @@ class _BleConsoleViewState extends State<BleConsoleView> {
   void _showToast(BleNotice notice) {
     _toastTimer?.cancel();
     setState(() => _toast = notice);
-    _toastTimer = Timer(const Duration(milliseconds: 1900), () {
+    _toastTimer = Timer(SerialMetrics.toastHold, () {
       if (mounted) setState(() => _toast = null);
     });
   }
@@ -192,13 +192,12 @@ class _BleConsoleViewState extends State<BleConsoleView> {
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         child: Row(
                           children: [
-                            if (!chrome.compact) ...[
-                              const SizedBox(
-                                width: BleMetrics.sidebar,
-                                child: BleSidePanel(),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                            ],
+                            SerialFoldPane(
+                              visible: !chrome.compact,
+                              width: BleMetrics.sidebar,
+                              gapAfter: AppSpacing.sm,
+                              child: const BleSidePanel(),
+                            ),
                             Expanded(
                               child: Column(
                                 children: [
@@ -229,13 +228,12 @@ class _BleConsoleViewState extends State<BleConsoleView> {
                                 ],
                               ),
                             ),
-                            if (chrome.toolsVisible) ...[
-                              const SizedBox(width: AppSpacing.sm),
-                              const SizedBox(
-                                width: SerialMetrics.tools,
-                                child: BleToolsPanel(),
-                              ),
-                            ],
+                            SerialFoldPane(
+                              visible: chrome.toolsVisible,
+                              width: SerialMetrics.tools,
+                              gapBefore: AppSpacing.sm,
+                              child: const BleToolsPanel(),
+                            ),
                           ],
                         ),
                       ),
@@ -243,12 +241,13 @@ class _BleConsoleViewState extends State<BleConsoleView> {
                     const BleStatusBar(),
                   ],
                 ),
-                if (_toast != null)
-                  Positioned(
-                    right: AppSpacing.lg,
-                    bottom: SerialMetrics.statusBar + AppSpacing.md,
-                    child: _Toast(notice: _toast!),
-                  ),
+                SerialNoticeOverlay(
+                  visible: _toast != null,
+                  text: _toast == null
+                      ? ''
+                      : bleNoticeText(Translations.of(context), _toast!),
+                  warn: _toast?.warn ?? false,
+                ),
               ],
             );
           },
@@ -266,32 +265,3 @@ String _tabLabel(Translations t, ToolTab tab) => switch (tab) {
   ToolTab.script => t.serial.tab.script,
   ToolTab.calc => t.serial.tab.quick,
 };
-
-class _Toast extends StatelessWidget {
-  const _Toast({required this.notice});
-
-  final BleNotice notice;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = SerialPalette.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: notice.warn ? palette.off : palette.field,
-      elevation: 8,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        child: Text(
-          bleNoticeText(Translations.of(context), notice),
-          style: AppTextStyles.body(cs).copyWith(
-            color: notice.warn ? Colors.white : palette.text,
-          ),
-        ),
-      ),
-    );
-  }
-}

@@ -38,6 +38,9 @@ abstract final class SerialMetrics {
   static const int filePreviewBytes = 256;
   static const int minLoopMs = 10;
   static const int splitHintMs = 8;
+  static const Duration motion = Duration(milliseconds: 150);
+  static const Curve motionCurve = Curves.easeOut;
+  static const Duration toastHold = Duration(milliseconds: 1900);
 
   static const baudRates = [
     1200,

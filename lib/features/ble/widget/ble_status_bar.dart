@@ -81,6 +81,34 @@ class BleStatusBar extends StatelessWidget {
                         ),
                         _Cell(child: _Count('RX', state.rxCount, palette, cs)),
                         _Cell(child: _Count('TX', state.txCount, palette, cs)),
+                        _Cell(
+                          child: TextButton(
+                            onPressed: context
+                                .read<BleConsoleCubit>()
+                                .resetCounters,
+                            style: TextButton.styleFrom(
+                              foregroundColor: palette.accent,
+                              minimumSize: Size.zero,
+                              padding: EdgeInsets.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              textStyle: AppTextStyles.caption(cs),
+                            ),
+                            child: Text(t.serial.status.reset),
+                          ),
+                        ),
+                        _Cell(
+                          child: Text(
+                            t.serial.status.reply(
+                              enabled: state.rules
+                                  .where((rule) => rule.enabled)
+                                  .length,
+                              total: state.rules.length,
+                            ),
+                            style: AppTextStyles.caption(
+                              cs,
+                            ).copyWith(color: palette.muted),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -107,9 +135,8 @@ class BleStatusBar extends StatelessWidget {
   }
 }
 
-String _writeLabel(BleWriteType type) => type == BleWriteType.withResponse
-    ? 'With Response'
-    : 'Without Response';
+String _writeLabel(BleWriteType type) =>
+    type == BleWriteType.withResponse ? 'With Response' : 'Without Response';
 
 class _Count extends StatelessWidget {
   const _Count(this.label, this.value, this.palette, this.cs);
@@ -161,11 +188,7 @@ class _Cell extends StatelessWidget {
         ),
       ),
       child: last
-          ? Align(
-              alignment: Alignment.centerLeft,
-              widthFactor: 1,
-              child: child,
-            )
+          ? Align(alignment: Alignment.centerLeft, widthFactor: 1, child: child)
           : child,
     );
   }

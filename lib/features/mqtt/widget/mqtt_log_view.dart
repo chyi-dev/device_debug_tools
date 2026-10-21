@@ -6,6 +6,7 @@ import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../../serial/data/serial_stamp.dart';
 import '../../serial/serial_metrics.dart';
+import '../../serial/widget/serial_chrome.dart';
 import '../cubit/mqtt_console_state.dart';
 import '../model/mqtt_models.dart';
 
@@ -84,34 +85,20 @@ class _MqttLogViewState extends State<MqttLogView> {
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   t.mqtt.log.records(count: widget.state.lines.length),
-                  style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
+                  style: AppTextStyles.caption(
+                    cs,
+                  ).copyWith(color: palette.muted),
                 ),
                 const Spacer(),
-                SizedBox(
-                  width: SerialMetrics.searchWidth,
-                  child: TextField(
-                    focusNode: widget.searchFocus,
-                    onChanged: widget.onSearch,
-                    style: AppTextStyles.caption(cs).copyWith(color: palette.text),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: t.mqtt.log.search,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          SerialMetrics.controlRadius,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 6,
-                      ),
-                    ),
-                  ),
+                SerialSearchField(
+                  focusNode: widget.searchFocus,
+                  hint: t.mqtt.log.search,
+                  onChanged: widget.onSearch,
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                TextButton(
+                SerialLinkButton(
+                  label: t.mqtt.compose.clear,
                   onPressed: widget.onClear,
-                  child: Text(t.common.delete),
                 ),
               ],
             ),
@@ -129,12 +116,14 @@ class _MqttLogViewState extends State<MqttLogView> {
                       ),
                     ),
                   )
-                : ListView.builder(
-                    controller: _scroll,
-                    padding: const EdgeInsets.all(AppSpacing.sm),
-                    itemCount: visible.length,
-                    itemBuilder: (context, index) =>
-                        _entry(visible[index], palette, cs),
+                : RepaintBoundary(
+                    child: ListView.builder(
+                      controller: _scroll,
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      itemCount: visible.length,
+                      itemBuilder: (context, index) =>
+                          _entry(visible[index], palette, cs),
+                    ),
                   ),
           ),
         ],

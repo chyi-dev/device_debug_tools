@@ -9,6 +9,7 @@ import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
 import '../../serial/widget/serial_chrome.dart';
 import '../../serial/widget/serial_dialog.dart';
+import '../../serial/widget/serial_editors.dart';
 import '../cubit/mqtt_console_cubit.dart';
 import '../cubit/mqtt_console_state.dart';
 import '../model/mqtt_models.dart';
@@ -38,10 +39,7 @@ class MqttToolsPanel extends StatelessWidget {
                   t.serial.tab.quick,
                   style: AppTextStyles.caption(
                     Theme.of(context).colorScheme,
-                  ).copyWith(
-                    color: palette.text,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -59,7 +57,6 @@ class _QuickList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    final palette = SerialPalette.of(context);
     return BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
       buildWhen: (a, b) =>
           a.quick != b.quick ||
@@ -70,96 +67,58 @@ class _QuickList extends StatelessWidget {
         final cubit = context.read<MqttConsoleCubit>();
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      t.mqtt.quick.bar,
-                      style: AppTextStyles.caption(
-                        Theme.of(context).colorScheme,
-                      ).copyWith(color: palette.muted),
-                    ),
-                  ),
-                  SerialButton(
-                    label: t.common.add,
-                    small: true,
-                    onPressed: () async {
-                      final item = await _editQuick(context);
-                      if (item != null) cubit.saveQuick(item);
-                    },
-                  ),
-                ],
-              ),
+            SerialToolBar(
+              note: t.mqtt.quick.bar,
+              actions: [
+                SerialButton(
+                  label: t.common.add,
+                  small: true,
+                  onPressed: () async {
+                    final item = await _editQuick(context);
+                    if (item != null) cubit.saveQuick(item);
+                  },
+                ),
+              ],
             ),
             Expanded(
               child: ListView(
                 children: [
                   for (final item in state.quick)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
+                    SerialItemRow(
+                      leading: SerialButton(
+                        label: t.mqtt.quick.publish,
+                        small: true,
+                        primary: true,
+                        onPressed: () => cubit.publishQuick(item.id),
                       ),
-                      child: Row(
-                        children: [
-                          SerialButton(
-                            label: t.mqtt.quick.publish,
-                            small: true,
-                            primary: true,
-                            onPressed: () => cubit.publishQuick(item.id),
+                      title: item.name,
+                      detail: item.inherit
+                          ? '${item.data} · ${t.mqtt.quick.inheritLabel(topic: state.pubTopic, qos: state.pubQos)}'
+                          : '${item.data} · ${item.topic} · QoS ${item.qos}',
+                      trailing: [
+                        if (item.key.isNotEmpty) SerialKeyChip(item.key),
+                      ],
+                      menu: [
+                        SerialMenuAction(
+                          label: t.mqtt.quick.kOverride,
+                          onTap: () async {
+                            final next = await _editQuick(
+                              context,
+                              initial: item,
+                            );
+                            if (next != null) cubit.saveQuick(next);
+                          },
+                        ),
+                        SerialMenuAction(
+                          label: t.common.delete,
+                          danger: true,
+                          onTap: () => showSerialDelete(
+                            context,
+                            message: item.name,
+                            onDelete: () => cubit.deleteQuick(item.id),
                           ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${item.name} ${item.key}',
-                                  style: AppTextStyles.caption(
-                                    Theme.of(context).colorScheme,
-                                  ).copyWith(
-                                    color: palette.text,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Text(
-                                  item.data,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.mono(
-                                    Theme.of(context).colorScheme,
-                                    fontSize: 12,
-                                    color: palette.muted,
-                                  ),
-                                ),
-                                Text(
-                                  item.inherit
-                                      ? t.mqtt.quick.inheritLabel(
-                                          topic: state.pubTopic,
-                                          qos: state.pubQos,
-                                        )
-                                      : '${item.topic} · QoS ${item.qos}',
-                                  style: AppTextStyles.caption(
-                                    Theme.of(context).colorScheme,
-                                  ).copyWith(color: palette.muted),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SerialLinkButton(
-                            label: t.mqtt.quick.kOverride,
-                            onPressed: () async {
-                              final next = await _editQuick(
-                                context,
-                                initial: item,
-                              );
-                              if (next != null) cubit.saveQuick(next);
-                            },
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                 ],
               ),
@@ -222,7 +181,11 @@ class _QuickFormState extends State<_QuickForm> {
         children: [
           SerialField(controller: _name, hint: t.mqtt.pubs.name),
           const SizedBox(height: AppSpacing.sm),
-          SerialField(controller: _data, hint: t.mqtt.compose.payload, mono: true),
+          SerialField(
+            controller: _data,
+            hint: t.mqtt.compose.payload,
+            mono: true,
+          ),
           const SizedBox(height: AppSpacing.sm),
           SerialDropdown<String>(
             value: _key,
@@ -269,7 +232,9 @@ class _QuickFormState extends State<_QuickForm> {
               context,
               MqttQuickCommand(
                 id: widget.initial?.id ?? newSerialId('q'),
-                name: _name.text.trim().isEmpty ? _data.text : _name.text.trim(),
+                name: _name.text.trim().isEmpty
+                    ? _data.text
+                    : _name.text.trim(),
                 data: _data.text,
                 key: _key,
                 inherit: _inherit,

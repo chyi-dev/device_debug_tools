@@ -5,13 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../cubit/serial_console_cubit.dart';
 import '../cubit/serial_console_state.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
+import '../widget/serial_chrome.dart';
 import '../widget/serial_config_dialog.dart';
 import '../widget/serial_editors.dart';
 import '../widget/serial_l10n.dart';
@@ -135,7 +135,7 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
   void _showToast(SerialNotice notice) {
     _toastTimer?.cancel();
     setState(() => _toast = notice);
-    _toastTimer = Timer(const Duration(milliseconds: 1900), () {
+    _toastTimer = Timer(SerialMetrics.toastHold, () {
       if (mounted) setState(() => _toast = null);
     });
   }
@@ -249,50 +249,16 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                     const SerialStatusBar(),
                   ],
                 ),
-                if (_toast != null)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 44,
-                    child: IgnorePointer(
-                      child: Center(child: _Toast(notice: _toast!)),
-                    ),
-                  ),
+                SerialNoticeOverlay(
+                  visible: _toast != null,
+                  text: _toast == null
+                      ? ''
+                      : serialNoticeText(Translations.of(context), _toast!),
+                  warn: _toast?.warn ?? false,
+                ),
               ],
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _Toast extends StatelessWidget {
-  const _Toast({required this.notice});
-
-  final SerialNotice notice;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final palette = SerialPalette.of(context);
-    final bg = notice.warn ? palette.off : palette.text;
-    final fg = notice.warn ? Colors.white : palette.win;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm + 1,
-        ),
-        child: Text(
-          serialNoticeText(t, notice),
-          style: AppTextStyles.body(
-            Theme.of(context).colorScheme,
-          ).copyWith(color: fg),
         ),
       ),
     );

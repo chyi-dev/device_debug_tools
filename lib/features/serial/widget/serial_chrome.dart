@@ -62,6 +62,38 @@ class SerialGroup extends StatelessWidget {
   }
 }
 
+class SerialFieldRow extends StatelessWidget {
+  const SerialFieldRow({super.key, required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: SerialMetrics.formGap),
+      child: Row(
+        children: [
+          SizedBox(
+            width: SerialMetrics.labelCol,
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption(
+                Theme.of(context).colorScheme,
+              ).copyWith(color: palette.muted, fontSize: 13),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+}
+
 class SerialButton extends StatelessWidget {
   const SerialButton({
     super.key,
@@ -439,7 +471,9 @@ class SerialLamp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: SerialMetrics.motion,
+      curve: SerialMetrics.motionCurve,
       width: size,
       height: size,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
@@ -459,7 +493,8 @@ class SerialSwitch extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: SerialMetrics.motion,
+        curve: SerialMetrics.motionCurve,
         width: 32,
         height: 18,
         decoration: BoxDecoration(
@@ -467,7 +502,8 @@ class SerialSwitch extends StatelessWidget {
           borderRadius: BorderRadius.circular(9),
         ),
         child: AnimatedAlign(
-          duration: const Duration(milliseconds: 150),
+          duration: SerialMetrics.motion,
+          curve: SerialMetrics.motionCurve,
           alignment: on ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
             width: 14,
@@ -665,6 +701,347 @@ class _HoverSurfaceState extends State<HoverSurface> {
         child: ColoredBox(
           color: widget.color ?? (_hover ? palette.hover : Colors.transparent),
           child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
+class SerialFoldPane extends StatelessWidget {
+  const SerialFoldPane({
+    super.key,
+    required this.visible,
+    required this.width,
+    required this.child,
+    this.gapBefore = 0,
+    this.gapAfter = 0,
+  });
+
+  final bool visible;
+  final double width;
+  final Widget child;
+  final double gapBefore;
+  final double gapAfter;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = width + gapBefore + gapAfter;
+    return ClipRect(
+      child: AnimatedAlign(
+        duration: SerialMetrics.motion,
+        curve: SerialMetrics.motionCurve,
+        alignment: gapAfter > 0 ? Alignment.centerLeft : Alignment.centerRight,
+        widthFactor: visible ? 1 : 0,
+        heightFactor: 1,
+        child: SizedBox(
+          width: total,
+          child: Row(
+            children: [
+              if (gapBefore > 0) SizedBox(width: gapBefore),
+              SizedBox(width: width, child: child),
+              if (gapAfter > 0) SizedBox(width: gapAfter),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SerialItemRow extends StatelessWidget {
+  const SerialItemRow({
+    super.key,
+    required this.leading,
+    required this.title,
+    required this.detail,
+    this.trailing = const [],
+    this.monoTitle = false,
+    this.indent = false,
+    this.menu,
+    this.color,
+  });
+
+  final Widget leading;
+  final String title;
+  final String detail;
+  final List<Widget> trailing;
+  final bool monoTitle;
+  final bool indent;
+  final List<SerialMenuAction>? menu;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final menu = this.menu;
+    final row = HoverSurface(
+      color: color,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.sm + 2 + (indent ? AppSpacing.lg : 0),
+          AppSpacing.sm,
+          AppSpacing.sm + 2,
+          AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: palette.line2)),
+        ),
+        child: Row(
+          children: [
+            leading,
+            const SizedBox(width: AppSpacing.sm + 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: monoTitle
+                        ? AppTextStyles.mono(
+                            cs,
+                            fontSize: 13,
+                            color: palette.text,
+                          )
+                        : AppTextStyles.body(cs).copyWith(
+                            color: palette.text,
+                            fontWeight: FontWeight.w600,
+                          ),
+                  ),
+                  Text(
+                    detail,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.mono(
+                      cs,
+                      fontSize: 12,
+                      color: palette.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...trailing,
+          ],
+        ),
+      ),
+    );
+    return menu == null ? row : SerialContextMenu(menu: menu, child: row);
+  }
+}
+
+class SerialKeyChip extends StatelessWidget {
+  const SerialKeyChip(this.label, {super.key});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    return Container(
+      margin: const EdgeInsets.only(right: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        border: Border.all(color: palette.line),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.mono(
+          Theme.of(context).colorScheme,
+          fontSize: 12,
+          color: palette.muted,
+        ),
+      ),
+    );
+  }
+}
+
+class SerialSectionLabel extends StatelessWidget {
+  const SerialSectionLabel(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.xs),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: AppTextStyles.caption(Theme.of(context).colorScheme).copyWith(
+          color: palette.muted,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+}
+
+class SerialToolBar extends StatelessWidget {
+  const SerialToolBar({super.key, required this.note, this.actions = const []});
+
+  final String note;
+  final List<Widget> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: palette.line2)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              note,
+              style: AppTextStyles.caption(
+                Theme.of(context).colorScheme,
+              ).copyWith(color: palette.muted),
+            ),
+          ),
+          for (final action in actions) ...[
+            const SizedBox(width: AppSpacing.xs + 2),
+            action,
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class SerialSearchField extends StatelessWidget {
+  const SerialSearchField({
+    super.key,
+    required this.focusNode,
+    required this.hint,
+    required this.onChanged,
+  });
+
+  final FocusNode focusNode;
+  final String hint;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: SerialMetrics.searchWidth,
+      child: TextField(
+        focusNode: focusNode,
+        onChanged: onChanged,
+        style: AppTextStyles.body(
+          cs,
+        ).copyWith(color: palette.text, fontSize: 13, height: 1),
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: hint,
+          hintStyle: AppTextStyles.body(
+            cs,
+          ).copyWith(color: palette.muted, fontSize: 13, height: 1),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.sm,
+          ),
+          filled: true,
+          fillColor: palette.field,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
+            borderSide: BorderSide(color: palette.line),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
+            borderSide: BorderSide(color: palette.line),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SerialNoticeToast extends StatelessWidget {
+  const SerialNoticeToast({super.key, required this.text, required this.warn});
+
+  final String text;
+  final bool warn;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final bg = warn ? palette.off : palette.text;
+    final fg = warn ? Colors.white : palette.win;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm + 1,
+        ),
+        child: Text(
+          text,
+          style: AppTextStyles.body(
+            Theme.of(context).colorScheme,
+          ).copyWith(color: fg),
+        ),
+      ),
+    );
+  }
+}
+
+class SerialNoticeOverlay extends StatelessWidget {
+  const SerialNoticeOverlay({
+    super.key,
+    required this.visible,
+    required this.text,
+    required this.warn,
+  });
+
+  final bool visible;
+  final String text;
+  final bool warn;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: SerialMetrics.statusBar + AppSpacing.md,
+      child: IgnorePointer(
+        child: Center(
+          child: AnimatedSwitcher(
+            duration: SerialMetrics.motion,
+            switchInCurve: SerialMetrics.motionCurve,
+            switchOutCurve: SerialMetrics.motionCurve,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: AnimatedBuilder(
+                  animation: animation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 8 * (1 - animation.value)),
+                      child: child,
+                    );
+                  },
+                  child: child,
+                ),
+              );
+            },
+            child: visible
+                ? SerialNoticeToast(key: ValueKey(text), text: text, warn: warn)
+                : const SizedBox.shrink(key: ValueKey('empty')),
+          ),
         ),
       ),
     );

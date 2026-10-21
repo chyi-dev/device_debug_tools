@@ -63,6 +63,21 @@ class MqttStatusBar extends StatelessWidget {
                         _Cell(child: _Count('RX', state.rxCount, palette, cs)),
                         _Cell(child: _Count('TX', state.txCount, palette, cs)),
                         _Cell(
+                          child: TextButton(
+                            onPressed: context
+                                .read<MqttConsoleCubit>()
+                                .resetCounters,
+                            style: TextButton.styleFrom(
+                              foregroundColor: palette.accent,
+                              minimumSize: Size.zero,
+                              padding: EdgeInsets.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              textStyle: AppTextStyles.caption(cs),
+                            ),
+                            child: Text(t.serial.status.reset),
+                          ),
+                        ),
+                        _Cell(
                           child: Text(
                             t.mqtt.status.subs(count: state.subs.length),
                             style: AppTextStyles.caption(
@@ -146,11 +161,7 @@ class _Cell extends StatelessWidget {
         ),
       ),
       child: last
-          ? Align(
-              alignment: Alignment.centerLeft,
-              widthFactor: 1,
-              child: child,
-            )
+          ? Align(alignment: Alignment.centerLeft, widthFactor: 1, child: child)
           : child,
     );
   }

@@ -373,6 +373,10 @@ class MqttConsoleCubit extends Cubit<MqttConsoleState> {
     _notify(MqttNoticeKind.cleared, toast: true);
   }
 
+  void resetCounters() {
+    emit(state.copyWith(rxCount: 0, txCount: 0));
+  }
+
   Future<void> saveLog() async {
     final path = await _repo.pickSave(
       suggestedName: 'mqtt_${fileStamp(DateTime.now())}.txt',

@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../../home/widget/workbench_menu_bar.dart';
 import '../../serial/serial_metrics.dart';
+import '../../serial/widget/serial_chrome.dart';
 import '../../serial/widget/serial_editors.dart';
 import '../cubit/mqtt_console_cubit.dart';
 import '../cubit/mqtt_console_state.dart';
@@ -125,7 +125,7 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
   void _showToast(MqttNotice notice) {
     _toastTimer?.cancel();
     setState(() => _toast = notice);
-    _toastTimer = Timer(const Duration(milliseconds: 1900), () {
+    _toastTimer = Timer(SerialMetrics.toastHold, () {
       if (mounted) setState(() => _toast = null);
     });
   }
@@ -184,13 +184,12 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         child: Row(
                           children: [
-                            if (!chrome.compact) ...[
-                              const SizedBox(
-                                width: SerialMetrics.sidebar,
-                                child: MqttSidePanel(),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                            ],
+                            SerialFoldPane(
+                              visible: !chrome.compact,
+                              width: SerialMetrics.sidebar,
+                              gapAfter: AppSpacing.sm,
+                              child: const MqttSidePanel(),
+                            ),
                             Expanded(
                               child: Column(
                                 children: [
@@ -220,13 +219,12 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                                 ],
                               ),
                             ),
-                            if (chrome.toolsVisible) ...[
-                              const SizedBox(width: AppSpacing.sm),
-                              const SizedBox(
-                                width: SerialMetrics.tools,
-                                child: MqttToolsPanel(),
-                              ),
-                            ],
+                            SerialFoldPane(
+                              visible: chrome.toolsVisible,
+                              width: SerialMetrics.tools,
+                              gapBefore: AppSpacing.sm,
+                              child: const MqttToolsPanel(),
+                            ),
                           ],
                         ),
                       ),
@@ -234,31 +232,11 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                     const MqttStatusBar(),
                   ],
                 ),
-                if (_toast != null)
-                  Positioned(
-                    right: AppSpacing.lg,
-                    bottom: SerialMetrics.statusBar + AppSpacing.md,
-                    child: Material(
-                      color: _toast!.warn ? palette.off : palette.field,
-                      elevation: 8,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.sm,
-                        ),
-                        child: Text(
-                          mqttNoticeText(t, _toast!),
-                          style: AppTextStyles.body(Theme.of(context).colorScheme)
-                              .copyWith(
-                                color: _toast!.warn
-                                    ? Colors.white
-                                    : palette.text,
-                              ),
-                        ),
-                      ),
-                    ),
-                  ),
+                SerialNoticeOverlay(
+                  visible: _toast != null,
+                  text: _toast == null ? '' : mqttNoticeText(t, _toast!),
+                  warn: _toast?.warn ?? false,
+                ),
               ],
             );
           },

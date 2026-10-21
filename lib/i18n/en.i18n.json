@@ -657,6 +657,11 @@
     "disconnect": "Disconnect",
     "expand": "Show connection settings",
     "collapse": "Hide connection settings",
+    "section": {
+      "session": "Session",
+      "tls": "TLS",
+      "will": "Will"
+    },
     "version": "Version",
     "clientId": "Client ID",
     "username": "Username",

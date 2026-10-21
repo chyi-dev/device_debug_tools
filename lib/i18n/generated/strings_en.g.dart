@@ -203,6 +203,7 @@ class _Translations$mqtt$en extends Translations$mqtt$zh {
 	@override String get disconnect => 'Disconnect';
 	@override String get expand => 'Show connection settings';
 	@override String get collapse => 'Hide connection settings';
+	@override late final _Translations$mqtt$section$en section = _Translations$mqtt$section$en._(_root);
 	@override String get version => 'Version';
 	@override String get clientId => 'Client ID';
 	@override String get username => 'Username';
@@ -967,6 +968,18 @@ class _Translations$ble$notice$en extends Translations$ble$notice$zh {
 	@override String get batchSaved => 'Batch job saved';
 	@override String get scriptSaved => 'Script saved';
 	@override String get closedSend => 'BLE is not connected, send blocked';
+}
+
+// Path: mqtt.section
+class _Translations$mqtt$section$en extends Translations$mqtt$section$zh {
+	_Translations$mqtt$section$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get session => 'Session';
+	@override String get tls => 'TLS';
+	@override String get will => 'Will';
 }
 
 // Path: mqtt.subs
@@ -1844,6 +1857,9 @@ extension on TranslationsEn {
 			'mqtt.disconnect' => 'Disconnect',
 			'mqtt.expand' => 'Show connection settings',
 			'mqtt.collapse' => 'Hide connection settings',
+			'mqtt.section.session' => 'Session',
+			'mqtt.section.tls' => 'TLS',
+			'mqtt.section.will' => 'Will',
 			'mqtt.version' => 'Version',
 			'mqtt.clientId' => 'Client ID',
 			'mqtt.username' => 'Username',

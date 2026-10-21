@@ -515,6 +515,10 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
     _notify(BleNoticeKind.recvCleared, toast: true);
   }
 
+  void resetCounters() {
+    emit(state.copyWith(rxCount: 0, txCount: 0));
+  }
+
   Future<void> saveLog() async {
     final path = await _repo.pickSave(
       suggestedName: 'ble_${fileStamp(DateTime.now())}.txt',

@@ -657,6 +657,11 @@
     "disconnect": "断开",
     "expand": "展开连接设置",
     "collapse": "收起连接设置",
+    "section": {
+      "session": "会话",
+      "tls": "TLS",
+      "will": "遗嘱"
+    },
     "version": "版本",
     "clientId": "Client ID",
     "username": "用户名",

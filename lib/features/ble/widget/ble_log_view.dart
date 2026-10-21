@@ -8,6 +8,7 @@ import '../../serial/data/serial_bytes.dart';
 import '../../serial/data/serial_stamp.dart';
 import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
+import '../../serial/widget/serial_chrome.dart';
 import '../cubit/ble_console_state.dart';
 import '../model/ble_models.dart';
 
@@ -84,39 +85,15 @@ class _BleLogViewState extends State<BleLogView> {
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   t.ble.log.records(count: widget.state.lines.length),
-                  style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
+                  style: AppTextStyles.caption(
+                    cs,
+                  ).copyWith(color: palette.muted),
                 ),
                 const Spacer(),
-                SizedBox(
-                  width: SerialMetrics.searchWidth,
-                  child: TextField(
-                    focusNode: widget.searchFocus,
-                    onChanged: widget.onSearch,
-                    style: AppTextStyles.caption(cs).copyWith(color: palette.text),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: t.ble.log.search,
-                      hintStyle: AppTextStyles.caption(
-                        cs,
-                      ).copyWith(color: palette.muted),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          SerialMetrics.controlRadius,
-                        ),
-                        borderSide: BorderSide(color: palette.line),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          SerialMetrics.controlRadius,
-                        ),
-                        borderSide: BorderSide(color: palette.line),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 6,
-                      ),
-                    ),
-                  ),
+                SerialSearchField(
+                  focusNode: widget.searchFocus,
+                  hint: t.ble.log.search,
+                  onChanged: widget.onSearch,
                 ),
               ],
             ),
@@ -134,13 +111,15 @@ class _BleLogViewState extends State<BleLogView> {
                       ),
                     ),
                   )
-                : ListView.builder(
-                    controller: _scroll,
-                    padding: const EdgeInsets.all(AppSpacing.sm),
-                    itemCount: visible.length,
-                    itemBuilder: (context, index) {
-                      return _entry(visible[index], t, palette, cs);
-                    },
+                : RepaintBoundary(
+                    child: ListView.builder(
+                      controller: _scroll,
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      itemCount: visible.length,
+                      itemBuilder: (context, index) {
+                        return _entry(visible[index], t, palette, cs);
+                      },
+                    ),
                   ),
           ),
         ],
@@ -183,7 +162,12 @@ class _BleLogViewState extends State<BleLogView> {
           TextSpan(text: '$head$tag ${t.serial.mark.hex}>\n', style: headStyle),
           TextSpan(
             text: SerialBytes.toHex(line.bytes ?? const []),
-            style: AppTextStyles.mono(cs, fontSize: 14, height: 1.6, color: color),
+            style: AppTextStyles.mono(
+              cs,
+              fontSize: 14,
+              height: 1.6,
+              color: color,
+            ),
           ),
           const TextSpan(text: '\n'),
         ],

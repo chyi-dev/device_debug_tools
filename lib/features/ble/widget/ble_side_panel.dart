@@ -77,8 +77,20 @@ class _DeviceGroup extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   SerialButton(
-                    label: state.scanning ? t.ble.scan.scanning : t.ble.scan.scan,
+                    label: state.scanning
+                        ? t.ble.scan.scanning
+                        : t.ble.scan.scan,
                     small: true,
+                    leading: state.scanning
+                        ? SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              color: palette.accent,
+                            ),
+                          )
+                        : null,
                     onPressed: state.scanning ? null : cubit.scan,
                   ),
                 ],
@@ -109,7 +121,10 @@ class _DeviceGroup extends StatelessWidget {
                       : ListView(
                           children: [
                             for (final device in list)
-                              InkWell(
+                              HoverSurface(
+                                color: device.id == state.selectedId
+                                    ? palette.hover
+                                    : null,
                                 onTap: state.connected
                                     ? null
                                     : () => cubit.selectDevice(device.id),
@@ -127,15 +142,22 @@ class _DeviceGroup extends StatelessWidget {
                                           children: [
                                             Text(
                                               device.label,
-                                              style: AppTextStyles.caption(
-                                                Theme.of(context).colorScheme,
-                                              ).copyWith(
-                                                color: palette.text,
-                                                fontWeight: FontWeight.w600,
-                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  AppTextStyles.caption(
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme,
+                                                  ).copyWith(
+                                                    color: palette.text,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
                                             ),
                                             Text(
                                               device.address,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                               style: AppTextStyles.mono(
                                                 Theme.of(context).colorScheme,
                                                 fontSize: 12,
@@ -145,12 +167,13 @@ class _DeviceGroup extends StatelessWidget {
                                           ],
                                         ),
                                       ),
-                                      if (device.id == state.selectedId)
-                                        Icon(
-                                          Icons.check,
-                                          size: 16,
-                                          color: palette.accent,
-                                        ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Text(
+                                        '${device.rssi}',
+                                        style: AppTextStyles.caption(
+                                          Theme.of(context).colorScheme,
+                                        ).copyWith(color: palette.muted),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -228,62 +251,99 @@ class _PinGroup extends StatelessWidget {
                     onTap: () => cubit.toggleService(service.uuid),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text(
-                        '${service.expanded ? '▾' : '▸'} ${service.title}',
-                        style: AppTextStyles.caption(
-                          Theme.of(context).colorScheme,
-                        ).copyWith(
-                          color: palette.text,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Row(
+                        children: [
+                          AnimatedRotation(
+                            turns: service.expanded ? 0.25 : 0,
+                            duration: SerialMetrics.motion,
+                            curve: SerialMetrics.motionCurve,
+                            child: Icon(
+                              Icons.chevron_right,
+                              size: 16,
+                              color: palette.muted,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          Expanded(
+                            child: Text(
+                              service.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  AppTextStyles.caption(
+                                    Theme.of(context).colorScheme,
+                                  ).copyWith(
+                                    color: palette.text,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  if (service.expanded)
-                    for (final char in service.characteristics)
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: AppSpacing.md,
-                          bottom: AppSpacing.xs,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                char.title,
-                                style: AppTextStyles.caption(
-                                  Theme.of(context).colorScheme,
-                                ).copyWith(color: palette.text),
-                              ),
-                            ),
-                            if (char.pinNotify)
-                              SerialButton(
-                                label:
-                                    state.pinNotify?.uuid == char.uuid
-                                    ? t.ble.pin.pinnedNotify
-                                    : t.ble.pin.pinNotify,
-                                small: true,
-                                accent: state.pinNotify?.uuid == char.uuid,
-                                onPressed: () => cubit.pinNotify(char),
-                              ),
-                            if (char.pinWrite) ...[
-                              const SizedBox(width: AppSpacing.xs),
-                              SerialButton(
-                                label:
-                                    state.pinWrite?.uuid == char.uuid
-                                    ? t.ble.pin.pinnedWrite
-                                    : t.ble.pin.pinWrite,
-                                small: true,
-                                accent: state.pinWrite?.uuid == char.uuid,
-                                onPressed: () => cubit.pinWrite(char),
-                              ),
+                  AnimatedSize(
+                    duration: SerialMetrics.motion,
+                    curve: SerialMetrics.motionCurve,
+                    alignment: Alignment.topCenter,
+                    child: service.expanded
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (final char in service.characteristics)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    left: AppSpacing.md,
+                                    bottom: AppSpacing.xs,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          char.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: AppTextStyles.caption(
+                                            Theme.of(context).colorScheme,
+                                          ).copyWith(color: palette.text),
+                                        ),
+                                      ),
+                                      if (char.pinNotify)
+                                        SerialButton(
+                                          label:
+                                              state.pinNotify?.uuid == char.uuid
+                                              ? t.ble.pin.pinnedNotify
+                                              : t.ble.pin.pinNotify,
+                                          small: true,
+                                          accent:
+                                              state.pinNotify?.uuid ==
+                                              char.uuid,
+                                          onPressed: () =>
+                                              cubit.pinNotify(char),
+                                        ),
+                                      if (char.pinWrite) ...[
+                                        const SizedBox(width: AppSpacing.xs),
+                                        SerialButton(
+                                          label:
+                                              state.pinWrite?.uuid == char.uuid
+                                              ? t.ble.pin.pinnedWrite
+                                              : t.ble.pin.pinWrite,
+                                          small: true,
+                                          accent:
+                                              state.pinWrite?.uuid == char.uuid,
+                                          onPressed: () => cubit.pinWrite(char),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
                             ],
-                          ],
-                        ),
-                      ),
+                          )
+                        : const SizedBox(width: double.infinity),
+                  ),
                 ],
               const SizedBox(height: AppSpacing.sm),
-              _Field(
+              SerialFieldRow(
                 label: t.ble.writeType,
                 child: SerialDropdown<BleWriteType>(
                   value: state.writeType,
@@ -301,7 +361,7 @@ class _PinGroup extends StatelessWidget {
                   onChanged: cubit.setWriteType,
                 ),
               ),
-              _Field(
+              SerialFieldRow(
                 label: t.ble.mtu,
                 child: _CommitField(
                   value: '${state.mtu}',
@@ -309,7 +369,7 @@ class _PinGroup extends StatelessWidget {
                   onCommit: cubit.setMtu,
                 ),
               ),
-              _Field(
+              SerialFieldRow(
                 label: t.ble.chunk,
                 child: _CommitField(
                   value: '${state.chunkSize}',
@@ -424,36 +484,6 @@ class _CommitFieldState extends State<_CommitField> {
       onChanged: widget.onCommit,
       onSubmitted: widget.onCommit,
       onFocusLost: () => widget.onCommit(_controller.text),
-    );
-  }
-}
-
-class _Field extends StatelessWidget {
-  const _Field({required this.label, required this.child});
-
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = SerialPalette.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: SerialMetrics.formGap),
-      child: Row(
-        children: [
-          SizedBox(
-            width: SerialMetrics.labelCol,
-            child: Text(
-              label,
-              style: AppTextStyles.caption(
-                Theme.of(context).colorScheme,
-              ).copyWith(color: palette.muted, fontSize: 13),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: child),
-        ],
-      ),
     );
   }
 }

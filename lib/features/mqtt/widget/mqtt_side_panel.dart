@@ -40,6 +40,28 @@ class _ConnGroup extends StatelessWidget {
     final t = Translations.of(context);
     final palette = SerialPalette.of(context);
     return BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
+      buildWhen: (a, b) =>
+          a.host != b.host ||
+          a.port != b.port ||
+          a.connecting != b.connecting ||
+          a.connected != b.connected ||
+          a.settingsOpen != b.settingsOpen ||
+          a.version != b.version ||
+          a.clientId != b.clientId ||
+          a.username != b.username ||
+          a.password != b.password ||
+          a.tls != b.tls ||
+          a.caFile != b.caFile ||
+          a.clientCert != b.clientCert ||
+          a.clientKey != b.clientKey ||
+          a.keepAlive != b.keepAlive ||
+          a.sessionExpiry != b.sessionExpiry ||
+          a.cleanStart != b.cleanStart ||
+          a.autoReconnect != b.autoReconnect ||
+          a.willTopic != b.willTopic ||
+          a.willPayload != b.willPayload ||
+          a.willQos != b.willQos ||
+          a.willRetain != b.willRetain,
       builder: (context, state) {
         final cubit = context.read<MqttConsoleCubit>();
         return SerialGroup(
@@ -47,14 +69,14 @@ class _ConnGroup extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Field(
+              SerialFieldRow(
                 label: t.mqtt.host,
                 child: _CommitField(
                   value: state.host,
                   onCommit: (value) => cubit.patch(host: value),
                 ),
               ),
-              _Field(
+              SerialFieldRow(
                 label: t.mqtt.port,
                 child: _CommitField(
                   value: '${state.port}',
@@ -80,119 +102,138 @@ class _ConnGroup extends StatelessWidget {
                 label: state.settingsOpen ? t.mqtt.collapse : t.mqtt.expand,
                 onPressed: () => cubit.patch(settingsOpen: !state.settingsOpen),
               ),
-              if (state.settingsOpen) ...[
-                const SizedBox(height: AppSpacing.xs),
-                _Field(
-                  label: t.mqtt.version,
-                  child: SerialDropdown<MqttVersion>(
-                    value: state.version,
-                    items: const [
-                      (value: MqttVersion.v311, label: '3.1.1'),
-                      (value: MqttVersion.v5, label: '5.0'),
-                    ],
-                    onChanged: (value) => cubit.patch(version: value),
-                  ),
-                ),
-                _Field(
-                  label: t.mqtt.clientId,
-                  child: _CommitField(
-                    value: state.clientId,
-                    onCommit: (value) => cubit.patch(clientId: value),
-                  ),
-                ),
-                _Field(
-                  label: t.mqtt.username,
-                  child: _CommitField(
-                    value: state.username,
-                    onCommit: (value) => cubit.patch(username: value),
-                  ),
-                ),
-                _Field(
-                  label: t.mqtt.password,
-                  child: _CommitField(
-                    value: state.password,
-                    onCommit: (value) => cubit.patch(password: value),
-                  ),
-                ),
-                SerialCheck(
-                  label: t.mqtt.tls,
-                  value: state.tls,
-                  onChanged: (value) => cubit.patch(tls: value),
-                ),
-                _FileRow(
-                  label: t.mqtt.ca,
-                  value: mqttFileLabel(t, state.caFile),
-                  onPick: cubit.pickCa,
-                ),
-                _FileRow(
-                  label: t.mqtt.cert,
-                  value: mqttFileLabel(t, state.clientCert),
-                  onPick: cubit.pickCert,
-                ),
-                _FileRow(
-                  label: t.mqtt.key,
-                  value: mqttFileLabel(t, state.clientKey),
-                  onPick: cubit.pickKey,
-                ),
-                _Field(
-                  label: t.mqtt.keepAlive,
-                  child: _CommitField(
-                    value: '${state.keepAlive}',
-                    numeric: true,
-                    onCommit: (value) => cubit.patch(keepAlive: value),
-                  ),
-                ),
-                if (state.version == MqttVersion.v5)
-                  _Field(
-                    label: t.mqtt.sessionExpiry,
-                    child: _CommitField(
-                      value: '${state.sessionExpiry}',
-                      numeric: true,
-                      onCommit: (value) => cubit.patch(sessionExpiry: value),
-                    ),
-                  ),
-                SerialCheck(
-                  label: t.mqtt.cleanStart,
-                  value: state.cleanStart,
-                  onChanged: (value) => cubit.patch(cleanStart: value),
-                ),
-                SerialCheck(
-                  label: t.mqtt.autoReconnect,
-                  value: state.autoReconnect,
-                  onChanged: (value) => cubit.patch(autoReconnect: value),
-                ),
-                _Field(
-                  label: t.mqtt.willTopic,
-                  child: _CommitField(
-                    value: state.willTopic,
-                    onCommit: (value) => cubit.patch(willTopic: value),
-                  ),
-                ),
-                _Field(
-                  label: t.mqtt.willPayload,
-                  child: _CommitField(
-                    value: state.willPayload,
-                    onCommit: (value) => cubit.patch(willPayload: value),
-                  ),
-                ),
-                _Field(
-                  label: t.mqtt.willQos,
-                  child: SerialDropdown<int>(
-                    value: state.willQos,
-                    items: const [
-                      (value: 0, label: '0'),
-                      (value: 1, label: '1'),
-                      (value: 2, label: '2'),
-                    ],
-                    onChanged: (value) => cubit.patch(willQos: value),
-                  ),
-                ),
-                SerialCheck(
-                  label: t.mqtt.willRetain,
-                  value: state.willRetain,
-                  onChanged: (value) => cubit.patch(willRetain: value),
-                ),
-              ],
+              AnimatedSize(
+                duration: SerialMetrics.motion,
+                curve: SerialMetrics.motionCurve,
+                alignment: Alignment.topCenter,
+                child: state.settingsOpen
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SerialSectionLabel(t.mqtt.section.session),
+                          SerialFieldRow(
+                            label: t.mqtt.version,
+                            child: SerialDropdown<MqttVersion>(
+                              value: state.version,
+                              items: const [
+                                (value: MqttVersion.v311, label: '3.1.1'),
+                                (value: MqttVersion.v5, label: '5.0'),
+                              ],
+                              onChanged: (value) => cubit.patch(version: value),
+                            ),
+                          ),
+                          SerialFieldRow(
+                            label: t.mqtt.clientId,
+                            child: _CommitField(
+                              value: state.clientId,
+                              onCommit: (value) => cubit.patch(clientId: value),
+                            ),
+                          ),
+                          SerialFieldRow(
+                            label: t.mqtt.username,
+                            child: _CommitField(
+                              value: state.username,
+                              onCommit: (value) => cubit.patch(username: value),
+                            ),
+                          ),
+                          SerialFieldRow(
+                            label: t.mqtt.password,
+                            child: _CommitField(
+                              value: state.password,
+                              onCommit: (value) => cubit.patch(password: value),
+                            ),
+                          ),
+                          SerialFieldRow(
+                            label: t.mqtt.keepAlive,
+                            child: _CommitField(
+                              value: '${state.keepAlive}',
+                              numeric: true,
+                              onCommit: (value) =>
+                                  cubit.patch(keepAlive: value),
+                            ),
+                          ),
+                          if (state.version == MqttVersion.v5)
+                            SerialFieldRow(
+                              label: t.mqtt.sessionExpiry,
+                              child: _CommitField(
+                                value: '${state.sessionExpiry}',
+                                numeric: true,
+                                onCommit: (value) =>
+                                    cubit.patch(sessionExpiry: value),
+                              ),
+                            ),
+                          SerialCheck(
+                            label: t.mqtt.cleanStart,
+                            value: state.cleanStart,
+                            onChanged: (value) =>
+                                cubit.patch(cleanStart: value),
+                          ),
+                          SerialCheck(
+                            label: t.mqtt.autoReconnect,
+                            value: state.autoReconnect,
+                            onChanged: (value) =>
+                                cubit.patch(autoReconnect: value),
+                          ),
+                          SerialSectionLabel(t.mqtt.section.tls),
+                          SerialCheck(
+                            label: t.mqtt.tls,
+                            value: state.tls,
+                            onChanged: (value) => cubit.patch(tls: value),
+                          ),
+                          _FileRow(
+                            label: t.mqtt.ca,
+                            value: mqttFileLabel(t, state.caFile),
+                            onPick: cubit.pickCa,
+                          ),
+                          _FileRow(
+                            label: t.mqtt.cert,
+                            value: mqttFileLabel(t, state.clientCert),
+                            onPick: cubit.pickCert,
+                          ),
+                          _FileRow(
+                            label: t.mqtt.key,
+                            value: mqttFileLabel(t, state.clientKey),
+                            onPick: cubit.pickKey,
+                          ),
+                          SerialSectionLabel(t.mqtt.section.will),
+                          SerialFieldRow(
+                            label: t.mqtt.willTopic,
+                            child: _CommitField(
+                              value: state.willTopic,
+                              onCommit: (value) =>
+                                  cubit.patch(willTopic: value),
+                            ),
+                          ),
+                          SerialFieldRow(
+                            label: t.mqtt.willPayload,
+                            child: _CommitField(
+                              value: state.willPayload,
+                              onCommit: (value) =>
+                                  cubit.patch(willPayload: value),
+                            ),
+                          ),
+                          SerialFieldRow(
+                            label: t.mqtt.willQos,
+                            child: SerialDropdown<int>(
+                              value: state.willQos,
+                              items: const [
+                                (value: 0, label: '0'),
+                                (value: 1, label: '1'),
+                                (value: 2, label: '2'),
+                              ],
+                              onChanged: (value) => cubit.patch(willQos: value),
+                            ),
+                          ),
+                          SerialCheck(
+                            label: t.mqtt.willRetain,
+                            value: state.willRetain,
+                            onChanged: (value) =>
+                                cubit.patch(willRetain: value),
+                          ),
+                        ],
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
             ],
           ),
         );
@@ -209,6 +250,10 @@ class _SubGroup extends StatelessWidget {
     final t = Translations.of(context);
     final palette = SerialPalette.of(context);
     return BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
+      buildWhen: (a, b) =>
+          a.subs != b.subs ||
+          a.draftSubTopic != b.draftSubTopic ||
+          a.draftSubQos != b.draftSubQos,
       builder: (context, state) {
         final cubit = context.read<MqttConsoleCubit>();
         return SerialGroup(
@@ -223,47 +268,25 @@ class _SubGroup extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (state.subs.isEmpty)
-                Text(
-                  t.mqtt.subs.empty,
-                  style: AppTextStyles.caption(
-                    Theme.of(context).colorScheme,
-                  ).copyWith(color: palette.muted),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Text(
+                    t.mqtt.subs.empty,
+                    style: AppTextStyles.caption(
+                      Theme.of(context).colorScheme,
+                    ).copyWith(color: palette.muted),
+                  ),
                 ),
               for (final item in state.subs)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.topic,
-                              style: AppTextStyles.caption(
-                                Theme.of(context).colorScheme,
-                              ).copyWith(
-                                color: palette.text,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              'QoS ${item.qos}',
-                              style: AppTextStyles.caption(
-                                Theme.of(context).colorScheme,
-                              ).copyWith(color: palette.muted),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SerialButton(
-                        label: t.mqtt.subs.unsubscribe,
-                        small: true,
-                        danger: true,
-                        onPressed: () => cubit.unsubscribe(item.id),
-                      ),
-                    ],
+                SerialItemRow(
+                  leading: SerialButton(
+                    label: t.mqtt.subs.unsubscribe,
+                    small: true,
+                    danger: true,
+                    onPressed: () => cubit.unsubscribe(item.id),
                   ),
+                  title: item.topic,
+                  detail: 'QoS ${item.qos}',
                 ),
               Row(
                 children: [
@@ -312,6 +335,11 @@ class _PubGroup extends StatelessWidget {
     final t = Translations.of(context);
     final palette = SerialPalette.of(context);
     return BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
+      buildWhen: (a, b) =>
+          a.pubTopics != b.pubTopics ||
+          a.draftPubName != b.draftPubName ||
+          a.draftPubTopic != b.draftPubTopic ||
+          a.pubTopic != b.pubTopic,
       builder: (context, state) {
         final cubit = context.read<MqttConsoleCubit>();
         return SerialGroup(
@@ -326,65 +354,22 @@ class _PubGroup extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (final item in state.pubTopics)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: item.topic == state.pubTopic
-                          ? palette.hover
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(
-                        SerialMetrics.controlRadius,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xs),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: () => cubit.fillTopic(item.id),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.name,
-                                    style: AppTextStyles.caption(
-                                      Theme.of(context).colorScheme,
-                                    ).copyWith(
-                                      color: palette.text,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Text(
-                                    item.topic,
-                                    style: AppTextStyles.mono(
-                                      Theme.of(context).colorScheme,
-                                      fontSize: 12,
-                                      color: palette.muted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SerialButton(
-                            label: t.mqtt.pubs.fill,
-                            small: true,
-                            onPressed: () => cubit.fillTopic(item.id),
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          SerialButton(
-                            label: t.mqtt.pubs.delete,
-                            small: true,
-                            danger: true,
-                            onPressed: () =>
-                                _confirmDelete(context, cubit, item),
-                          ),
-                        ],
-                      ),
-                    ),
+                SerialItemRow(
+                  color: item.topic == state.pubTopic ? palette.hover : null,
+                  leading: SerialButton(
+                    label: t.mqtt.pubs.fill,
+                    small: true,
+                    onPressed: () => cubit.fillTopic(item.id),
                   ),
+                  title: item.name,
+                  detail: item.topic,
+                  menu: [
+                    SerialMenuAction(
+                      label: t.mqtt.pubs.delete,
+                      danger: true,
+                      onTap: () => _confirmDelete(context, cubit, item),
+                    ),
+                  ],
                 ),
               Row(
                 children: [
@@ -462,7 +447,7 @@ class _FileRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Field(
+    return SerialFieldRow(
       label: label,
       child: Row(
         children: [
@@ -481,36 +466,6 @@ class _FileRow extends StatelessWidget {
             small: true,
             onPressed: onPick,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Field extends StatelessWidget {
-  const _Field({required this.label, required this.child});
-
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = SerialPalette.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: SerialMetrics.formGap),
-      child: Row(
-        children: [
-          SizedBox(
-            width: SerialMetrics.labelCol + 10,
-            child: Text(
-              label,
-              style: AppTextStyles.caption(
-                Theme.of(context).colorScheme,
-              ).copyWith(color: palette.muted, fontSize: 13),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: child),
         ],
       ),
     );

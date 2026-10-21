@@ -332,6 +332,8 @@ class Translations$mqtt$zh {
 	/// zh: '收起连接设置'
 	String get collapse => '收起连接设置';
 
+	late final Translations$mqtt$section$zh section = Translations$mqtt$section$zh.internal(_root);
+
 	/// zh: '版本'
 	String get version => '版本';
 
@@ -2017,6 +2019,24 @@ class Translations$ble$notice$zh {
 	String get closedSend => 'BLE 未连接，发送已拦截';
 }
 
+// Path: mqtt.section
+class Translations$mqtt$section$zh {
+	Translations$mqtt$section$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '会话'
+	String get session => '会话';
+
+	/// zh: 'TLS'
+	String get tls => 'TLS';
+
+	/// zh: '遗嘱'
+	String get will => '遗嘱';
+}
+
 // Path: mqtt.subs
 class Translations$mqtt$subs$zh {
 	Translations$mqtt$subs$zh.internal(this._root);
@@ -3102,6 +3122,9 @@ extension on Translations {
 			'mqtt.disconnect' => '断开',
 			'mqtt.expand' => '展开连接设置',
 			'mqtt.collapse' => '收起连接设置',
+			'mqtt.section.session' => '会话',
+			'mqtt.section.tls' => 'TLS',
+			'mqtt.section.will' => '遗嘱',
 			'mqtt.version' => '版本',
 			'mqtt.clientId' => 'Client ID',
 			'mqtt.username' => '用户名',
