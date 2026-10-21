@@ -7,6 +7,10 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
+import '../../ble/cubit/ble_console_cubit.dart';
+import '../../ble/cubit/ble_console_state.dart';
+import '../../mqtt/cubit/mqtt_console_cubit.dart';
+import '../../mqtt/cubit/mqtt_console_state.dart';
 import '../../serial/cubit/serial_console_cubit.dart';
 import '../../serial/cubit/serial_console_state.dart';
 import '../../serial/serial_metrics.dart';
@@ -182,7 +186,6 @@ class _ConnectionTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     final cubit = context.read<HomeTabsCubit>();
-    final console = cubit.consoleFor(tab.id);
     final color = _kindColor(context, tab.kind);
     return Material(
       color: selected ? palette.field : palette.panel,
@@ -201,38 +204,76 @@ class _ConnectionTab extends StatelessWidget {
               ),
             ),
           ),
-          child: console == null
-              ? _TabBody(
-                  tab: tab,
-                  open: false,
-                  title: _tabTitle(context, tab, null),
-                  color: color,
-                  onClose: () => cubit.closeTab(tab.id),
-                )
-              : BlocBuilder<SerialConsoleCubit, SerialConsoleState>(
-                  bloc: console,
-                  buildWhen: (previous, current) =>
-                      previous.portName != current.portName ||
-                      previous.open != current.open,
-                  builder: (context, serial) {
-                    return _TabBody(
-                      tab: tab,
-                      open: serial.open,
-                      title: _tabTitle(context, tab, serial.portName),
-                      color: color,
-                      onClose: () => cubit.closeTab(tab.id),
-                    );
-                  },
-                ),
+          child: _liveBody(context, cubit, color),
         ),
       ),
     );
   }
 
+  Widget _liveBody(BuildContext context, HomeTabsCubit cubit, Color color) {
+    final serial = cubit.serialFor(tab.id);
+    if (serial != null) {
+      return BlocBuilder<SerialConsoleCubit, SerialConsoleState>(
+        bloc: serial,
+        buildWhen: (a, b) => a.portName != b.portName || a.open != b.open,
+        builder: (context, state) {
+          return _TabBody(
+            tab: tab,
+            open: state.open,
+            title: _tabTitle(context, tab, state.portName),
+            color: color,
+            onClose: () => cubit.closeTab(tab.id),
+          );
+        },
+      );
+    }
+    final ble = cubit.bleFor(tab.id);
+    if (ble != null) {
+      return BlocBuilder<BleConsoleCubit, BleConsoleState>(
+        bloc: ble,
+        buildWhen: (a, b) =>
+            a.deviceName != b.deviceName || a.connected != b.connected,
+        builder: (context, state) {
+          return _TabBody(
+            tab: tab,
+            open: state.connected,
+            title: _tabTitle(context, tab, state.deviceName),
+            color: color,
+            onClose: () => cubit.closeTab(tab.id),
+          );
+        },
+      );
+    }
+    final mqtt = cubit.mqttFor(tab.id);
+    if (mqtt != null) {
+      return BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
+        bloc: mqtt,
+        buildWhen: (a, b) =>
+            a.host != b.host || a.port != b.port || a.connected != b.connected,
+        builder: (context, state) {
+          return _TabBody(
+            tab: tab,
+            open: state.connected,
+            title: _tabTitle(context, tab, state.endpoint),
+            color: color,
+            onClose: () => cubit.closeTab(tab.id),
+          );
+        },
+      );
+    }
+    return _TabBody(
+      tab: tab,
+      open: false,
+      title: _tabTitle(context, tab, null),
+      color: color,
+      onClose: () => cubit.closeTab(tab.id),
+    );
+  }
+
   void _openMenu(BuildContext context, TapUpDetails details) {
     final cubit = context.read<HomeTabsCubit>();
-    final console = cubit.consoleFor(tab.id);
-    final title = _tabTitle(context, tab, console?.state.portName);
+    final live = cubit.liveFor(tab.id);
+    final title = _tabTitle(context, tab, live.title);
     final overlay =
         Overlay.of(context).context.findRenderObject()! as RenderBox;
     final position = RelativeRect.fromRect(
@@ -347,18 +388,10 @@ class _AddConnectionButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       child: MenuAnchor(
         menuChildren: [
-          MenuItemButton(
-            onPressed: () => cubit.add(ConnectionKind.serial),
-            child: Text(t.home.kindSerial),
-          ),
-          for (final kind in const [
-            ConnectionKind.ble,
-            ConnectionKind.mqtt,
-            ConnectionKind.webSocket,
-          ])
+          for (final kind in ConnectionKind.values)
             MenuItemButton(
-              onPressed: null,
-              child: Text('${_kindName(context, kind)} · ${t.home.later}'),
+              onPressed: () => cubit.add(kind),
+              child: Text(_kindName(context, kind)),
             ),
         ],
         builder: (context, controller, child) {
@@ -397,7 +430,6 @@ String _kindName(BuildContext context, ConnectionKind kind) {
     ConnectionKind.serial => t.home.kindSerial,
     ConnectionKind.ble => t.home.kindBle,
     ConnectionKind.mqtt => t.home.kindMqtt,
-    ConnectionKind.webSocket => t.home.kindWebSocket,
   };
 }
 
@@ -406,7 +438,6 @@ String _kindBadge(Translations t, ConnectionKind kind) {
     ConnectionKind.serial => t.home.badgeSerial,
     ConnectionKind.ble => t.home.badgeBle,
     ConnectionKind.mqtt => t.home.badgeMqtt,
-    ConnectionKind.webSocket => t.home.badgeWs,
   };
 }
 
@@ -419,7 +450,5 @@ Color _kindColor(BuildContext context, ConnectionKind kind) {
       dark ? AppColors.protocolBleDark : AppColors.protocolBle,
     ConnectionKind.mqtt =>
       dark ? AppColors.protocolMqttDark : AppColors.protocolMqtt,
-    ConnectionKind.webSocket =>
-      dark ? AppColors.protocolWsDark : AppColors.protocolWs,
   };
 }

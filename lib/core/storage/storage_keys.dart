@@ -6,5 +6,7 @@ abstract final class StorageKeys {
   static const String localeTag = 'locale_tag';
   static const String enableFileLog = 'enable_file_log';
   static const String serialWorkspace = 'serial_workspace';
+  static const String bleWorkspace = 'ble_workspace';
+  static const String mqttWorkspace = 'mqtt_workspace';
   static const String homeTabs = 'home_tabs';
 }

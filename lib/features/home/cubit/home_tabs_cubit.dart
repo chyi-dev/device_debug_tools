@@ -5,6 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/logger/app_logger.dart';
 import '../../../core/logger/log_category.dart';
 import '../../../core/storage/storage_keys.dart';
+import '../../ble/cubit/ble_console_cubit.dart';
+import '../../ble/data/ble_session_factory.dart';
+import '../../mqtt/cubit/mqtt_console_cubit.dart';
+import '../../mqtt/data/mqtt_session_factory.dart';
 import '../../serial/cubit/serial_console_cubit.dart';
 import '../../serial/data/serial_session_factory.dart';
 import '../data/home_tab_store.dart';
@@ -14,22 +18,60 @@ import 'home_tabs_state.dart';
 
 enum HomeTabAddResult { opened, unsupported }
 
-/// 首页连接页签。同一种协议可以有多个页签；每个串口页签使用独立会话。
+class HomeTabLive {
+  const HomeTabLive({required this.open, this.title});
+
+  final bool open;
+  final String? title;
+}
+
+/// 首页连接页签。同一种协议可以有多个页签；每种协议使用独立会话。
 class HomeTabsCubit extends Cubit<HomeTabsState> {
   HomeTabsCubit({
     required SerialSessionFactory sessions,
+    required BleSessionFactory ble,
+    required MqttSessionFactory mqtt,
     required HomeTabStore tabs,
   }) : _sessions = sessions,
+       _ble = ble,
+       _mqtt = mqtt,
        _tabs = tabs,
        super(const HomeTabsState.empty());
 
   final SerialSessionFactory _sessions;
+  final BleSessionFactory _ble;
+  final MqttSessionFactory _mqtt;
   final HomeTabStore _tabs;
-  final Map<String, SerialConsoleCubit> _consoles = {};
+  final Map<String, SerialConsoleCubit> _serials = {};
+  final Map<String, BleConsoleCubit> _bles = {};
+  final Map<String, MqttConsoleCubit> _mqtts = {};
   final Map<String, Future<void>> _closing = {};
   var _seq = 0;
 
-  SerialConsoleCubit? consoleFor(String id) => _consoles[id];
+  SerialConsoleCubit? serialFor(String id) => _serials[id];
+
+  BleConsoleCubit? bleFor(String id) => _bles[id];
+
+  MqttConsoleCubit? mqttFor(String id) => _mqtts[id];
+
+  HomeTabLive liveFor(String id) {
+    final serial = _serials[id];
+    if (serial != null) {
+      return HomeTabLive(open: serial.state.open, title: serial.state.portName);
+    }
+    final ble = _bles[id];
+    if (ble != null) {
+      return HomeTabLive(
+        open: ble.state.connected,
+        title: ble.state.deviceName,
+      );
+    }
+    final mqtt = _mqtts[id];
+    if (mqtt != null) {
+      return HomeTabLive(open: mqtt.state.connected, title: mqtt.state.endpoint);
+    }
+    return const HomeTabLive(open: false);
+  }
 
   Future<void> start() async {
     final saved = _tabs.read();
@@ -58,17 +100,11 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
   }
 
   Future<HomeTabAddResult> add(ConnectionKind kind) async {
-    if (!kind.implemented) return HomeTabAddResult.unsupported;
     final id = _newId();
-    final legacyInUse = state.tabs.any(
-      (tab) => tab.storageKey == StorageKeys.serialWorkspace,
-    );
     await _open(
       id: id,
       kind: kind,
-      storageKey: legacyInUse
-          ? '${StorageKeys.serialWorkspace}_$id'
-          : StorageKeys.serialWorkspace,
+      storageKey: _storageKey(kind, id),
       activate: true,
     );
     return HomeTabAddResult.opened;
@@ -98,18 +134,24 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
     unawaited(_persist());
   }
 
-  /// 先从界面摘掉页签，再在下一轮事件里关闭串口并保存工作区。
+  /// 先从界面摘掉页签，再在下一轮事件里关闭会话并保存工作区。
   Future<void> closeTab(String id) {
-    final console = _consoles.remove(id);
+    final serial = _serials.remove(id);
+    final ble = _bles.remove(id);
+    final mqtt = _mqtts.remove(id);
     final tabs = state.tabs.where((tab) => tab.id != id).toList();
     final active = state.activeId == id
         ? (tabs.isEmpty ? null : tabs.last.id)
         : state.activeId;
     emit(state.copyWith(tabs: tabs, activeId: active));
     unawaited(_persist());
-    if (console == null) return Future<void>.value();
+    if (serial == null && ble == null && mqtt == null) {
+      return Future<void>.value();
+    }
     final done = Future<void>.delayed(Duration.zero, () async {
-      if (!console.isClosed) await console.close();
+      if (serial != null && !serial.isClosed) await serial.close();
+      if (ble != null && !ble.isClosed) await ble.close();
+      if (mqtt != null && !mqtt.isClosed) await mqtt.close();
       _closing.remove(id);
     });
     _closing[id] = done;
@@ -119,10 +161,20 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
   @override
   Future<void> close() async {
     final pending = [..._closing.values];
-    final live = [..._consoles.values];
-    _consoles.clear();
+    final serials = [..._serials.values];
+    final bles = [..._bles.values];
+    final mqtts = [..._mqtts.values];
+    _serials.clear();
+    _bles.clear();
+    _mqtts.clear();
     await Future.wait(pending);
-    for (final console in live) {
+    for (final console in serials) {
+      if (!console.isClosed) await console.close();
+    }
+    for (final console in bles) {
+      if (!console.isClosed) await console.close();
+    }
+    for (final console in mqtts) {
       if (!console.isClosed) await console.close();
     }
     return super.close();
@@ -135,9 +187,19 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
     String? label,
     required bool activate,
   }) async {
-    if (!kind.implemented || _consoles.containsKey(id)) return;
-    final console = SerialConsoleCubit(repository: _sessions.open(storageKey));
-    _consoles[id] = console;
+    if (_serials.containsKey(id) ||
+        _bles.containsKey(id) ||
+        _mqtts.containsKey(id)) {
+      return;
+    }
+    switch (kind) {
+      case ConnectionKind.serial:
+        _serials[id] = SerialConsoleCubit(repository: _sessions.open(storageKey));
+      case ConnectionKind.ble:
+        _bles[id] = BleConsoleCubit(repository: _ble.open(storageKey));
+      case ConnectionKind.mqtt:
+        _mqtts[id] = MqttConsoleCubit(repository: _mqtt.open(storageKey));
+    }
     final tab = HomeTab(
       id: id,
       kind: kind,
@@ -150,8 +212,20 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
         activeId: activate ? id : state.activeId ?? id,
       ),
     );
-    await console.start();
+    await _serials[id]?.start();
+    await _bles[id]?.start();
+    await _mqtts[id]?.start();
     await _persist();
+  }
+
+  String _storageKey(ConnectionKind kind, String id) {
+    final prefix = switch (kind) {
+      ConnectionKind.serial => StorageKeys.serialWorkspace,
+      ConnectionKind.ble => StorageKeys.bleWorkspace,
+      ConnectionKind.mqtt => StorageKeys.mqttWorkspace,
+    };
+    final inUse = state.tabs.any((tab) => tab.storageKey == prefix);
+    return inUse ? '${prefix}_$id' : prefix;
   }
 
   Future<void> _persist() async {

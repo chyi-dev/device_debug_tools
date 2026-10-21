@@ -35,7 +35,7 @@ class HomeTab {
     if (kind is! String) return null;
     if (storageKey is! String || storageKey.isEmpty) return null;
     final parsed = ConnectionKind.parse(kind);
-    if (parsed == null || !parsed.implemented) return null;
+    if (parsed == null) return null;
     final label = raw['label'];
     final name = label is String ? label.trim() : '';
     return HomeTab(

@@ -505,6 +505,7 @@ class SerialCheck extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
               width: 18,
@@ -515,9 +516,11 @@ class SerialCheck extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.xs + 3),
-            Expanded(
+            Flexible(
               child: Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.body(cs).copyWith(color: palette.text),
               ),
             ),

@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebSocket 调试 · 握手会话</title>
+<style>
+/* form 来自内容：握手 101 是 WebSocket 独有的开场，Ping/Pong/Close 用过滤从业务帧里分开 */
+:root {
+  --win:#e9edf1; --panel:#f7f8fa; --field:#fff; --line:#c5ced7; --line2:#dfe4e9;
+  --text:#1f2933; --muted:#56616e; --accent:#1769c2; --accent-ink:#fff; --hover:#e3ebf5;
+  --log-bg:#fff; --log-prompt:#6b7480; --log-rx:#1b2630; --log-tx:#1461b8;
+  --log-sys:#9a5a00; --on:#1f9d55; --off:#c8392f; --idle:#b9c1ca; --ws:#7757b8;
+  --sans:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"] {
+  --win:#16191d; --panel:#1f2329; --field:#272c33; --line:#3a414a; --line2:#2e343c;
+  --text:#e3e7ec; --muted:#a1aab5; --accent:#4c9bf0; --accent-ink:#0c1624; --hover:#2b323b;
+  --log-bg:#0d1013; --log-prompt:#8b949e; --log-rx:#7fe0a6; --log-tx:#8cc2ff;
+  --log-sys:#e5b54a; --on:#3ccf7a; --off:#ef5b50; --idle:#4a525c; --ws:#b388ff;
+  color-scheme:dark;
+}
+* { box-sizing:border-box; margin:0; }
+html, body { height:100%; }
+body { font:14px/1.45 var(--sans); color:var(--text); background:var(--win); overflow:hidden; text-wrap:pretty; }
+button, input, select, textarea { font:inherit; color:inherit; }
+button { cursor:pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+input[type=checkbox] { accent-color:var(--accent); width:15px; height:15px; margin:0; }
+.app { height:100%; min-width:1180px; display:grid; grid-template-rows:34px minmax(0,1fr) 30px; }
+.top { display:flex; align-items:center; gap:2px; padding:0 0 0 10px; background:var(--panel); border-bottom:1px solid var(--line); user-select:none; }
+.mark { display:block; }
+.brand { font-weight:600; margin:0 12px 0 8px; }
+.menu { border:0; background:none; height:28px; padding:0 12px; border-radius:4px; }
+.menu:hover { background:var(--hover); }
+.spacer { flex:1; }
+.iconbtn { border:1px solid transparent; background:none; height:26px; padding:0 10px; border-radius:4px; font-size:13px; color:var(--muted); }
+.iconbtn:hover, .iconbtn.on { border-color:var(--line); color:var(--text); background:var(--field); }
+.wins { display:flex; align-self:stretch; margin-left:8px; }
+.wins button { width:46px; border:0; background:transparent; }
+.wins button:hover { background:var(--hover); }
+.wins .close:hover { background:var(--off); color:#fff; }
+.body { min-height:0; display:grid; grid-template-rows:36px auto minmax(0,1fr); gap:8px; padding:8px; }
+.tabs { display:flex; align-items:stretch; background:var(--panel); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.tab { min-width:168px; display:flex; align-items:center; gap:7px; padding:0 10px; border-right:1px solid var(--line); color:var(--muted); }
+.tab.on { color:var(--text); background:var(--field); box-shadow:inset 0 -2px var(--accent); }
+.kind { font:10px var(--mono); font-weight:700; color:var(--ws); border:1px solid var(--ws); border-radius:3px; padding:1px 4px; }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--idle); }
+.dot.open { background:var(--on); } .dot.busy { background:var(--log-sys); } .dot.err { background:var(--off); }
+.add { margin-left:auto; height:100%; padding:0 12px; border:0; background:transparent; color:var(--muted); }
+.shake { border:1px solid var(--line); border-radius:6px; background:var(--panel); overflow:hidden; }
+.shake-h { min-height:36px; display:flex; align-items:center; gap:10px; padding:6px 12px; }
+.shake-h b { font-size:13px; }
+.shake-h .code { font:12px var(--mono); color:var(--on); font-weight:600; }
+.shake-h .muted { font:12px var(--mono); color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.shake-b { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line2); }
+.shake-b[hidden] { display:none; }
+.col { padding:10px 12px; font:12px/1.55 var(--mono); color:var(--log-rx); background:var(--log-bg); white-space:pre-wrap; }
+.col + .col { border-left:1px solid var(--line2); }
+.col .k { color:var(--muted); font-family:var(--sans); font-weight:600; margin-bottom:4px; display:block; }
+.grid { min-height:0; display:grid; grid-template-columns:272px minmax(0,1fr) 280px; gap:8px; }
+.side { min-height:0; overflow:auto; display:flex; flex-direction:column; gap:6px; }
+.group { border:1px solid var(--line); border-radius:6px; background:var(--panel); padding:7px 12px 8px; }
+.legend { font-size:12px; font-weight:600; color:var(--muted); letter-spacing:.04em; margin-bottom:6px; }
+.form { display:grid; grid-template-columns:62px minmax(0,1fr); gap:5px 8px; align-items:center; }
+.form .stack { grid-column:1/-1; display:grid; gap:3px; }
+.form .stack label, .form label, .checks label { font-size:12px; color:var(--muted); }
+.inp, select { height:26px; border:1px solid var(--line); border-radius:4px; background:var(--field); padding:0 6px; min-width:0; width:100%; }
+textarea.inp { height:52px; padding:5px 6px; resize:vertical; font:12px/1.45 var(--mono); }
+.checks { display:flex; flex-direction:column; gap:4px; margin-top:6px; }
+.checks label { display:flex; align-items:center; gap:7px; color:var(--text); }
+.openbtn { width:100%; height:32px; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:600; border:1px solid var(--line); border-radius:4px; background:var(--field); }
+.openbtn.pri { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.openbtn:disabled { opacity:.55; cursor:default; }
+.lamp { width:12px; height:12px; border-radius:50%; background:var(--off); }
+.lamp.on { background:var(--on); } .lamp.busy { background:var(--log-sys); }
+.btn { height:28px; padding:0 10px; border:1px solid var(--line); border-radius:4px; background:var(--field); }
+.btn:hover { background:var(--hover); }
+.btn.pri { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+.btn.sm { height:24px; padding:0 8px; font-size:12px; }
+.btn.danger { color:var(--off); }
+.btn:disabled { opacity:.45; cursor:default; }
+.center { min-height:0; display:grid; grid-template-rows:minmax(0,1fr) auto; gap:8px; }
+.logbox { min-height:0; border:1px solid var(--line); border-radius:6px; background:var(--log-bg); display:grid; grid-template-rows:36px minmax(0,1fr); overflow:hidden; }
+.loghead { display:flex; align-items:center; gap:8px; padding:0 10px; background:var(--panel); border-bottom:1px solid var(--line); }
+.loghead b { font-size:13px; }
+.filters { display:flex; gap:4px; }
+.chip { height:24px; padding:0 8px; border:1px solid var(--line); border-radius:4px; background:var(--field); font-size:12px; color:var(--muted); }
+.chip.on { color:var(--accent-ink); background:var(--accent); border-color:var(--accent); }
+.meta { flex:1; font:12px var(--mono); color:var(--muted); }
+.search { width:140px; height:24px; }
+.log { overflow:auto; padding:10px 12px; font:14px/1.6 var(--mono); }
+.rec { margin-bottom:10px; }
+.p { color:var(--log-prompt); }
+.rx { color:var(--log-rx); } .tx { color:var(--log-tx); } .sys { color:var(--log-sys); }
+.ctl .payload { color:var(--muted); }
+.sendbox { border:1px solid var(--line); border-radius:6px; background:var(--panel); display:grid; grid-template-columns:minmax(0,1fr) 120px; overflow:hidden; }
+.sendbox textarea { border:0; border-right:1px solid var(--line); background:var(--field); resize:none; height:88px; padding:8px 12px; font:15px/1.5 var(--mono); outline:none; }
+.sendside { display:flex; flex-direction:column; gap:6px; padding:8px; }
+.sendfoot { grid-column:1/-1; display:flex; align-items:center; gap:10px; padding:5px 12px; border-top:1px solid var(--line2); font:12px var(--mono); color:var(--muted); flex-wrap:wrap; }
+.sendfoot .err { color:var(--off); }
+.sendfoot .inp { width:72px; height:24px; }
+.sendfoot .reason { width:140px; }
+.tools { min-height:0; border:1px solid var(--line); border-radius:6px; background:var(--panel); display:grid; grid-template-rows:36px minmax(0,1fr); overflow:hidden; }
+.toolhead { display:flex; align-items:center; padding:0 10px; border-bottom:1px solid var(--line); font-size:12px; font-weight:600; color:var(--muted); }
+.it { display:grid; grid-template-columns:auto minmax(0,1fr); gap:2px 10px; align-items:center; padding:8px 10px; border-bottom:1px solid var(--line2); }
+.it:hover { background:var(--hover); }
+.it .nm { font-weight:600; }
+.it .dt { grid-column:2; font:12px var(--mono); color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.status { display:flex; align-items:center; background:var(--panel); border-top:1px solid var(--line); font-size:12px; color:var(--muted); }
+.status > span { padding:0 12px; border-right:1px solid var(--line2); height:100%; display:flex; align-items:center; gap:6px; }
+.status .conn { font-family:var(--mono); color:var(--text); }
+.status .last { margin-left:auto; border-right:0; border-left:1px solid var(--line2); }
+.status button { border:0; background:none; color:var(--accent); font-size:12px; padding:0; }
+.toast { position:fixed; left:50%; bottom:42px; transform:translateX(-50%); z-index:80; background:var(--text); color:var(--win); padding:7px 14px; border-radius:5px; }
+.toast.err { background:var(--off); color:#fff; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <svg class="mark" viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><rect x="0" y="6" width="48" height="36" rx="1.5" fill="#1f2329"/><path d="M1.5 6 H46.5 Q48 6 48 7.5 V12 H0 V7.5 Q0 6 1.5 6 Z" fill="#1769c2"/><path d="M6 21 H15 V33 H33 V21 H42" fill="none" stroke="#f7f8fa" stroke-width="6" stroke-linejoin="miter"/></svg>
+    <b class="brand">设备调试工具</b>
+    <button class="menu" type="button">文件</button>
+    <button class="menu" type="button">设置</button>
+    <button class="menu" type="button">工具</button>
+    <button class="menu" type="button">帮助</button>
+    <span class="spacer"></span>
+    <button class="iconbtn" type="button" id="themeBtn">黑底</button>
+    <span class="wins" aria-hidden="true"><button type="button" tabindex="-1">—</button><button type="button" tabindex="-1">□</button><button type="button" class="close" tabindex="-1">×</button></span>
+  </header>
+  <div class="body">
+    <div class="tabs">
+      <div class="tab on"><i class="dot" id="tabDot"></i><span class="kind">WS</span><span>调试通道</span></div>
+      <button class="add" type="button" disabled>＋ 新增</button>
+    </div>
+    <section class="shake">
+      <div class="shake-h">
+        <b>握手</b>
+        <span class="code" id="shakeCode">101 Switching Protocols</span>
+        <span class="muted" id="shakeSum"></span>
+        <span class="spacer"></span>
+        <button class="btn sm" type="button" id="btnShake">收起</button>
+      </div>
+      <div class="shake-b" id="shakeBody">
+        <div class="col"><span class="k">请求</span><div id="reqBox"></div></div>
+        <div class="col"><span class="k">响应</span><div id="resBox"></div></div>
+      </div>
+    </section>
+    <div class="grid">
+      <aside class="side">
+        <div class="group">
+          <div class="legend">WebSocket 连接设置</div>
+          <div class="form">
+            <div class="stack"><label for="url">地址</label><input class="inp" id="url"></div>
+            <div class="stack"><label for="headers">请求头</label><textarea class="inp" id="headers"></textarea></div>
+            <label for="subprotocol">子协议</label><input class="inp" id="subprotocol">
+            <label for="proxy">代理</label>
+            <select id="proxy"><option>系统代理</option><option>不使用</option><option>自定义</option></select>
+            <label for="frameType">默认帧</label>
+            <select id="frameType"><option>Text</option><option>Binary</option></select>
+            <label for="pingInterval">Ping 秒</label><input class="inp" id="pingInterval" type="number" min="0">
+          </div>
+          <div class="checks">
+            <label><input type="checkbox" id="tlsVerify"> 校验 TLS 证书</label>
+            <label><input type="checkbox" id="compression"> Per-message Deflate</label>
+            <label><input type="checkbox" id="autoReconnect"> 断线自动重连</label>
+            <label><input type="checkbox" id="failNext"> 下次连接失败</label>
+          </div>
+          <button class="openbtn pri" type="button" id="btnOpen"><i class="lamp" id="lamp"></i><span id="openText">连接</span></button>
+        </div>
+      </aside>
+      <section class="center">
+        <div class="logbox">
+          <div class="loghead">
+            <b>帧</b>
+            <div class="filters" id="filters">
+              <button class="chip on" type="button" data-f="all">全部</button>
+              <button class="chip" type="button" data-f="data">数据</button>
+              <button class="chip" type="button" data-f="control">控制</button>
+            </div>
+            <span class="meta" id="logMeta"></span>
+            <input class="inp search" id="search" placeholder="搜索…">
+            <button class="btn sm" type="button" id="btnClear">清空</button>
+          </div>
+          <div class="log" id="log"></div>
+        </div>
+        <div class="sendbox">
+          <textarea id="txText" spellcheck="false"></textarea>
+          <div class="sendside">
+            <button class="btn pri" type="button" id="btnSend">发送</button>
+            <button class="btn sm" type="button" id="btnPing">Ping</button>
+            <button class="btn sm danger" type="button" id="btnCloseFrame">关闭帧</button>
+          </div>
+          <div class="sendfoot">
+            <label>类型 <select id="txType"><option>Text</option><option>Binary</option></select></label>
+            <span id="txHint"></span>
+            <span class="spacer"></span>
+            <label>code <input class="inp" id="closeCode" value="1000"></label>
+            <label>reason <input class="inp reason" id="closeReason" value="debug done"></label>
+          </div>
+        </div>
+      </section>
+      <aside class="tools">
+        <div class="toolhead">快捷指令</div>
+        <div id="quick"></div>
+      </aside>
+    </div>
+  </div>
+  <footer class="status">
+    <span><i class="lamp" id="stLamp"></i><b class="conn" id="stConn"></b></span>
+    <span>RX <b id="stRx">0</b></span>
+    <span>TX <b id="stTx">0</b></span>
+    <span><button type="button" id="btnReset">复位计数</button></span>
+    <span class="last" id="stHint">设计稿 · 模拟会话</span>
+  </footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script>
+(function () {
+  'use strict';
+  var S = {
+    status: 'open', filter: 'all', shakeOpen: true,
+    config: {
+      url: 'ws://10.0.0.8:8080/debug', headers: 'Authorization: Bearer demo-token',
+      subprotocol: 'device-v1', proxy: '系统代理', tlsVerify: true, compression: true,
+      pingInterval: 30, autoReconnect: true, frameType: 'Text'
+    },
+    frames: [], rx: 0, tx: 0, timer: 0, hint: '',
+    handshake: { ok: true, code: '101 Switching Protocols' }
+  };
+  var QUICK = [
+    { name: '发送 ping', type: 'Text', data: '{"type":"ping"}' },
+    { name: '读取设备信息', type: 'Text', data: '{"cmd":"info"}' },
+    { name: '二进制心跳', type: 'Binary', data: 'A5 01 00 00 01 07' }
+  ];
+  var CTRL = { PING:1, PONG:1, CLOSE:1 };
+  var DATA = { TEXT:1, BINARY:1 };
+  function $(id) { return document.getElementById(id); }
+  function esc(v) { return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function pad(n, len) { return String(n).padStart(len || 2, '0'); }
+  function stamp(d) { d = d || new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '.' + pad(d.getMilliseconds(), 3); }
+  function bytesOf(text, type) {
+    if (type === 'Binary') return Math.floor(String(text).replace(/[^0-9a-f]/gi, '').length / 2);
+    return new TextEncoder().encode(String(text)).length;
+  }
+  function add(dir, opcode, payload, extra) {
+    extra = extra || {};
+    var rec = {
+      time: extra.time || stamp(), dir: dir, opcode: opcode, payload: payload || '',
+      bytes: extra.bytes != null ? extra.bytes : bytesOf(payload || '', opcode === 'BINARY' ? 'Binary' : 'Text'),
+      code: extra.code, reason: extra.reason
+    };
+    S.frames.push(rec);
+    if (dir === 'rx' && opcode !== 'SYS') S.rx += rec.bytes;
+    if (dir === 'tx' && opcode !== 'SYS') S.tx += rec.bytes;
+    return rec;
+  }
+  function toast(msg, err) {
+    var el = $('toast'); el.textContent = msg; el.className = 'toast' + (err ? ' err' : ''); el.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 1900);
+  }
+  function isOpen() { return S.status === 'open'; }
+  function busy() { return S.status === 'connecting' || S.status === 'closing'; }
+  function guard() { if (!isOpen()) { toast('连接未打开，发送已拦截', true); S.hint = '发送已拦截'; renderChrome(); return false; } return true; }
+  function reqText() {
+    var c = S.config;
+    return 'GET /debug HTTP/1.1\nHost: 10.0.0.8:8080\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Version: 13\nSec-WebSocket-Protocol: ' + (c.subprotocol || '—') + '\n' + (c.headers || '');
+  }
+  function resText() {
+    if (!S.handshake.ok) return 'HTTP/1.1 400 Bad Request\nConnection: close';
+    return 'HTTP/1.1 101 Switching Protocols\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\nSec-WebSocket-Protocol: ' + (S.config.subprotocol || '—');
+  }
+  function seed() {
+    S.frames = []; S.rx = 0; S.tx = 0; S.handshake = { ok: true, code: '101 Switching Protocols' };
+    add('sys', 'SYS', '会话已建立', { time: '11:42:01.120', bytes: 0 });
+    add('rx', 'TEXT', '{"type":"hello"}', { time: '11:42:01.186' });
+    add('tx', 'TEXT', '{"type":"ping"}', { time: '11:42:03.004' });
+    add('rx', 'TEXT', '{"type":"ack"}', { time: '11:42:03.091' });
+    add('tx', 'PING', '', { time: '11:42:08.500', bytes: 0 });
+    add('rx', 'PONG', '', { time: '11:42:08.512', bytes: 0 });
+    add('tx', 'BINARY', 'A5 01 00 00 01 07', { time: '11:42:12.044' });
+    add('rx', 'BINARY', 'A5 81 00 04 21 2C', { time: '11:42:12.180' });
+  }
+  function connect() {
+    if (busy() || isOpen()) return;
+    S.status = 'connecting'; S.hint = '正在握手'; S.handshake = { ok: false, code: '连接中' };
+    add('sys', 'SYS', '正在连接 ' + S.config.url, { bytes: 0 }); render();
+    clearTimeout(S.timer);
+    S.timer = setTimeout(function () {
+      if ($('failNext').checked) {
+        $('failNext').checked = false;
+        S.status = 'closed'; S.hint = '连接失败：握手被拒绝 400';
+        S.handshake = { ok: false, code: '400 Bad Request' };
+        add('sys', 'SYS', '握手失败 HTTP/1.1 400 Bad Request', { bytes: 0 });
+        toast('连接失败：握手被拒绝 400', true);
+      } else {
+        S.status = 'open'; S.hint = '';
+        S.handshake = { ok: true, code: '101 Switching Protocols' };
+        add('sys', 'SYS', '会话已建立', { bytes: 0 });
+        add('rx', 'TEXT', '{"type":"hello"}');
+      }
+      render();
+    }, 360);
+  }
+  function disconnect(code, reason) {
+    if (!isOpen()) { S.status = 'closed'; render(); return; }
+    S.status = 'closing'; S.hint = '正在关闭';
+    add('tx', 'CLOSE', reason || '', { code: code || 1000, reason: reason || '', bytes: 2 + bytesOf(reason || '', 'Text') });
+    render();
+    clearTimeout(S.timer);
+    S.timer = setTimeout(function () {
+      S.status = 'closed'; S.hint = '';
+      add('sys', 'SYS', '连接已关闭 · ' + (code || 1000) + (reason ? ' ' + reason : ''), { bytes: 0 });
+      render();
+    }, 220);
+  }
+  function sendData(type, text) {
+    if (!guard()) return;
+    type = type || $('txType').value; text = text == null ? $('txText').value : text;
+    if (type === 'Binary' && String(text).replace(/[^0-9a-f]/gi, '').length % 2) { toast('HEX 须成对', true); return; }
+    var opcode = type === 'Binary' ? 'BINARY' : 'TEXT';
+    add('tx', opcode, text);
+    setTimeout(function () {
+      if (!isOpen()) return;
+      if (opcode === 'TEXT' && /"cmd":"info"/.test(text)) add('rx', 'TEXT', '{"fw":"1.4.2","sn":"DDT-08"}');
+      else if (opcode === 'BINARY') add('rx', 'BINARY', 'A5 81 00 04 21 2C');
+      else add('rx', 'TEXT', '{"type":"ack"}');
+      render();
+    }, 160);
+    render();
+  }
+  function sendPing() {
+    if (!guard()) return;
+    add('tx', 'PING', '', { bytes: 0 });
+    setTimeout(function () { if (isOpen()) { add('rx', 'PONG', '', { bytes: 0 }); render(); } }, 80);
+    render();
+  }
+  function pass(f) {
+    if (S.filter === 'data') return DATA[f.opcode];
+    if (S.filter === 'control') return CTRL[f.opcode];
+    return true;
+  }
+  function counts() {
+    var data = 0, control = 0;
+    S.frames.forEach(function (f) { if (DATA[f.opcode]) data += 1; if (CTRL[f.opcode]) control += 1; });
+    return { all: S.frames.length, data: data, control: control };
+  }
+  function statusWord() {
+    return S.status === 'open' ? 'OPEN' : S.status === 'connecting' ? 'CONNECTING' : S.status === 'closing' ? 'CLOSING' : 'CLOSED';
+  }
+  function renderShake() {
+    $('shakeCode').textContent = S.handshake.code;
+    $('shakeCode').style.color = S.handshake.ok && S.status === 'open' ? '' : (S.handshake.code.indexOf('400') >= 0 ? 'var(--off)' : 'var(--muted)');
+    $('shakeSum').textContent = (S.config.subprotocol || '无子协议') + ' · ' + S.config.url;
+    $('shakeBody').hidden = !S.shakeOpen;
+    $('btnShake').textContent = S.shakeOpen ? '收起' : '展开';
+    $('reqBox').textContent = reqText();
+    $('resBox').textContent = resText();
+  }
+  function renderChrome() {
+    var open = isOpen();
+    var d = S.status === 'connecting' ? 'busy' : open ? 'open' : S.hint && /失败/.test(S.hint) ? 'err' : '';
+    $('tabDot').className = 'dot ' + d;
+    $('lamp').className = 'lamp ' + (d === 'open' ? 'on' : d === 'busy' ? 'busy' : '');
+    $('stLamp').className = 'lamp ' + (d === 'open' ? 'on' : d === 'busy' ? 'busy' : '');
+    $('btnOpen').disabled = busy();
+    $('btnOpen').className = 'openbtn' + (open ? '' : ' pri');
+    $('openText').textContent = S.status === 'connecting' ? '连接中' : S.status === 'closing' ? '关闭中' : open ? '断开' : '连接';
+    var line = statusWord() + ' · ' + S.config.url;
+    if (open) line += ' · ' + (S.config.subprotocol || '—') + ' · ping ' + S.config.pingInterval + 's';
+    if (S.hint) line += ' · ' + S.hint;
+    $('stConn').textContent = line; $('stRx').textContent = S.rx; $('stTx').textContent = S.tx;
+    $('stHint').textContent = S.hint || '设计稿 · 模拟会话';
+    var n = counts();
+    $('logMeta').textContent = S.filter === 'control' ? 'Ping / Pong / Close' : S.filter === 'data' ? 'Text / Binary' : '';
+    Array.prototype.forEach.call(document.querySelectorAll('#filters .chip'), function (b) {
+      var f = b.getAttribute('data-f');
+      b.classList.toggle('on', f === S.filter);
+      b.textContent = (f === 'all' ? '全部 ' : f === 'data' ? '数据 ' : '控制 ') + n[f];
+    });
+  }
+  function renderLog() {
+    var q = $('search').value.trim().toLowerCase();
+    $('log').innerHTML = S.frames.filter(pass).filter(function (f) {
+      return !q || (f.payload + f.opcode + f.time).toLowerCase().indexOf(q) >= 0;
+    }).map(function (f) {
+      if (f.opcode === 'SYS') return '<div class="rec sys"><span class="p">[' + f.time + ']# </span>' + esc(f.payload) + '</div>';
+      var tag = (f.dir === 'rx' ? 'RECV' : 'SEND') + ' ' + f.opcode;
+      var body = f.opcode === 'CLOSE' ? (f.code || 1000) + ' ' + (f.reason || '') : f.payload;
+      if ((f.opcode === 'PING' || f.opcode === 'PONG') && !body) body = '(empty)';
+      var cls = f.dir + (CTRL[f.opcode] ? ' ctl' : '');
+      return '<div class="rec ' + cls + '"><div class="p">[' + f.time + ']# ' + tag + '&gt;</div><div class="payload">' + esc(body) + '</div></div>';
+    }).join('') || '<div class="sys">这一类还没有帧。</div>';
+    var el = $('log'); el.scrollTop = el.scrollHeight;
+  }
+  function hintTx() {
+    var type = $('txType').value, text = $('txText').value;
+    if (type === 'Binary' && String(text).replace(/[^0-9a-f]/gi, '').length % 2) { $('txHint').innerHTML = '<span class="err">HEX 须成对</span>'; return; }
+    $('txHint').textContent = '实发 ' + bytesOf(text, type) + ' 字节 · ' + type.toUpperCase();
+  }
+  function render() { renderChrome(); renderShake(); renderLog(); hintTx(); }
+  function fillForm() {
+    var c = S.config;
+    $('url').value = c.url; $('headers').value = c.headers; $('subprotocol').value = c.subprotocol;
+    $('proxy').value = c.proxy; $('frameType').value = c.frameType; $('pingInterval').value = c.pingInterval;
+    $('tlsVerify').checked = c.tlsVerify; $('compression').checked = c.compression; $('autoReconnect').checked = c.autoReconnect;
+    $('txType').value = c.frameType; $('txText').value = '{"cmd":"info"}';
+    $('quick').innerHTML = QUICK.map(function (item, i) {
+      return '<div class="it"><button class="btn sm" data-q="' + i + '">发送</button><div><div class="nm">' + esc(item.name) + '</div><div class="dt">' + esc(item.type) + ' · ' + esc(item.data) + '</div></div></div>';
+    }).join('');
+  }
+  seed(); fillForm();
+  ['url','headers','subprotocol','proxy','frameType','pingInterval'].forEach(function (k) {
+    $(k).addEventListener('input', function () { S.config[k] = k === 'pingInterval' ? Number(this.value) : this.value; render(); });
+    $(k).addEventListener('change', function () { S.config[k] = k === 'pingInterval' ? Number(this.value) : this.value; render(); });
+  });
+  ['tlsVerify','compression','autoReconnect'].forEach(function (k) {
+    $(k).addEventListener('change', function () { S.config[k] = this.checked; });
+  });
+  $('btnOpen').addEventListener('click', function () { isOpen() || busy() ? disconnect(1000, 'client close') : connect(); });
+  $('btnSend').addEventListener('click', function () { sendData(); });
+  $('btnPing').addEventListener('click', function () { sendPing(); });
+  $('btnCloseFrame').addEventListener('click', function () { disconnect(parseInt($('closeCode').value, 10) || 1000, $('closeReason').value); });
+  $('btnClear').addEventListener('click', function () { S.frames = []; render(); });
+  $('btnReset').addEventListener('click', function () { S.rx = 0; S.tx = 0; renderChrome(); });
+  $('search').addEventListener('input', renderLog);
+  $('txText').addEventListener('input', hintTx);
+  $('txType').addEventListener('change', hintTx);
+  $('btnShake').addEventListener('click', function () { S.shakeOpen = !S.shakeOpen; renderShake(); });
+  $('filters').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-f]'); if (!b) return; S.filter = b.getAttribute('data-f'); render();
+  });
+  $('quick').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-q]'); if (!b) return;
+    var item = QUICK[Number(b.getAttribute('data-q'))];
+    $('txType').value = item.type; $('txText').value = item.data; sendData(item.type, item.data);
+  });
+  $('themeBtn').addEventListener('click', function () {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (dark) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', 'dark');
+    this.textContent = dark ? '黑底' : '白底'; this.classList.toggle('on', !dark);
+  });
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); sendData(); }
+  });
+  render();
+  window.__ws = { get state() { return S; }, connect: connect, disconnect: disconnect, send: sendData, ping: sendPing };
+})();
+</script>
+</body>
+</html>

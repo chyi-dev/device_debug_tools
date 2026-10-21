@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Scan and connect to Bluetooth LE devices for debugging.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Scan and connect to Bluetooth LE devices for debugging.</string>
 </dict>
 </plist>

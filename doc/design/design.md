@@ -214,7 +214,7 @@ DTR 回环到 DSR、RTS 回环到 CTS，打开即有 DCD。
 ### 8.2 三版共同覆盖的完整功能
 
 - 串口：端口、波特率、校验、数据位、停止位、流控（A 额外显示引脚占位）。
-- 蓝牙：设备名、Service / Notify / Write UUID；桌面端未接入时明确提示但保存配置。
+- 蓝牙：旧稿只覆盖设备名与手填 UUID；选定方向见第 10 节「先钉再收发」，不再以本列表为准。
 - MQTT：Broker、端口、Client ID、用户名、密码、订阅 Topic、发布 Topic、QoS、TLS。
 - WebSocket：URL、子协议、心跳。
 - 统一发送、HEX 切换、日志搜索、收发计数、并发数显示、新建 / 删除连接。
@@ -276,7 +276,7 @@ DTR 回环到 DSR、RTS 回环到 CTS，打开即有 DCD。
 ### 9.3 完整连接设置
 
 - Serial：端口、波特率、校验位、数据位、停止位、流控、DTR/RTS、引脚、分包超时。
-- BLE：扫描过滤、设备、自动重连、MTU、Service、Notify/Indicate、Write、写入方式、分片字节和分片间隔。
+- BLE：第 9 节工作区仍保留扫描、MTU、写入方式等字段；连接页内怎么摆以第 10 节为准（GATT 钉选，不是手填一列表单）。
 - MQTT：Broker、版本、Client ID、认证、TLS/证书、Keep Alive、Clean Start、Session Expiry、自动重连、遗嘱、多 Topic 订阅、默认发布目标。
 - WebSocket：URL、Headers、Subprotocol、代理、TLS 校验、压缩、Ping/Pong、自动重连和默认帧类型。
 
@@ -288,3 +288,61 @@ DTR 回环到 DSR、RTS 回环到 CTS，打开即有 DCD。
 - 检查手动发送进入当前连接历史；
 - 捕获页面与控制台错误；
 - 生成 1440×900 截图 `multi-console-{a,b,c}.png`。
+
+## 10. 蓝牙调试台 · 先钉再收发
+
+选定稿：[`ble/index.html`](ble/index.html)（双击打开）。预览：[`ble/preview.png`](ble/preview.png)。方向来源见 [`direction-approved.md`](direction-approved.md)。三版对照留在 [`ble-demos/`](ble-demos/)，只作留档。
+
+外壳仍是已选定的多协议 A 方案：菜单栏、连接页签、状态栏。变的是这条 BLE 连接里面怎么摆。色、字、圆角锁在第 2 节。当前不改 `lib/`，落地目录预期为 `lib/features/ble/`，待实现指令。
+
+### 10.1 布局
+
+```
+┌ 菜单栏 34px ───────────────────────────────────────────────────────────┐
+├ 连接页签 36px ─────────────────────────────────────────────────────────┤
+│ 左栏 300px     │ 数据日志 + 发送框                       │ 工具面板 352px │
+│ 扫描 / 连接    │                                         │ 快捷 / 批量 /  │
+│ GATT 钉选     │                                         │ 应答 / 历史 /  │
+│ MTU / 写入方式 │                                         │ 校验 | 脚本    │
+├────────────────┴─────────────────────────────────────────┴────────────────┤
+│ 状态栏：设备 CONNECTED|CLOSED, MTU, 写入方式 │ Notify │ Write │ RX │ TX │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+- 左栏先扫设备、再连接，连上之后展开 GATT。每只特征按属性提供「钉住通知」或「钉住写入」；只读特征不可钉。
+- 中间仍是数据日志与发送框，句式与第 4 节相同：`[时间]# RECV HEX>` / `SEND`。
+- 右侧工具面板不另造一套：快捷指令、批量、自动应答、历史、校验、脚本都还在，作用对象是当前钉住的特征。
+- 工具面板可单独隐藏。最小窗口宽度 1180px。
+
+### 10.2 钉选规则
+
+- 同时只能钉一只 Notify、一只 Write。再钉另一只会换掉当前钉选。
+- 未钉 Write：发送、快捷指令、批量全部拦截，提示「还没有钉住 Write 特征」。
+- 未钉 Notify：Write 仍可发出，回包不进日志，提示「已发出，还没有钉住 Notify」。
+- 换钉之后，发送框、快捷指令、批量、自动应答都改走新特征，不用改脚本钩子名。
+- 状态栏格式：`设备 CONNECTED|CLOSED, MTU, 写入方式`，并单独标出当前 Notify / Write UUID。`CONNECTED/CLOSED/RECV/SEND` 保持英文。
+
+### 10.3 连接参数
+
+左栏在 GATT 树下方保留：写入方式（With / Without Response）、MTU、分片字节。扫描支持名称或地址过滤；滤不到则为空列表。
+
+### 10.4 模拟协议
+
+设计稿用两台设备演示，Flutter 实现时由真实适配器替换：
+
+| 设备 | 结果 |
+|---|---|
+| Sensor-A4 · `C8:2E:18:91:7A:04` | 可连 |
+| EnvTag-B2 · `84:31:20:7C:11:02` | 连接失败：对端拒绝 |
+
+Sensor-A4 的 GATT：
+
+- Device Information `180A`：Manufacturer Name / Model Number，只读
+- Battery `180F`：Battery Level，读 + Notify
+- 透传 `FFF0`：`FFF1` Notify，`FFF2` Write / Write Without Response
+
+透传载荷沿用第 5 节温湿度帧。钉住 `FFF1` / `FFF2` 后，发送 `A5 01 00 00 01 07` 会在日志里看到 `A5 5A 03 …`。
+
+### 10.5 维护
+
+只改 [`ble/index.html`](ble/index.html)，不要用共享构建覆盖。重新截图可参考 `ble-demos/shoot.mjs` 的走查步骤（扫描 → 连接 → 钉 Notify / Write → 发送）。

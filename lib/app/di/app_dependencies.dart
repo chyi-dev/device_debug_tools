@@ -4,7 +4,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../core/storage/storage_keys.dart';
 import '../../core/storage/user_prefs_storage.dart';
+import '../../features/ble/data/ble_session_factory.dart';
 import '../../features/home/data/home_tab_store.dart';
+import '../../features/mqtt/data/mqtt_session_factory.dart';
 import '../../features/serial/data/file_selector_gateway.dart';
 import '../../features/serial/data/serial_session_factory.dart';
 
@@ -28,6 +30,16 @@ class AppDependencies extends StatelessWidget {
           create: (_) => PlatformSerialSessionFactory(
             settings: Hive.box<dynamic>(StorageKeys.settingsBox),
             files: FileSelectorGateway(),
+          ),
+        ),
+        RepositoryProvider<BleSessionFactory>(
+          create: (_) => PlatformBleSessionFactory(
+            settings: Hive.box<dynamic>(StorageKeys.settingsBox),
+          ),
+        ),
+        RepositoryProvider<MqttSessionFactory>(
+          create: (_) => PlatformMqttSessionFactory(
+            settings: Hive.box<dynamic>(StorageKeys.settingsBox),
           ),
         ),
         RepositoryProvider<HomeTabStore>(

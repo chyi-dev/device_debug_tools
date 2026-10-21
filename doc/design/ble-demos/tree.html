@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>设备调试工具 · 蓝牙 · 特征表</title>
+<style>
+/* form 来自内容：不知道订哪只特征时，主角是服务/特征表，通知流量贴在表下。 */
+:root{
+  --win:#e9edf1;--panel:#f7f8fa;--field:#fff;--line:#c5ced7;--line2:#dfe4e9;
+  --text:#1f2933;--muted:#56616e;--accent:#1769c2;--accent-ink:#fff;--hover:#e3ebf5;
+  --log-bg:#fff;--log-prompt:#6b7480;--log-rx:#1b2630;--log-tx:#1461b8;--log-sys:#9a5a00;--mark:#ffe28a;
+  --on:#1f9d55;--off:#c8392f;--lamp-idle:#b9c1ca;
+  --sans:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --win:#16191d;--panel:#1f2329;--field:#272c33;--line:#3a414a;--line2:#2e343c;
+  --text:#e3e7ec;--muted:#a1aab5;--accent:#4c9bf0;--accent-ink:#0c1624;--hover:#2b323b;
+  --log-bg:#0d1013;--log-prompt:#8b949e;--log-rx:#7fe0a6;--log-tx:#8cc2ff;--log-sys:#e5b54a;--mark:#6b5a12;
+  --on:#3ccf7a;--off:#ef5b50;--lamp-idle:#4a525c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:14px/1.45 var(--sans);color:var(--text);background:var(--win);overflow:hidden;text-wrap:pretty}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.app{height:100vh;display:grid;grid-template-rows:34px 36px minmax(0,1fr) 208px 30px;min-width:1180px}
+.menubar{display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line);z-index:20}
+.menubar .title{font-weight:600;margin-right:8px;padding-left:4px}
+.dir{font-size:12px;color:var(--muted);margin-right:14px}
+.menu{position:relative}
+.menu>button{border:0;background:none;height:28px;padding:0 12px;border-radius:4px}
+.menu>button:hover,.menu.open>button{background:var(--hover)}
+.drop{display:none;position:absolute;top:31px;left:0;min-width:200px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:4px}
+.menu.open .drop{display:block}
+.drop button{display:flex;justify-content:space-between;width:100%;border:0;background:none;text-align:left;padding:7px 12px;border-radius:4px}
+.drop button:hover{background:var(--hover)}
+.drop .chk{font:12px var(--mono);color:var(--muted)}
+.menubar .right{margin-left:auto}
+.iconbtn{border:1px solid transparent;background:none;height:26px;padding:0 10px;border-radius:4px;font-size:13px;color:var(--muted)}
+.iconbtn.on{color:var(--text);border-color:var(--line);background:var(--field)}
+.tabs{display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--line)}
+.ptab{min-width:158px;display:flex;align-items:center;gap:8px;padding:0 12px;border:0;border-right:1px solid var(--line);color:var(--muted);background:transparent;border-radius:0}
+.ptab.on{color:var(--text);background:var(--field);box-shadow:inset 0 -2px var(--accent)}
+.ptab .dot{width:8px;height:8px;border-radius:50%;background:var(--lamp-idle)}
+.ptab .dot.open{background:var(--on)}
+.add{border:0;background:transparent;padding:0 12px;color:var(--muted)}
+.work{display:grid;grid-template-columns:260px minmax(0,1fr);gap:8px;padding:8px 8px 0;min-height:0}
+.side,.stage{min-height:0;overflow:hidden}
+.side{display:flex;flex-direction:column;gap:6px;overflow:auto}
+.group{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:7px 12px 8px}
+.legend{font-size:12px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pair{display:flex;gap:6px}
+select,.inp,textarea{height:26px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 6px;outline:none;min-width:0;width:100%}
+.btn{height:28px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 10px;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.sm{height:24px;padding:0 8px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
+.openbtn{width:100%;height:32px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;margin-top:8px}
+.lamp{width:12px;height:12px;border-radius:50%;background:var(--off);box-shadow:inset 0 -1px 2px rgba(0,0,0,.25)}
+.lamp.on{background:var(--on)}
+.devlist{border:1px solid var(--line);border-radius:4px;background:var(--field);margin-top:6px;min-height:120px;overflow:auto}
+.dev{display:grid;grid-template-columns:minmax(0,1fr) auto;width:100%;gap:2px 8px;padding:8px 10px;border:0;border-bottom:1px solid var(--line2);background:transparent;text-align:left;border-radius:0}
+.dev:hover{background:var(--hover)}
+.dev.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.dev b{font-weight:600}
+.dev .addr{font:12px var(--mono);color:var(--muted)}
+.dev .rssi{font:12px var(--mono);color:var(--muted);align-self:center}
+.empty,.note{font-size:12px;color:var(--muted);line-height:1.5}
+.empty{padding:16px 10px}
+.stage{display:grid;grid-template-rows:minmax(0,1fr) 156px;gap:8px}
+.gatt,.stream{border:1px solid var(--line);border-radius:6px;background:var(--panel);min-height:0;display:grid;grid-template-rows:36px minmax(0,1fr);overflow:hidden}
+.head{display:flex;align-items:center;gap:10px;padding:0 10px;border-bottom:1px solid var(--line);font-size:13px}
+.head b{font-weight:600}
+.head .meta{font:12px var(--mono);color:var(--muted);margin-left:auto}
+.svc{padding:8px 12px 4px;font-size:12px;font-weight:600;color:var(--muted);background:var(--win);border-top:1px solid var(--line2)}
+.svc:first-child{border-top:0}
+.char{display:grid;grid-template-columns:86px minmax(0,1.2fr) 148px minmax(0,1.4fr) auto;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--line2);background:var(--field)}
+.char .uuid{font:12px var(--mono);color:var(--muted)}
+.char .nm{font-weight:600}
+.props{display:flex;gap:4px;flex-wrap:wrap}
+.prop{font:11px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+.prop.on{color:var(--on);border-color:var(--on)}
+.val{font:12px var(--mono);color:var(--log-rx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ops{display:flex;gap:4px;align-items:center}
+.ops .inp{width:120px;height:24px;font:12px var(--mono)}
+.gscroll,.log{overflow:auto;min-height:0}
+.log{padding:8px 12px;font:13px/1.55 var(--mono);background:var(--log-bg);color:var(--log-rx)}
+.log .p{color:var(--log-prompt)}
+.log .rx{color:var(--log-rx)}
+.log .tx{color:var(--log-tx)}
+.log .sys{color:var(--log-sys)}
+.tools{margin:8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-rows:36px minmax(0,1fr);min-height:0;overflow:hidden}
+.ttabs{display:flex;border-bottom:1px solid var(--line);padding:0 4px}
+.ttabs button{flex:1;border:0;background:none;font-size:12px;color:var(--muted);border-bottom:2px solid transparent}
+.ttabs button.on{color:var(--text);font-weight:600;border-color:var(--accent)}
+.ttabs .sctab{flex:none;padding:0 14px;position:relative}
+.ttabs .sctab::before{content:"";position:absolute;left:-3px;top:8px;bottom:8px;border-left:1px solid var(--line)}
+.tabbody{overflow:auto;display:flex}
+.tabbody .col{flex:1;min-width:0;border-right:1px solid var(--line2);overflow:auto}
+.tabbody .col:last-child{border-right:0}
+.it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line2)}
+.it:hover{background:var(--hover)}
+.it .nm{font-weight:600;font-size:13px}
+.it .dt{grid-column:2;font:12px var(--mono);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sw{width:32px;height:18px;border-radius:9px;background:var(--lamp-idle);border:0;position:relative}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff}
+.sw.on{background:var(--on)}
+.sw.on::after{left:16px}
+.explain{font-size:12px;color:var(--muted);padding:8px 10px}
+.status{display:flex;align-items:center;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.status>span{padding:0 12px;border-right:1px solid var(--line2);height:100%;display:flex;align-items:center;gap:6px}
+.status b{color:var(--text);font:600 12px var(--mono)}
+.status .conn{font-family:var(--mono);color:var(--text)}
+.status .lamp{width:9px;height:9px}
+.status .last{margin-left:auto;border-right:0;border-left:1px solid var(--line2)}
+.toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:var(--text);color:var(--win);padding:9px 16px;border-radius:6px;opacity:0;z-index:60;pointer-events:none}
+.toast.show{opacity:1}
+.toast.warn{background:var(--off);color:#fff}
+.checks label{display:flex;gap:6px;align-items:center;font-size:13px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  'use strict';
+  var CATALOG = [
+    { id: 'a4', name: 'Sensor-A4', addr: 'C8:2E:18:91:7A:04', rssi: -47, fail: false },
+    { id: 'b2', name: 'EnvTag-B2', addr: '84:31:20:7C:11:02', rssi: -62, fail: true }
+  ];
+  var GATT = [
+    { uuid: '180A', name: 'Device Information', chars: [
+      { uuid: '2A29', name: 'Manufacturer Name', r: 1, n: 0, w: 0, ascii: 1, live: 'HuaStudio Lab' },
+      { uuid: '2A24', name: 'Model Number', r: 1, n: 0, w: 0, ascii: 1, live: 'Sensor-A4' }
+    ]},
+    { uuid: '180F', name: 'Battery Service', chars: [
+      { uuid: '2A19', name: 'Battery Level', r: 1, n: 1, w: 0, live: '57' }
+    ]},
+    { uuid: 'FFF0', name: 'UART', chars: [
+      { uuid: 'FFF1', name: 'TX Notify', r: 0, n: 1, w: 0, live: '' },
+      { uuid: 'FFF2', name: 'RX Write', r: 0, n: 0, w: 1, live: '' }
+    ]}
+  ];
+  var RX_TEMP = 'A5 5A 03 01 00 01 E3 E7';
+  var RX_INFO = 'A5 5A 82 53 65 6E 73 6F 72 2D 41 34 9D';
+  var S = {
+    theme: localStorage.getItem('ddt.theme') || 'light',
+    tool: 'quick', filter: '', scanning: false, scanned: false, found: [],
+    selected: null, connected: false, connecting: false,
+    mtu: 247, autoReconnect: true, values: {}, sub: {}, logs: [], rx: 0, txN: 0,
+    history: [], replyOn: true, hits: 0, writeDraft: {},
+    quick: [
+      { id: 'q1', name: '读取温湿度', data: 'A5 01 00 00 01 07', target: 'FFF2' },
+      { id: 'q2', name: '读取设备信息', data: 'A5 02 00 00 02 08', target: 'FFF2' }
+    ],
+    scripts: [
+      { name: 'parse_sensor.lua', on: true, hook: 'on_receive', runs: 0 },
+      { name: 'before_send.lua', on: false, hook: 'before_send', runs: 0 }
+    ]
+  };
+  function $(id) { return document.getElementById(id); }
+  function esc(v) { return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function stamp() {
+    var d = new Date();
+    function p(n, l) { return String(n).padStart(l || 2, '0'); }
+    return p(d.getFullYear(),4)+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+'.'+p(d.getMilliseconds(),3);
+  }
+  function toast(msg, warn) {
+    var el = $('toast'); el.textContent = msg; el.className = 'toast show' + (warn ? ' warn' : '');
+    clearTimeout(toast.t); toast.t = setTimeout(function () { el.className = 'toast'; }, 1900);
+  }
+  function push(kind, text, route) {
+    S.logs.push({ t: stamp(), kind: kind, text: text, route: route || '' });
+    if (kind === 'rx') S.rx += Math.floor(text.replace(/[^0-9A-F]/gi,'').length / 2);
+    if (kind === 'tx') S.txN += Math.floor(text.replace(/[^0-9A-F]/gi,'').length / 2);
+    if (kind !== 'sys' && route) S.values[route] = text;
+    render();
+  }
+  function device() { return CATALOG.filter(function (d) { return d.id === S.selected; })[0]; }
+  function filtered() {
+    var q = (S.filter || '').trim().toLowerCase();
+    return CATALOG.filter(function (d) { return !q || d.name.toLowerCase().indexOf(q) >= 0 || d.addr.toLowerCase().indexOf(q) >= 0; });
+  }
+  function charOf(uuid) {
+    var found = null;
+    GATT.forEach(function (s) { s.chars.forEach(function (c) { if (c.uuid === uuid) found = c; }); });
+    return found;
+  }
+  function scan() {
+    S.scanning = true; S.scanned = true; render();
+    setTimeout(function () {
+      S.scanning = false; S.found = filtered();
+      if (S.found.length === 1) S.selected = S.found[0].id;
+      toast(S.found.length ? '扫描完成：' + S.found.map(function (d) { return d.name; }).join('、') : '没有匹配的设备');
+      render();
+    }, 700);
+  }
+  function connect() {
+    var d = device();
+    if (!d) { toast('请先选一台设备', true); return; }
+    if (S.connected) { S.connected = false; S.sub = {}; push('sys', '已断开 ' + d.name); return; }
+    S.connecting = true; render();
+    setTimeout(function () {
+      S.connecting = false;
+      if (d.fail) { push('sys', '连接失败：对端拒绝 · ' + d.name); toast('连接失败：对端拒绝', true); return; }
+      S.connected = true;
+      push('sys', d.name + ' CONNECTED, MTU ' + S.mtu + ' · 已发现 3 个服务');
+    }, 480);
+  }
+  function read(uuid) {
+    if (!S.connected) { toast('蓝牙未连接', true); return; }
+    var c = charOf(uuid);
+    if (!c || !c.r) { toast('该特征不能读', true); return; }
+    S.values[uuid] = c.ascii ? c.live : c.live;
+    push('sys', 'READ ' + uuid + ' → ' + (c.ascii ? c.live : c.live));
+  }
+  function sub(uuid) {
+    if (!S.connected) { toast('蓝牙未连接', true); return; }
+    var c = charOf(uuid);
+    if (!c || !c.n) { toast('该特征没有 Notify', true); return; }
+    S.sub[uuid] = !S.sub[uuid];
+    push('sys', (S.sub[uuid] ? '已订 ' : '已退订 ') + uuid + ' ' + c.name);
+    if (S.sub[uuid] && uuid === 'FFF1') {
+      setTimeout(function () {
+        if (!S.sub.FFF1) return;
+        push('rx', 'A5 81 00 00 81', 'FFF1');
+        if (S.replyOn) {
+          S.hits += 1;
+          setTimeout(function () { push('tx', 'A5 80 00 00 80', 'FFF2'); push('sys', '应答命中「上线确认」'); }, 40);
+        }
+      }, 80);
+    }
+    if (S.sub[uuid] && uuid === '2A19') {
+      clearInterval(S._bat);
+      S._bat = setInterval(function () {
+        if (!S.sub['2A19'] || !S.connected) { clearInterval(S._bat); return; }
+        push('rx', '57', '2A19');
+      }, 4000);
+    }
+    render();
+  }
+  function write(uuid, hex, hist) {
+    if (!S.connected) { toast('蓝牙未连接，发送已拦截', true); return; }
+    var c = charOf(uuid);
+    if (!c || !c.w) { toast('该特征不能写', true); return; }
+    hex = String(hex || '').trim();
+    if (!/^([0-9A-Fa-f]{2}\s*)+$/.test(hex)) { toast('HEX 需要成对十六进制字符', true); return; }
+    S.scripts.filter(function (s) { return s.on && s.hook === 'before_send'; }).forEach(function (s) { s.runs += 1; });
+    push('tx', hex.toUpperCase(), uuid);
+    if (hist) S.history.unshift({ t: stamp().slice(11, 23), data: hex.toUpperCase(), uuid: uuid });
+    var reply = hex.toUpperCase().replace(/\s+/g, ' ');
+    setTimeout(function () {
+      if (!S.connected || !S.sub.FFF1) {
+        if (!S.sub.FFF1 && (reply.indexOf('A5 01') === 0 || reply.indexOf('A5 02') === 0))
+          toast('已写入，FFF1 未订阅，通知看不到');
+        return;
+      }
+      if (reply.indexOf('A5 01') === 0) push('rx', RX_TEMP, 'FFF1');
+      else if (reply.indexOf('A5 02') === 0) push('rx', RX_INFO, 'FFF1');
+      S.scripts.filter(function (s) { return s.on && s.hook === 'on_receive'; }).forEach(function (s) { s.runs += 1; });
+    }, 80);
+  }
+  function render() {
+    document.documentElement.setAttribute('data-theme', S.theme);
+    localStorage.setItem('ddt.theme', S.theme);
+    $('app').innerHTML = menubar() + tabbar() + work() + tools() + status();
+  }
+  function menubar() {
+    return '<header class="menubar"><span class="title">设备调试工具</span><span class="dir">蓝牙 · 特征表</span>' +
+      '<div class="menu"><button>设置</button><div class="drop">' +
+      '<button data-act="theme" data-v="light">白底经典<span class="chk">' + (S.theme==='light'?'✓':'') + '</span></button>' +
+      '<button data-act="theme" data-v="dark">黑底经典<span class="chk">' + (S.theme==='dark'?'✓':'') + '</span></button></div></div>' +
+      '<div class="menu"><button>工具</button><div class="drop">' +
+      '<button data-act="tool" data-v="quick">快捷指令</button><button data-act="tool" data-v="reply">自动应答</button>' +
+      '<button data-act="tool" data-v="history">历史发送</button><button data-act="tool" data-v="script">脚本</button></div></div>' +
+      '<div class="right"><button class="iconbtn on" data-act="about">本页工具在下方</button></div></header>';
+  }
+  function tabbar() {
+    var d = device();
+    return '<nav class="tabs"><button class="ptab" data-act="serial"><i class="dot open"></i>COM3</button>' +
+      '<button class="ptab on"><i class="dot' + (S.connected ? ' open' : '') + '"></i>' + esc(d ? d.name : '蓝牙 BLE') + '</button>' +
+      '<button class="add" data-act="add">＋ 新增</button></nav>';
+  }
+  function work() {
+    var list = S.scanned ? S.found : [];
+    var rows = !S.scanned ? '<div class="empty">尚未扫描</div>' : (!list.length ? '<div class="empty">没有匹配的设备</div>' :
+      list.map(function (d) {
+        return '<button class="dev' + (S.selected===d.id?' on':'') + '" data-act="pick" data-id="' + d.id + '"><b>' + esc(d.name) +
+          '</b><span class="rssi">' + d.rssi + ' dBm</span><span class="addr">' + d.addr + '</span></button>';
+      }).join(''));
+    return '<div class="work"><aside class="side">' +
+      '<section class="group"><div class="legend">扫描<span><i class="lamp on" style="display:inline-block;vertical-align:-1px"></i> 适配器就绪</span></div>' +
+      '<div class="pair"><input class="inp" id="flt" placeholder="名称或地址" value="' + esc(S.filter) + '">' +
+      '<button class="btn sm" id="btnScan">' + (S.scanning ? '扫描中' : '扫描') + '</button></div>' +
+      '<div class="devlist">' + rows + '</div>' +
+      '<button class="btn openbtn' + (S.connected?'':' pri') + '" id="btnConnect"><i class="lamp' + (S.connected?' on':'') + '"></i>' +
+      (S.connecting ? '连接中…' : S.connected ? '断开' : '连接') + '</button>' +
+      '<p class="note" style="margin-top:8px">EnvTag-B2 会拒绝。连上之后在右边展开服务。</p>' +
+      '<label class="checks" style="display:flex;margin-top:8px"><input type="checkbox" id="cfgRe"' + (S.autoReconnect?' checked':'') + '>断线自动重连</label>' +
+      '</section></aside>' + gatt() + '</div>';
+  }
+  function gatt() {
+    var body;
+    if (!S.connected) body = '<div class="empty">连接后发现服务与特征。每行可以直接读、订阅或写入。</div>';
+    else body = GATT.map(function (s) {
+      return '<div class="svc">' + esc(s.name) + '　' + s.uuid + '</div>' + s.chars.map(function (c) {
+        var val = S.values[c.uuid] || '—';
+        return '<div class="char"><span class="uuid">' + c.uuid + '</span><span class="nm">' + esc(c.name) + '</span>' +
+          '<span class="props">' +
+          (c.r ? '<span class="prop">Read</span>' : '') +
+          (c.n ? '<span class="prop' + (S.sub[c.uuid]?' on':'') + '">Notify</span>' : '') +
+          (c.w ? '<span class="prop">Write</span>' : '') + '</span>' +
+          '<span class="val" title="' + esc(val) + '">' + esc(val) + '</span><span class="ops">' +
+          (c.r ? '<button class="btn sm" data-act="read" data-uuid="' + c.uuid + '">读</button>' : '') +
+          (c.n ? '<button class="btn sm' + (S.sub[c.uuid]?' pri':'') + '" data-act="sub" data-uuid="' + c.uuid + '" id="' + (c.uuid==='FFF1'?'btnSub':'') + '">' + (S.sub[c.uuid]?'已订':'订阅') + '</button>' : '') +
+          (c.w ? '<input class="inp" data-draft="' + c.uuid + '" placeholder="HEX" value="' + esc(S.writeDraft[c.uuid] || 'A5 01 00 00 01 07') + '">' +
+            '<button class="btn sm pri" data-act="wwrite" data-uuid="' + c.uuid + '" id="btnSend">写入</button>' : '') +
+          '</span></div>';
+      }).join('');
+    }).join('');
+    var stream = S.logs.map(function (x) {
+      var tag = x.kind === 'rx' ? 'RECV HEX>' : x.kind === 'tx' ? 'SEND HEX>' : '';
+      if (x.kind === 'sys') return '<div><span class="p">[' + x.t + ']#</span> <span class="sys">' + esc(x.text) + '</span></div>';
+      return '<div><span class="p">[' + x.t + ']# ' + esc(x.route) + ' ' + tag + '</span></div><div class="' + x.kind + '">' + esc(x.text) + '</div>';
+    }).join('') || '<span class="p">订阅 Notify 后，流量出现在这里。</span>';
+    var n = Object.keys(S.sub).filter(function (k) { return S.sub[k]; }).length;
+    return '<section class="stage"><div class="gatt"><div class="head"><b>服务 / 特征</b>' +
+      '<span class="meta">' + (S.connected ? '3 个服务 · 已订 ' + n : '未连接') + '</span></div>' +
+      '<div class="gscroll">' + body + '</div></div>' +
+      '<div class="stream"><div class="head"><b>通知流量</b><span class="meta">RX ' + S.rx + ' · TX ' + S.txN + '</span></div>' +
+      '<div class="log" id="log">' + stream + '</div></div></section>';
+  }
+  function tools() {
+    var col = '';
+    if (S.tool === 'quick') col = S.quick.map(function (q) {
+      return '<div class="it"><button class="btn sm" data-act="qsend" data-id="' + q.id + '">发送</button>' +
+        '<span class="nm">' + esc(q.name) + '</span><span class="dt">' + q.data + ' → ' + q.target + '</span></div>';
+    }).join('') + '<p class="explain">快捷指令写到指定特征，不经过行内输入框。</p>';
+    else if (S.tool === 'batch') col = '<div class="it"><button class="btn sm pri" data-act="brun">运行</button><span class="nm">读信息 → 读温湿度</span><span class="dt">写到 FFF2</span></div>';
+    else if (S.tool === 'reply') col = '<div class="it"><button class="sw' + (S.replyOn?' on':'') + '" data-act="rtog"></button>' +
+      '<span class="nm">上线确认</span><span class="dt">前缀 A5 81 · 回 FFF2 · 命中 ' + S.hits + '</span></div>' +
+      '<p class="explain">先订阅 FFF1，连上后的上线帧才会走进应答。</p>';
+    else if (S.tool === 'history') col = (S.history.length ? S.history.map(function (h) {
+      return '<div class="it"><button class="btn sm" data-act="hresend" data-d="' + esc(h.data) + '" data-u="' + h.uuid + '">' + h.t + '</button>' +
+        '<span class="nm">' + h.data + '</span><span class="dt">' + h.uuid + '</span></div>';
+    }).join('') : '<p class="explain">只记录特征行上的「写入」。</p>');
+    else if (S.tool === 'calc') col = '<p class="explain">A5 01 00 00 01 07　SUM8 = AE　XOR = A2。追加后写到当前特征行。</p>';
+    else col = S.scripts.map(function (s) {
+      return '<div class="it"><button class="sw' + (s.on?' on':'') + '" data-act="stog" data-n="' + esc(s.name) + '"></button>' +
+        '<span class="nm">' + esc(s.name) + '</span><span class="dt">' + s.hook + ' · ' + s.runs + ' 次</span></div>';
+    }).join('');
+    return '<section class="tools"><nav class="ttabs">' +
+      [['quick','快捷指令'],['batch','批量发送'],['reply','自动应答'],['history','历史发送'],['calc','校验计算']].map(function (t) {
+        return '<button data-act="tool" data-v="' + t[0] + '" class="' + (S.tool===t[0]?'on':'') + '">' + t[1] + '</button>';
+      }).join('') +
+      '<button class="sctab' + (S.tool==='script'?' on':'') + '" data-act="tool" data-v="script">脚本</button></nav>' +
+      '<div class="tabbody"><div class="col">' + col + '</div></div></section>';
+  }
+  function status() {
+    var d = device();
+    var conn = !d ? 'BLE CLOSED' : (S.connected ? d.name + ' CONNECTED, MTU ' + S.mtu : d.name + ' CLOSED');
+    var subs = Object.keys(S.sub).filter(function (k) { return S.sub[k]; }).join(' ') || '无';
+    return '<footer class="status"><span><i class="lamp' + (S.connected?' on':'') + '"></i><span class="conn">' + esc(conn) + '</span></span>' +
+      '<span>已订 <b>' + esc(subs) + '</b></span><span>RX <b>' + S.rx + '</b></span><span>TX <b>' + S.txN + '</b></span>' +
+      '<span class="last">在表里订特征，不要先猜 UUID</span></footer>';
+  }
+  document.addEventListener('click', function (e) {
+    var mb = e.target.closest('.menu>button');
+    if (mb) {
+      var m = mb.parentNode;
+      document.querySelectorAll('.menu').forEach(function (x) { if (x !== m) x.classList.remove('open'); });
+      m.classList.toggle('open'); e.stopPropagation(); return;
+    }
+    document.querySelectorAll('.menu').forEach(function (x) { x.classList.remove('open'); });
+    if (e.target.id === 'btnScan' && !S.scanning) { scan(); return; }
+    if (e.target.closest('#btnConnect')) { connect(); return; }
+    var t = e.target.closest('[data-act]'); if (!t) return;
+    var act = t.getAttribute('data-act');
+    if (act === 'theme') S.theme = t.getAttribute('data-v');
+    if (act === 'tool') S.tool = t.getAttribute('data-v');
+    if (act === 'pick') S.selected = t.getAttribute('data-id');
+    if (act === 'serial') toast('本方向稿只展开蓝牙连接');
+    if (act === 'add' || act === 'about') toast(act === 'add' ? '选定方向后再接「新增连接」' : '特征表方向：先发现再收发');
+    if (act === 'read') read(t.getAttribute('data-uuid'));
+    if (act === 'sub') sub(t.getAttribute('data-uuid'));
+    if (act === 'wwrite') {
+      var uuid = t.getAttribute('data-uuid');
+      var inp = document.querySelector('[data-draft="' + uuid + '"]');
+      write(uuid, inp ? inp.value : '', true);
+    }
+    if (act === 'qsend') {
+      var q = S.quick.filter(function (x) { return x.id === t.getAttribute('data-id'); })[0];
+      if (q) write(q.target, q.data, false);
+    }
+    if (act === 'brun') {
+      write('FFF2', 'A5 02 00 00 02 08', false);
+      setTimeout(function () { write('FFF2', 'A5 01 00 00 01 07', false); }, 80);
+    }
+    if (act === 'rtog') S.replyOn = !S.replyOn;
+    if (act === 'hresend') write(t.getAttribute('data-u'), t.getAttribute('data-d'), false);
+    if (act === 'stog') S.scripts.forEach(function (s) { if (s.name === t.getAttribute('data-n')) s.on = !s.on; });
+    render();
+  });
+  document.addEventListener('input', function (e) {
+    if (e.target.id === 'flt') S.filter = e.target.value;
+    if (e.target.getAttribute('data-draft')) S.writeDraft[e.target.getAttribute('data-draft')] = e.target.value;
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'cfgRe') S.autoReconnect = e.target.checked;
+  });
+  render();
+})();
+</script>
+</body>
+</html>

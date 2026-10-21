@@ -5,6 +5,10 @@ import 'package:device_debug_tools/features/home/data/home_tab_store.dart';
 import 'package:device_debug_tools/features/home/model/connection_kind.dart';
 import 'package:device_debug_tools/features/home/model/home_tab.dart';
 import 'package:device_debug_tools/features/home/widget/home_connection_bar.dart';
+import 'package:device_debug_tools/features/ble/data/ble_session_factory.dart';
+import 'package:device_debug_tools/features/ble/repository/ble_console_repository.dart';
+import 'package:device_debug_tools/features/mqtt/data/mqtt_session_factory.dart';
+import 'package:device_debug_tools/features/mqtt/repository/mqtt_console_repository.dart';
 import 'package:device_debug_tools/features/serial/data/serial_session_factory.dart';
 import 'package:device_debug_tools/features/serial/repository/serial_console_repository.dart';
 import 'package:device_debug_tools/features/serial/serial_metrics.dart';
@@ -91,7 +95,13 @@ void main() {
 
 /// 只放页签记录，不打开串口会话，避免防抖计时器卡住组件测试。
 class _BareTabs extends HomeTabsCubit {
-  _BareTabs() : super(sessions: _UnusedSessions(), tabs: _MemoryTabs());
+  _BareTabs()
+    : super(
+        sessions: _UnusedSessions(),
+        ble: _UnusedBle(),
+        mqtt: _UnusedMqtt(),
+        tabs: _MemoryTabs(),
+      );
 
   void show(List<HomeTab> tabs, String activeId) {
     emit(HomeTabsState(tabs: tabs, activeId: activeId));
@@ -109,5 +119,17 @@ class _MemoryTabs implements HomeTabStore {
 class _UnusedSessions implements SerialSessionFactory {
   @override
   SerialConsoleRepository open(String storageKey) =>
+      throw UnsupportedError(storageKey);
+}
+
+class _UnusedBle implements BleSessionFactory {
+  @override
+  BleConsoleRepository open(String storageKey) =>
+      throw UnsupportedError(storageKey);
+}
+
+class _UnusedMqtt implements MqttSessionFactory {
+  @override
+  MqttConsoleRepository open(String storageKey) =>
       throw UnsupportedError(storageKey);
 }

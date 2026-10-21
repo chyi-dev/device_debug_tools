@@ -1,9 +1,8 @@
-/// 首页连接页签的协议。目前只有串口会真正创建会话。
+/// 首页连接页签的协议。
 enum ConnectionKind {
   serial,
   ble,
-  mqtt,
-  webSocket;
+  mqtt;
 
   static ConnectionKind? parse(String raw) {
     for (final kind in ConnectionKind.values) {
@@ -11,6 +10,4 @@ enum ConnectionKind {
     }
     return null;
   }
-
-  bool get implemented => this == ConnectionKind.serial;
 }

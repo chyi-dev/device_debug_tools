@@ -2,10 +2,21 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:device_debug_tools/core/storage/storage_keys.dart';
+import 'package:device_debug_tools/features/ble/data/ble_session_factory.dart';
+import 'package:device_debug_tools/features/ble/data/ble_workspace_store.dart';
+import 'package:device_debug_tools/features/ble/data/idle_ble_gateway.dart';
+import 'package:device_debug_tools/features/ble/model/ble_models.dart';
+import 'package:device_debug_tools/features/ble/repository/ble_console_repository.dart';
 import 'package:device_debug_tools/features/home/cubit/home_tabs_cubit.dart';
 import 'package:device_debug_tools/features/home/data/home_tab_store.dart';
 import 'package:device_debug_tools/features/home/model/connection_kind.dart';
 import 'package:device_debug_tools/features/home/model/home_tab.dart';
+import 'package:device_debug_tools/features/mqtt/data/idle_mqtt_gateway.dart';
+import 'package:device_debug_tools/features/mqtt/data/mqtt_file_gateway.dart';
+import 'package:device_debug_tools/features/mqtt/data/mqtt_session_factory.dart';
+import 'package:device_debug_tools/features/mqtt/data/mqtt_workspace_store.dart';
+import 'package:device_debug_tools/features/mqtt/model/mqtt_models.dart';
+import 'package:device_debug_tools/features/mqtt/repository/mqtt_console_repository.dart';
 import 'package:device_debug_tools/features/serial/data/serial_file_gateway.dart';
 import 'package:device_debug_tools/features/serial/data/serial_port_gateway.dart';
 import 'package:device_debug_tools/features/serial/data/serial_session_factory.dart';
@@ -17,12 +28,21 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late _MemoryTabs tabs;
   late _FakeSessions sessions;
+  late _FakeBle ble;
+  late _FakeMqtt mqtt;
   late HomeTabsCubit cubit;
 
   setUp(() async {
     tabs = _MemoryTabs();
     sessions = _FakeSessions();
-    cubit = HomeTabsCubit(sessions: sessions, tabs: tabs);
+    ble = _FakeBle();
+    mqtt = _FakeMqtt();
+    cubit = HomeTabsCubit(
+      sessions: sessions,
+      ble: ble,
+      mqtt: mqtt,
+      tabs: tabs,
+    );
     await cubit.start();
   });
 
@@ -56,14 +76,27 @@ void main() {
     ]);
   });
 
-  test('未实现的协议不能创建页签', () async {
-    expect(await cubit.add(ConnectionKind.ble), HomeTabAddResult.unsupported);
-    expect(await cubit.add(ConnectionKind.mqtt), HomeTabAddResult.unsupported);
-    expect(
-      await cubit.add(ConnectionKind.webSocket),
-      HomeTabAddResult.unsupported,
-    );
-    expect(cubit.state.tabs, hasLength(1));
+  test('可以新增 BLE 和 MQTT 页签', () async {
+    expect(await cubit.add(ConnectionKind.ble), HomeTabAddResult.opened);
+    expect(await cubit.add(ConnectionKind.mqtt), HomeTabAddResult.opened);
+    expect(cubit.state.tabs, hasLength(3));
+    expect(cubit.state.tabs.map((tab) => tab.kind).toSet(), {
+      ConnectionKind.serial,
+      ConnectionKind.ble,
+      ConnectionKind.mqtt,
+    });
+    expect(ble.opened.single, StorageKeys.bleWorkspace);
+    expect(mqtt.opened.single, StorageKeys.mqttWorkspace);
+  });
+
+  test('关闭 BLE 页签后可以再开', () async {
+    await cubit.add(ConnectionKind.ble);
+    final id = cubit.state.tabs.last.id;
+    await cubit.closeTab(id);
+    expect(cubit.state.tabs.map((tab) => tab.kind), [ConnectionKind.serial]);
+    await cubit.add(ConnectionKind.ble);
+    expect(cubit.state.tabs.last.kind, ConnectionKind.ble);
+    expect(cubit.state.tabs.last.storageKey, StorageKeys.bleWorkspace);
   });
 
   test('关闭后再新增串口，仍然加载原来的工作区', () async {
@@ -93,6 +126,7 @@ void main() {
       'storageKey': StorageKeys.serialWorkspace,
     });
     expect(legacy?.label, isNull);
+    expect(HomeTab.fromJson({'id': 'ws', 'kind': 'webSocket', 'storageKey': 'x'}), isNull);
   });
 }
 
@@ -118,6 +152,34 @@ class _FakeSessions implements SerialSessionFactory {
       ports: _FakePorts(),
       files: _FakeFiles(),
       store: _MemoryWorkspace(),
+    );
+  }
+}
+
+class _FakeBle implements BleSessionFactory {
+  final List<String> opened = [];
+
+  @override
+  BleConsoleRepository open(String storageKey) {
+    opened.add(storageKey);
+    return BleConsoleRepository(
+      gateway: IdleBleGateway(),
+      store: _MemoryBleStore(),
+      files: _FakeFiles(),
+    );
+  }
+}
+
+class _FakeMqtt implements MqttSessionFactory {
+  final List<String> opened = [];
+
+  @override
+  MqttConsoleRepository open(String storageKey) {
+    opened.add(storageKey);
+    return MqttConsoleRepository(
+      gateway: IdleMqttGateway(),
+      store: _MemoryMqttStore(),
+      files: MqttFileGateway(files: _FakeFiles()),
     );
   }
 }
@@ -174,4 +236,20 @@ class _MemoryWorkspace implements SerialWorkspaceStore {
 
   @override
   Future<void> write(SerialWorkspace workspace) async {}
+}
+
+class _MemoryBleStore implements BleWorkspaceStore {
+  @override
+  BleWorkspace? read() => null;
+
+  @override
+  Future<void> write(BleWorkspace workspace) async {}
+}
+
+class _MemoryMqttStore implements MqttWorkspaceStore {
+  @override
+  MqttWorkspace? read() => null;
+
+  @override
+  Future<void> write(MqttWorkspace workspace) async {}
 }

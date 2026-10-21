@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>设备调试工具 · 蓝牙</title>
+<style>
+/* form 来自内容：先在 GATT 树上钉住 Notify 和 Write，主区才回到串口式日志。 */
+:root{
+  --win:#e9edf1;--panel:#f7f8fa;--field:#fff;--line:#c5ced7;--line2:#dfe4e9;
+  --text:#1f2933;--muted:#56616e;--accent:#1769c2;--accent-ink:#fff;--hover:#e3ebf5;
+  --log-bg:#fff;--log-prompt:#6b7480;--log-rx:#1b2630;--log-tx:#1461b8;--log-sys:#9a5a00;--mark:#ffe28a;
+  --on:#1f9d55;--off:#c8392f;--lamp-idle:#b9c1ca;
+  --sans:"Segoe UI","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --win:#16191d;--panel:#1f2329;--field:#272c33;--line:#3a414a;--line2:#2e343c;
+  --text:#e3e7ec;--muted:#a1aab5;--accent:#4c9bf0;--accent-ink:#0c1624;--hover:#2b323b;
+  --log-bg:#0d1013;--log-prompt:#8b949e;--log-rx:#7fe0a6;--log-tx:#8cc2ff;--log-sys:#e5b54a;--mark:#6b5a12;
+  --on:#3ccf7a;--off:#ef5b50;--lamp-idle:#4a525c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font:14px/1.45 var(--sans);color:var(--text);background:var(--win);overflow:hidden;text-wrap:pretty}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.app{height:100vh;display:grid;grid-template-rows:34px 36px minmax(0,1fr) 30px;min-width:1180px}
+.menubar{display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line);z-index:20}
+.menubar .title{font-weight:600;margin-right:8px;padding-left:4px}
+.dir{font-size:12px;color:var(--muted);margin-right:14px}
+.menu{position:relative}
+.menu>button{border:0;background:none;height:28px;padding:0 12px;border-radius:4px}
+.menu>button:hover,.menu.open>button{background:var(--hover)}
+.drop{display:none;position:absolute;top:31px;left:0;min-width:200px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 10px 28px rgba(0,0,0,.16);padding:4px}
+.menu.open .drop{display:block}
+.drop button{display:flex;width:100%;border:0;background:none;text-align:left;padding:7px 12px;border-radius:4px;justify-content:space-between}
+.drop button:hover{background:var(--hover)}
+.drop .chk{font:12px var(--mono);color:var(--muted)}
+.menubar .right{margin-left:auto;display:flex;gap:6px}
+.iconbtn{border:1px solid transparent;background:none;height:26px;padding:0 10px;border-radius:4px;font-size:13px;color:var(--muted)}
+.iconbtn.on{color:var(--text);border-color:var(--line);background:var(--field)}
+.tabs{display:flex;align-items:stretch;background:var(--panel);border-bottom:1px solid var(--line)}
+.ptab{min-width:158px;display:flex;align-items:center;gap:8px;padding:0 12px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--muted);border-radius:0}
+.ptab.on{color:var(--text);background:var(--field);box-shadow:inset 0 -2px var(--accent)}
+.ptab .dot{width:8px;height:8px;border-radius:50%;background:var(--lamp-idle)}
+.ptab .dot.open{background:var(--on)}
+.add{border:0;background:transparent;padding:0 12px;color:var(--muted)}
+.main{display:grid;grid-template-columns:300px minmax(0,1fr) 352px;gap:8px;padding:8px;min-height:0}
+.app.notools .main{grid-template-columns:300px minmax(0,1fr) 0;gap:8px 0}
+.app.notools .tools{visibility:hidden;overflow:hidden}
+.side{overflow:auto;display:flex;flex-direction:column;gap:6px;min-height:0}
+.group{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:7px 12px 8px}
+.legend{font-size:12px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pair{display:flex;gap:6px}
+.inp,select,textarea{height:26px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 6px;outline:none;min-width:0;width:100%}
+.btn{height:28px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 10px;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.sm{height:24px;padding:0 7px;font-size:12px}
+.btn.pin.on{border-color:var(--accent);color:var(--accent);font-weight:600}
+.openbtn{width:100%;height:32px;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600}
+.lamp{width:12px;height:12px;border-radius:50%;background:var(--off);box-shadow:inset 0 -1px 2px rgba(0,0,0,.25)}
+.lamp.on{background:var(--on)}
+.devlist{border:1px solid var(--line);border-radius:4px;background:var(--field);margin-top:6px;overflow:hidden}
+.dev{display:grid;grid-template-columns:minmax(0,1fr) auto;width:100%;gap:2px 8px;padding:7px 10px;border:0;border-bottom:1px solid var(--line2);background:transparent;text-align:left;border-radius:0}
+.dev:last-child{border-bottom:0}
+.dev:hover{background:var(--hover)}
+.dev.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.dev b{font-weight:600}
+.dev .addr,.dev .rssi,.note,.empty{font-size:12px;color:var(--muted)}
+.dev .addr{font-family:var(--mono)}
+.empty{padding:12px 4px}
+.tree{border:1px solid var(--line);border-radius:4px;background:var(--field);overflow:hidden}
+.svc{width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;border:0;border-bottom:1px solid var(--line2);background:var(--win);text-align:left;border-radius:0;font-size:12px;font-weight:600;color:var(--muted)}
+.svc .arw{width:10px}
+.char{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;padding:8px 10px 8px 22px;border-bottom:1px solid var(--line2)}
+.char .nm{font-weight:600}
+.char .id{font:12px var(--mono);color:var(--muted)}
+.char .pins{display:flex;flex-direction:column;gap:4px;align-items:stretch}
+.pinslot{display:flex;gap:8px;align-items:center;padding:6px 0 2px;font-size:12px}
+.pinslot b{font:600 12px var(--mono);color:var(--text)}
+.center{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:8px;min-height:0}
+.logbox{border:1px solid var(--line);border-radius:6px;background:var(--log-bg);display:grid;grid-template-rows:36px minmax(0,1fr);overflow:hidden;min-height:0}
+.loghead{display:flex;align-items:center;gap:10px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.loghead b{font-weight:600}
+.loghead .meta{font:12px var(--mono);color:var(--muted)}
+.loghead .search{margin-left:auto;width:200px}
+.log{overflow:auto;padding:10px 12px;font:14px/1.6 var(--mono)}
+.log.wrap{white-space:pre-wrap;word-break:break-all}
+.log .p{color:var(--log-prompt)}
+.log .rx{color:var(--log-rx)}
+.log .tx{color:var(--log-tx)}
+.log .sys{color:var(--log-sys)}
+.sendbox{border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-columns:minmax(0,1fr) 120px;overflow:hidden}
+.sendbox textarea{border:0;border-right:1px solid var(--line);background:var(--field);height:104px;padding:10px 12px;font:15px/1.5 var(--mono);resize:none;outline:none}
+.sendside{display:flex;flex-direction:column;gap:6px;padding:8px}
+.sendbtn{flex:1;font-size:16px}
+.sendfoot{grid-column:1/-1;display:flex;gap:12px;align-items:center;padding:5px 12px;border-top:1px solid var(--line2);font:12px var(--mono);color:var(--muted)}
+.sendfoot .err{color:var(--off)}
+.tools{border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-rows:38px minmax(0,1fr);overflow:hidden;min-height:0}
+.ttabs{display:flex;border-bottom:1px solid var(--line);padding:0 4px}
+.ttabs button{flex:1;border:0;background:none;font-size:12px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;padding:0 2px}
+.ttabs button.on{color:var(--text);font-weight:600;border-color:var(--accent)}
+.ttabs .sctab{flex:none;padding:0 12px;position:relative}
+.ttabs .sctab::before{content:"";position:absolute;left:-3px;top:10px;bottom:10px;border-left:1px solid var(--line)}
+.tabbody{overflow:auto}
+.bar{display:flex;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line2);font-size:12px;color:var(--muted)}
+.it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line2)}
+.it:hover{background:var(--hover)}
+.it .nm{font-weight:600}
+.it .dt{grid-column:2;font:12px var(--mono);color:var(--muted)}
+.sw{width:32px;height:18px;border-radius:9px;background:var(--lamp-idle);border:0;position:relative}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff}
+.sw.on{background:var(--on)}
+.sw.on::after{left:16px}
+.explain{font-size:12px;color:var(--muted);padding:10px;line-height:1.6}
+.status{display:flex;align-items:center;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.status>span{padding:0 12px;border-right:1px solid var(--line2);height:100%;display:flex;align-items:center;gap:6px}
+.status b{color:var(--text);font:600 12px var(--mono)}
+.status .conn{font-family:var(--mono);color:var(--text)}
+.status .lamp{width:9px;height:9px}
+.status .last{margin-left:auto;border-right:0;border-left:1px solid var(--line2)}
+.toast{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);background:var(--text);color:var(--win);padding:9px 16px;border-radius:6px;opacity:0;z-index:60;pointer-events:none}
+.toast.show{opacity:1}
+.toast.warn{background:var(--off);color:#fff}
+.form{display:grid;grid-template-columns:72px minmax(0,1fr);gap:5px 8px;align-items:center}
+.form label{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  'use strict';
+  var CATALOG = [
+    { id: 'a4', name: 'Sensor-A4', addr: 'C8:2E:18:91:7A:04', rssi: -47, fail: false },
+    { id: 'b2', name: 'EnvTag-B2', addr: '84:31:20:7C:11:02', rssi: -62, fail: true }
+  ];
+  var GATT = [
+    { uuid: '180A', name: 'Device Information', open: true, chars: [
+      { uuid: '2A29', name: 'Manufacturer Name', n: 0, w: 0 },
+      { uuid: '2A24', name: 'Model Number', n: 0, w: 0 }
+    ]},
+    { uuid: '180F', name: 'Battery Service', open: true, chars: [
+      { uuid: '2A19', name: 'Battery Level', n: 1, w: 0 }
+    ]},
+    { uuid: 'FFF0', name: 'UART', open: true, chars: [
+      { uuid: 'FFF1', name: 'TX Notify', n: 1, w: 0 },
+      { uuid: 'FFF2', name: 'RX Write', n: 0, w: 1 }
+    ]}
+  ];
+  var RX_TEMP = 'A5 5A 03 01 00 01 E3 E7';
+  var RX_INFO = 'A5 5A 82 53 65 6E 73 6F 72 2D 41 34 9D';
+  var S = {
+    theme: localStorage.getItem('ddt.theme') || 'light', tools: true, tool: 'quick',
+    filter: 'Sensor', scanning: false, scanned: false, found: [],
+    selected: null, connected: false, connecting: false,
+    mtu: 247, writeType: 'Without Response', chunkSize: 180, chunkGap: 12,
+    pinN: '', pinW: '', logs: [], rx: 0, txN: 0, search: '',
+    tx: 'A5 01 00 00 01 07', history: [], replyOn: true, hits: 0,
+    quick: [
+      { id: 'q1', name: '读取温湿度', data: 'A5 01 00 00 01 07', key: 'F1' },
+      { id: 'q2', name: '读取设备信息', data: 'A5 02 00 00 02 08', key: 'F2' }
+    ],
+    scripts: [
+      { name: 'parse_sensor.lua', on: true, hook: 'on_receive', runs: 0 },
+      { name: 'before_send.lua', on: false, hook: 'before_send', runs: 0 }
+    ]
+  };
+  function $(id) { return document.getElementById(id); }
+  function esc(v) { return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function stamp() {
+    var d = new Date();
+    function p(n, l) { return String(n).padStart(l || 2, '0'); }
+    return p(d.getFullYear(),4)+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+'.'+p(d.getMilliseconds(),3);
+  }
+  function toast(msg, warn) {
+    var el = $('toast'); el.textContent = msg; el.className = 'toast show' + (warn ? ' warn' : '');
+    clearTimeout(toast.t); toast.t = setTimeout(function () { el.className = 'toast'; }, 1900);
+  }
+  function push(kind, text, route) {
+    S.logs.push({ t: stamp(), kind: kind, text: text, route: route || '' });
+    if (kind === 'rx') S.rx += Math.floor(text.replace(/[^0-9A-F]/gi,'').length / 2);
+    if (kind === 'tx') S.txN += Math.floor(text.replace(/[^0-9A-F]/gi,'').length / 2);
+    render();
+  }
+  function device() { return CATALOG.filter(function (d) { return d.id === S.selected; })[0]; }
+  function filtered() {
+    var q = (S.filter || '').trim().toLowerCase();
+    return CATALOG.filter(function (d) { return !q || d.name.toLowerCase().indexOf(q) >= 0 || d.addr.toLowerCase().indexOf(q) >= 0; });
+  }
+  function scan() {
+    S.scanning = true; S.scanned = true; render();
+    setTimeout(function () {
+      S.scanning = false; S.found = filtered();
+      if (S.found.length === 1) S.selected = S.found[0].id;
+      toast(S.found.length ? '扫描完成：' + S.found.map(function (d) { return d.name; }).join('、') : '没有匹配的设备');
+      render();
+    }, 700);
+  }
+  function connect() {
+    var d = device();
+    if (!d) { toast('请先选一台设备', true); return; }
+    if (S.connected) {
+      S.connected = false; S.pinN = ''; S.pinW = '';
+      push('sys', '已断开 ' + d.name);
+      return;
+    }
+    S.connecting = true; render();
+    setTimeout(function () {
+      S.connecting = false;
+      if (d.fail) { push('sys', '连接失败：对端拒绝 · ' + d.name); toast('连接失败：对端拒绝', true); return; }
+      S.connected = true;
+      S.pinN = ''; S.pinW = '';
+      push('sys', d.name + ' CONNECTED, MTU ' + S.mtu + ' · 在左栏钉住 Notify 和 Write');
+    }, 480);
+  }
+  function pin(kind, uuid) {
+    if (!S.connected) { toast('蓝牙未连接', true); return; }
+    if (kind === 'n') {
+      S.pinN = S.pinN === uuid ? '' : uuid;
+      push('sys', S.pinN ? '钉住 Notify ' + uuid : '取消 Notify 钉选');
+      if (S.pinN === 'FFF1') {
+        setTimeout(function () {
+          if (S.pinN !== 'FFF1') return;
+          push('rx', 'A5 81 00 00 81', 'FFF1');
+          if (S.replyOn && S.pinW) {
+            S.hits += 1;
+            setTimeout(function () { push('tx', 'A5 80 00 00 80', S.pinW); push('sys', '应答命中「上线确认」'); }, 40);
+          }
+        }, 80);
+      }
+      if (S.pinN === '2A19') {
+        clearInterval(S._bat);
+        S._bat = setInterval(function () {
+          if (S.pinN !== '2A19' || !S.connected) { clearInterval(S._bat); return; }
+          push('rx', '57', '2A19');
+        }, 4000);
+      }
+    } else {
+      S.pinW = S.pinW === uuid ? '' : uuid;
+      push('sys', S.pinW ? '钉住 Write ' + uuid + ' · ' + S.writeType : '取消 Write 钉选');
+    }
+  }
+  function send(text, hist) {
+    if (!S.connected) { toast('蓝牙未连接，发送已拦截', true); return; }
+    if (!S.pinW) { toast('还没有钉住 Write 特征', true); return; }
+    var hex = String(text || '').trim();
+    if (!/^([0-9A-Fa-f]{2}\s*)+$/.test(hex)) { toast('HEX 需要成对十六进制字符', true); return; }
+    S.scripts.filter(function (s) { return s.on && s.hook === 'before_send'; }).forEach(function (s) { s.runs += 1; });
+    push('tx', hex.toUpperCase(), S.pinW);
+    if (hist) S.history.unshift({ t: stamp().slice(11, 23), data: hex.toUpperCase() });
+    var reply = hex.toUpperCase().replace(/\s+/g, ' ');
+    setTimeout(function () {
+      if (!S.connected) return;
+      if (!S.pinN) { toast('已发出，还没有钉住 Notify，回包进不了日志'); return; }
+      if (S.pinN !== 'FFF1') return;
+      if (reply.indexOf('A5 01') === 0) push('rx', RX_TEMP, S.pinN);
+      else if (reply.indexOf('A5 02') === 0) push('rx', RX_INFO, S.pinN);
+      S.scripts.filter(function (s) { return s.on && s.hook === 'on_receive'; }).forEach(function (s) { s.runs += 1; });
+    }, 80);
+  }
+  function render() {
+    document.documentElement.setAttribute('data-theme', S.theme);
+    localStorage.setItem('ddt.theme', S.theme);
+    $('app').className = 'app' + (S.tools ? '' : ' notools');
+    $('app').innerHTML = menubar() + tabbar() + '<main class="main">' + side() + center() + tools() + '</main>' + status();
+    var log = $('log'); if (log) log.scrollTop = log.scrollHeight;
+  }
+  function menubar() {
+    return '<header class="menubar"><span class="title">设备调试工具</span><span class="dir">蓝牙 · 先钉再收发</span>' +
+      '<div class="menu"><button>设置</button><div class="drop">' +
+      '<button data-act="theme" data-v="light">白底经典<span class="chk">' + (S.theme==='light'?'✓':'') + '</span></button>' +
+      '<button data-act="theme" data-v="dark">黑底经典<span class="chk">' + (S.theme==='dark'?'✓':'') + '</span></button></div></div>' +
+      '<div class="menu"><button>工具</button><div class="drop">' +
+      '<button data-act="tool" data-v="quick">快捷指令</button><button data-act="tool" data-v="reply">自动应答</button>' +
+      '<button data-act="tool" data-v="history">历史发送</button><button data-act="tool" data-v="script">脚本</button></div></div>' +
+      '<div class="right"><button class="iconbtn' + (S.tools?' on':'') + '" data-act="tools">工具面板</button></div></header>';
+  }
+  function tabbar() {
+    var d = device();
+    return '<nav class="tabs"><button class="ptab" data-act="serial"><i class="dot open"></i>COM3</button>' +
+      '<button class="ptab on"><i class="dot' + (S.connected?' open':'') + '"></i>' + esc(d ? d.name : '蓝牙 BLE') + '</button>' +
+      '<button class="add" data-act="add">＋ 新增</button></nav>';
+  }
+  function side() {
+    var list = S.scanned ? S.found : [];
+    var rows = !S.scanned ? '<div class="empty">尚未扫描</div>' : (!list.length ? '<div class="empty">没有匹配的设备</div>' :
+      list.map(function (d) {
+        return '<button class="dev' + (S.selected===d.id?' on':'') + '" data-act="pick" data-id="' + d.id + '"><b>' + esc(d.name) +
+          '</b><span class="rssi">' + d.rssi + ' dBm</span><span class="addr">' + d.addr + '</span></button>';
+      }).join(''));
+    var tree = !S.connected ? '<div class="empty">连接后才能钉特征</div>' : GATT.map(function (s) {
+      var body = s.open ? s.chars.map(function (c) {
+        return '<div class="char"><div><div class="nm">' + esc(c.name) + '</div><div class="id">' + c.uuid + '</div></div>' +
+          '<div class="pins">' +
+          (c.n ? '<button class="btn sm pin' + (S.pinN===c.uuid?' on':'') + '" data-act="pinn" data-uuid="' + c.uuid + '" id="' + (c.uuid==='FFF1'?'btnSub':'') + '">' + (S.pinN===c.uuid?'已钉通知':'钉住通知') + '</button>' : '') +
+          (c.w ? '<button class="btn sm pin' + (S.pinW===c.uuid?' on':'') + '" data-act="pinw" data-uuid="' + c.uuid + '" id="' + (c.uuid==='FFF2'?'btnPinW':'') + '">' + (S.pinW===c.uuid?'已钉写入':'钉住写入') + '</button>' : '') +
+          (!c.n && !c.w ? '<span class="note">只读</span>' : '') +
+          '</div></div>';
+      }).join('') : '';
+      return '<button class="svc" data-act="fold" data-uuid="' + s.uuid + '"><span class="arw">' + (s.open?'▾':'▸') + '</span>' +
+        esc(s.name) + '　' + s.uuid + '</button>' + body;
+    }).join('');
+    return '<aside class="side"><section class="group"><div class="legend">设备<span><i class="lamp on" style="display:inline-block;vertical-align:-1px"></i> 就绪</span></div>' +
+      '<div class="pair"><input class="inp" id="flt" value="' + esc(S.filter) + '">' +
+      '<button class="btn sm" id="btnScan">' + (S.scanning?'扫描中':'扫描') + '</button></div>' +
+      '<div class="devlist">' + rows + '</div>' +
+      '<button class="btn openbtn' + (S.connected?'':' pri') + '" id="btnConnect"><i class="lamp' + (S.connected?' on':'') + '"></i>' +
+      (S.connecting?'连接中…':S.connected?'断开':'连接') + '</button></section>' +
+      '<section class="group"><span class="legend">钉选通道</span>' +
+      '<div class="pinslot">Notify <b>' + (S.pinN || '未钉') + '</b></div>' +
+      '<div class="pinslot">Write <b>' + (S.pinW || '未钉') + '</b></div>' +
+      '<div class="tree" style="margin-top:6px">' + tree + '</div>' +
+      '<div class="form" style="margin-top:8px"><label>写入方式</label><select id="cfgWt">' +
+      '<option' + (S.writeType==='Without Response'?' selected':'') + '>Without Response</option>' +
+      '<option' + (S.writeType==='With Response'?' selected':'') + '>With Response</option></select>' +
+      '<label>MTU</label><input class="inp" id="cfgMtu" value="' + S.mtu + '">' +
+      '<label>分片字节</label><input class="inp" id="cfgCk" value="' + S.chunkSize + '"></div>' +
+      '<p class="note" style="margin-top:8px">换钉之后，发送框和快捷指令都改走新特征。</p></section></aside>';
+  }
+  function center() {
+    var n = S.logs.filter(function (x) { return x.kind !== 'sys'; }).length;
+    var q = (S.search || '').toLowerCase();
+    var body = S.logs.map(function (x) {
+      if (q && (x.text + x.route).toLowerCase().indexOf(q) < 0) return '';
+      if (x.kind === 'sys') return '<div><span class="p">[' + x.t + ']#</span> <span class="sys">' + esc(x.text) + '</span></div>';
+      return '<div><span class="p">[' + x.t + ']# ' + esc(x.route) + ' ' + (x.kind==='rx'?'RECV HEX>':'SEND HEX>') + '</span></div>' +
+        '<div class="' + x.kind + '">' + esc(x.text) + '</div>';
+    }).join('') || '<span class="p">钉住 Notify 和 Write 之后，这里就是原来的数据日志。</span>';
+    var foot = !S.pinW ? '<span class="err">还没有钉住 Write 特征</span>' : '实发 ' + Math.floor(S.tx.replace(/[^0-9A-Fa-f]/g,'').length/2) + ' 字节 · Write ' + S.pinW;
+    return '<section class="center"><div class="logbox"><div class="loghead"><b>数据日志</b><span class="meta">' + n + ' 条</span>' +
+      '<input class="inp search" id="logSearch" placeholder="搜索接收内容" value="' + esc(S.search) + '"></div>' +
+      '<div class="log wrap" id="log">' + body + '</div></div>' +
+      '<div class="sendbox"><textarea id="txInput" spellcheck="false">' + esc(S.tx) + '</textarea>' +
+      '<div class="sendside"><button class="btn pri sendbtn" id="btnSend">发送</button><button class="btn" id="btnClearTx">清除</button></div>' +
+      '<div class="sendfoot"><span>' + foot + '</span><span style="margin-left:auto">Ctrl+Enter 发送</span></div></div></section>';
+  }
+  function tools() {
+    var body = '';
+    if (S.tool === 'quick') body = '<div class="bar">发到当前钉住的 Write ' + (S.pinW || '（未钉）') + '</div>' +
+      S.quick.map(function (q) {
+        return '<div class="it"><button class="btn sm" data-act="qsend" data-id="' + q.id + '">发送</button>' +
+          '<span class="nm">' + esc(q.name) + '</span><span class="dt">' + q.data + '</span></div>';
+      }).join('');
+    else if (S.tool === 'batch') body = '<div class="bar">运行时写到钉住的 Write</div>' +
+      '<div class="it"><button class="btn sm pri" data-act="brun">运行</button><span class="nm">读信息 → 读温湿度</span><span class="dt">两条</span></div>';
+    else if (S.tool === 'reply') body = '<div class="it"><button class="sw' + (S.replyOn?' on':'') + '" data-act="rtog"></button>' +
+      '<span class="nm">上线确认</span><span class="dt">前缀 A5 81 · 回钉住的 Write · 命中 ' + S.hits + '</span></div>' +
+      '<p class="explain">Notify 和 Write 都钉上之后，上线帧才会自动回。</p>';
+    else if (S.tool === 'history') body = (S.history.length ? S.history.map(function (h) {
+      return '<div class="it"><button class="btn sm" data-act="hresend" data-d="' + esc(h.data) + '">' + h.t + '</button>' +
+        '<span class="nm">' + h.data + '</span><span class="dt">' + (S.pinW || '未钉') + '</span></div>';
+    }).join('') : '<p class="explain">只记录发送框发出的数据。</p>');
+    else if (S.tool === 'calc') body = '<p class="explain">A5 01 00 00 01 07　SUM8 = AE　XOR = A2。追加接到发送框末尾。</p>';
+    else body = S.scripts.map(function (s) {
+      return '<div class="it"><button class="sw' + (s.on?' on':'') + '" data-act="stog" data-n="' + esc(s.name) + '"></button>' +
+        '<span class="nm">' + esc(s.name) + '</span><span class="dt">' + s.hook + ' · ' + s.runs + ' 次</span></div>';
+    }).join('') + '<p class="explain">钩子读的是当前钉住的特征，换钉不用改脚本。</p>';
+    return '<section class="tools"><nav class="ttabs">' +
+      [['quick','快捷指令'],['batch','批量发送'],['reply','自动应答'],['history','历史发送'],['calc','校验计算']].map(function (t) {
+        return '<button data-act="tool" data-v="' + t[0] + '" class="' + (S.tool===t[0]?'on':'') + '">' + t[1] + '</button>';
+      }).join('') +
+      '<button class="sctab' + (S.tool==='script'?' on':'') + '" data-act="tool" data-v="script">脚本</button></nav>' +
+      '<div class="tabbody">' + body + '</div></section>';
+  }
+  function status() {
+    var d = device();
+    var conn = !d ? 'BLE CLOSED' : (S.connected ? d.name + ' CONNECTED, MTU ' + S.mtu + ', ' + S.writeType : d.name + ' CLOSED');
+    return '<footer class="status"><span><i class="lamp' + (S.connected?' on':'') + '"></i><span class="conn">' + esc(conn) + '</span></span>' +
+      '<span>Notify <b>' + (S.pinN || '—') + '</b></span><span>Write <b>' + (S.pinW || '—') + '</b></span>' +
+      '<span>RX <b>' + S.rx + '</b></span><span>TX <b>' + S.txN + '</b></span>' +
+      '<span class="last">' + (S.pinN && S.pinW ? d.name + ' · ' + S.pinN + ' / ' + S.pinW : '先钉两只特征再收发') + '</span></footer>';
+  }
+  document.addEventListener('click', function (e) {
+    var mb = e.target.closest('.menu>button');
+    if (mb) {
+      var m = mb.parentNode;
+      document.querySelectorAll('.menu').forEach(function (x) { if (x !== m) x.classList.remove('open'); });
+      m.classList.toggle('open'); e.stopPropagation(); return;
+    }
+    document.querySelectorAll('.menu').forEach(function (x) { x.classList.remove('open'); });
+    if (e.target.id === 'btnScan' && !S.scanning) { scan(); return; }
+    if (e.target.closest('#btnConnect')) { connect(); return; }
+    if (e.target.id === 'btnSend') { send(($('txInput')||{}).value, true); return; }
+    if (e.target.id === 'btnClearTx') { S.tx = ''; render(); return; }
+    var t = e.target.closest('[data-act]'); if (!t) return;
+    var act = t.getAttribute('data-act');
+    if (act === 'theme') S.theme = t.getAttribute('data-v');
+    if (act === 'tools') S.tools = !S.tools;
+    if (act === 'tool') S.tool = t.getAttribute('data-v');
+    if (act === 'pick') S.selected = t.getAttribute('data-id');
+    if (act === 'serial') toast('本方向稿只展开蓝牙连接');
+    if (act === 'add') toast('选定方向后再接「新增连接」');
+    if (act === 'fold') GATT.forEach(function (s) { if (s.uuid === t.getAttribute('data-uuid')) s.open = !s.open; });
+    if (act === 'pinn') pin('n', t.getAttribute('data-uuid'));
+    if (act === 'pinw') pin('w', t.getAttribute('data-uuid'));
+    if (act === 'qsend') {
+      var q = S.quick.filter(function (x) { return x.id === t.getAttribute('data-id'); })[0];
+      if (q) send(q.data, false);
+    }
+    if (act === 'brun') {
+      send('A5 02 00 00 02 08', false);
+      setTimeout(function () { send('A5 01 00 00 01 07', false); }, 80);
+    }
+    if (act === 'rtog') S.replyOn = !S.replyOn;
+    if (act === 'hresend') send(t.getAttribute('data-d'), false);
+    if (act === 'stog') S.scripts.forEach(function (s) { if (s.name === t.getAttribute('data-n')) s.on = !s.on; });
+    if (act !== 'pinn' && act !== 'pinw') render();
+  });
+  document.addEventListener('input', function (e) {
+    if (e.target.id === 'flt') S.filter = e.target.value;
+    if (e.target.id === 'txInput') S.tx = e.target.value;
+    if (e.target.id === 'logSearch') { S.search = e.target.value; render(); }
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'cfgWt') { S.writeType = e.target.value; render(); }
+    if (e.target.id === 'cfgMtu') S.mtu = Number(e.target.value) || 23;
+    if (e.target.id === 'cfgCk') S.chunkSize = Number(e.target.value) || 20;
+  });
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); send(($('txInput')||{}).value, true); }
+  });
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,3 +1,6 @@
+# Design screenshot tooling
+.design-tmp/
+
 # Miscellaneous
 *.class
 *.log

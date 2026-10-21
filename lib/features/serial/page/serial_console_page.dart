@@ -143,9 +143,9 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
-    return Scaffold(
-      backgroundColor: palette.win,
-      body: BlocListener<SerialConsoleCubit, SerialConsoleState>(
+    return Material(
+      color: palette.win,
+      child: BlocListener<SerialConsoleCubit, SerialConsoleState>(
         listenWhen: (previous, current) =>
             previous.toast?.id != current.toast?.id,
         listener: (context, state) {

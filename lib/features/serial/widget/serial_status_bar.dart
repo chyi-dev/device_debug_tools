@@ -32,7 +32,7 @@ class SerialStatusBar extends StatelessWidget {
             height: SerialMetrics.statusBar,
             child: Row(
               children: [
-                Flexible(
+                Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -100,15 +100,17 @@ class SerialStatusBar extends StatelessWidget {
                     ),
                   ),
                 ),
-                _Cell(
-                  last: true,
-                  child: Text(
-                    hint,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.caption(
-                      cs,
-                    ).copyWith(color: palette.muted),
+                Flexible(
+                  child: _Cell(
+                    last: true,
+                    child: Text(
+                      hint,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.caption(
+                        cs,
+                      ).copyWith(color: palette.muted),
+                    ),
                   ),
                 ),
               ],
@@ -162,14 +164,20 @@ class _Cell extends StatelessWidget {
     return Container(
       height: SerialMetrics.statusBar,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      alignment: Alignment.centerLeft,
+      alignment: last ? null : Alignment.centerLeft,
       decoration: BoxDecoration(
         border: Border(
           left: last ? BorderSide(color: palette.line2) : BorderSide.none,
           right: last ? BorderSide.none : BorderSide(color: palette.line2),
         ),
       ),
-      child: child,
+      child: last
+          ? Align(
+              alignment: Alignment.centerLeft,
+              widthFactor: 1,
+              child: child,
+            )
+          : child,
     );
   }
 }
