@@ -258,7 +258,8 @@ class _SerialFieldState extends State<SerialField> {
     final palette = SerialPalette.of(context);
     final cs = Theme.of(context).colorScheme;
     final single = !widget.expands && widget.maxLines == 1;
-    final lineHeight = single ? 1.0 : 1.4;
+    // 1.0 会让下划线贴在行框底边上，被裁掉。单行略放开，笔画留在框内。
+    final lineHeight = single ? 1.2 : 1.4;
     final style = widget.mono
         ? AppTextStyles.mono(
             cs,
@@ -281,6 +282,7 @@ class _SerialFieldState extends State<SerialField> {
       inputFormatters: widget.inputFormatters,
       style: style,
       cursorColor: palette.accent,
+      clipBehavior: Clip.hardEdge,
       decoration: InputDecoration(
         isCollapsed: true,
         border: InputBorder.none,
@@ -288,7 +290,7 @@ class _SerialFieldState extends State<SerialField> {
         hintStyle: style.copyWith(color: palette.muted),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 6,
-          vertical: single ? 0 : 4,
+          vertical: single ? 1 : 4,
         ),
       ),
     );

@@ -1325,6 +1325,12 @@ class Translations$serial$status$zh {
 	/// zh: '复位计数'
 	String get reset => '复位计数';
 
+	/// zh: '复制'
+	String get copy => '复制';
+
+	/// zh: '已复制'
+	String get copied => '已复制';
+
 	/// zh: '自动应答 $enabled/$total'
 	String reply({required Object enabled, required Object total}) => '自动应答 ${enabled}/${total}';
 
@@ -2902,6 +2908,8 @@ extension on Translations {
 			'serial.calc.empty' => '请输入内容',
 			'serial.calc.explain' => 'CRC16 为 MODBUS（低字节在前），CRC32 为标准 IEEE（大端）。「追加」会把校验值接到发送框末尾。',
 			'serial.status.reset' => '复位计数',
+			'serial.status.copy' => '复制',
+			'serial.status.copied' => '已复制',
 			'serial.status.reply' => ({required Object enabled, required Object total}) => '自动应答 ${enabled}/${total}',
 			'serial.status.saving' => ({required Object name, required Object count}) => '正在保存 ${name} · ${count} 条',
 			'serial.status.fileMeta' => ({required Object name, required Object count}) => '${name} · ${count} 字节',
@@ -3081,10 +3089,10 @@ extension on Translations {
 			'ble.dialog.deleteBatch' => '删除批量任务',
 			'ble.dialog.deleteScript' => '删除脚本',
 			'ble.notice.ready' => '就绪',
-			'ble.notice.adapterOff' => '蓝牙适配器不可用，配置可保存。',
-			'ble.notice.scanDone' => ({required Object count}) => '扫描完成，发现 ${count} 个设备',
 			_ => null,
 		} ?? switch (path) {
+			'ble.notice.adapterOff' => '蓝牙适配器不可用，配置可保存。',
+			'ble.notice.scanDone' => ({required Object count}) => '扫描完成，发现 ${count} 个设备',
 			'ble.notice.scanEmpty' => '没有匹配的设备',
 			'ble.notice.scanFailed' => ({required Object detail}) => '扫描失败：${detail}',
 			'ble.notice.noDevice' => '请先选一台设备',

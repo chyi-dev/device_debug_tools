@@ -406,6 +406,8 @@
     },
     "status": {
       "reset": "Reset counts",
+      "copy": "Copy",
+      "copied": "Copied",
       "reply": "Auto-reply $enabled/$total",
       "saving": "Saving $name · $count lines",
       "fileMeta": "$name · $count bytes"

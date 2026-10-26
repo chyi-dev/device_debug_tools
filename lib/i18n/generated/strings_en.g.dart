@@ -653,6 +653,8 @@ class _Translations$serial$status$en extends Translations$serial$status$zh {
 
 	// Translations
 	@override String get reset => 'Reset counts';
+	@override String get copy => 'Copy';
+	@override String get copied => 'Copied';
 	@override String reply({required Object enabled, required Object total}) => 'Auto-reply ${enabled}/${total}';
 	@override String saving({required Object name, required Object count}) => 'Saving ${name} · ${count} lines';
 	@override String fileMeta({required Object name, required Object count}) => '${name} · ${count} bytes';
@@ -1637,6 +1639,8 @@ extension on TranslationsEn {
 			'serial.calc.empty' => 'Enter some data',
 			'serial.calc.explain' => 'CRC16 is MODBUS (low byte first). CRC32 is IEEE (big-endian). Append writes the checksum into the send box.',
 			'serial.status.reset' => 'Reset counts',
+			'serial.status.copy' => 'Copy',
+			'serial.status.copied' => 'Copied',
 			'serial.status.reply' => ({required Object enabled, required Object total}) => 'Auto-reply ${enabled}/${total}',
 			'serial.status.saving' => ({required Object name, required Object count}) => 'Saving ${name} · ${count} lines',
 			'serial.status.fileMeta' => ({required Object name, required Object count}) => '${name} · ${count} bytes',
@@ -1816,10 +1820,10 @@ extension on TranslationsEn {
 			'ble.dialog.deleteBatch' => 'Delete batch job',
 			'ble.dialog.deleteScript' => 'Delete script',
 			'ble.notice.ready' => 'Ready',
-			'ble.notice.adapterOff' => 'Bluetooth adapter unavailable. Settings can still be saved.',
-			'ble.notice.scanDone' => ({required Object count}) => 'Scan finished, ${count} devices found',
 			_ => null,
 		} ?? switch (path) {
+			'ble.notice.adapterOff' => 'Bluetooth adapter unavailable. Settings can still be saved.',
+			'ble.notice.scanDone' => ({required Object count}) => 'Scan finished, ${count} devices found',
 			'ble.notice.scanEmpty' => 'No matching devices',
 			'ble.notice.scanFailed' => ({required Object detail}) => 'Scan failed: ${detail}',
 			'ble.notice.noDevice' => 'Select a device first',
