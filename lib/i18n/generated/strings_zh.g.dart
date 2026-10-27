@@ -395,7 +395,10 @@ class Translations$mqtt$zh {
 	late final Translations$mqtt$pubs$zh pubs = Translations$mqtt$pubs$zh.internal(_root);
 	late final Translations$mqtt$log$zh log = Translations$mqtt$log$zh.internal(_root);
 	late final Translations$mqtt$compose$zh compose = Translations$mqtt$compose$zh.internal(_root);
+	late final Translations$mqtt$tab$zh tab = Translations$mqtt$tab$zh.internal(_root);
 	late final Translations$mqtt$quick$zh quick = Translations$mqtt$quick$zh.internal(_root);
+	late final Translations$mqtt$history$zh history = Translations$mqtt$history$zh.internal(_root);
+	late final Translations$mqtt$script$zh script = Translations$mqtt$script$zh.internal(_root);
 	late final Translations$mqtt$status$zh status = Translations$mqtt$status$zh.internal(_root);
 
 	/// zh: '精简模式'
@@ -2057,8 +2060,23 @@ class Translations$mqtt$subs$zh {
 	/// zh: '订阅列表'
 	String get title => '订阅列表';
 
+	/// zh: '右侧切换订阅和退订。右键编辑或删除。'
+	String get note => '右侧切换订阅和退订。右键编辑或删除。';
+
 	/// zh: 'Topic，可用 + 或 #'
 	String get topic => 'Topic，可用 + 或 #';
+
+	/// zh: 'QoS'
+	String get qos => 'QoS';
+
+	/// zh: '订阅'
+	String get dialogTitle => '订阅';
+
+	/// zh: '编辑订阅'
+	String get editTitle => '编辑订阅';
+
+	/// zh: '请填写 Topic'
+	String get needTopic => '请填写 Topic';
 
 	/// zh: '订阅'
 	String get subscribe => '订阅';
@@ -2066,8 +2084,11 @@ class Translations$mqtt$subs$zh {
 	/// zh: '退订'
 	String get unsubscribe => '退订';
 
-	/// zh: '尚未订阅'
-	String get empty => '尚未订阅';
+	/// zh: '删除「$topic」？这条会从列表移除。'
+	String delete({required Object topic}) => '删除「${topic}」？这条会从列表移除。';
+
+	/// zh: '还没有订阅。点「新增」添加一条。'
+	String get empty => '还没有订阅。点「新增」添加一条。';
 }
 
 // Path: mqtt.pubs
@@ -2096,11 +2117,23 @@ class Translations$mqtt$pubs$zh {
 	/// zh: '删除'
 	String get delete => '删除';
 
+	/// zh: '添加发布主题'
+	String get newTitle => '添加发布主题';
+
+	/// zh: '请填写名称'
+	String get needName => '请填写名称';
+
+	/// zh: '请填写 Topic'
+	String get needTopic => '请填写 Topic';
+
+	/// zh: '还没有发布主题。点「新增」保存一条，再点「填入」写到发布框。'
+	String get empty => '还没有发布主题。点「新增」保存一条，再点「填入」写到发布框。';
+
 	/// zh: '删除发布主题'
 	String get deleteTitle => '删除发布主题';
 
-	/// zh: '删除「$name」$topic？发送区里已填的 Topic 不会改。'
-	String deleteBody({required Object name, required Object topic}) => '删除「${name}」${topic}？发送区里已填的 Topic 不会改。';
+	/// zh: '删除「$name」$topic？发布框里已填的 Topic 不会改。'
+	String deleteBody({required Object name, required Object topic}) => '删除「${name}」${topic}？发布框里已填的 Topic 不会改。';
 }
 
 // Path: mqtt.log
@@ -2154,6 +2187,27 @@ class Translations$mqtt$compose$zh {
 	String get ctrlEnter => 'Ctrl+Enter';
 }
 
+// Path: mqtt.tab
+class Translations$mqtt$tab$zh {
+	Translations$mqtt$tab$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '订阅'
+	String get subs => '订阅';
+
+	/// zh: '快捷发布'
+	String get quick => '快捷发布';
+
+	/// zh: '历史发送'
+	String get history => '历史发送';
+
+	/// zh: '脚本'
+	String get script => '脚本';
+}
+
 // Path: mqtt.quick
 class Translations$mqtt$quick$zh {
 	Translations$mqtt$quick$zh.internal(this._root);
@@ -2162,23 +2216,199 @@ class Translations$mqtt$quick$zh {
 
 	// Translations
 
-	/// zh: '可覆盖 Topic / QoS / Retain'
-	String get bar => '可覆盖 Topic / QoS / Retain';
-
-	/// zh: '覆盖目标'
-	String get kOverride => '覆盖目标';
+	/// zh: '可沿用或覆盖发布框'
+	String get bar => '可沿用或覆盖发布框';
 
 	/// zh: '发布'
 	String get publish => '发布';
 
-	/// zh: '继承连接默认 Topic'
-	String get inherit => '继承连接默认 Topic';
+	/// zh: '沿用发布框的 Topic、QoS、Retain'
+	String get inherit => '沿用发布框的 Topic、QoS、Retain';
 
 	/// zh: '继承 · $topic · QoS $qos'
 	String inheritLabel({required Object topic, required Object qos}) => '继承 · ${topic} · QoS ${qos}';
 
-	/// zh: '覆盖发布目标'
-	String get dialogTitle => '覆盖发布目标';
+	/// zh: '新增快捷发布'
+	String get newTitle => '新增快捷发布';
+
+	/// zh: '编辑快捷发布'
+	String get editTitle => '编辑快捷发布';
+
+	/// zh: '名称'
+	String get name => '名称';
+
+	/// zh: 'Payload'
+	String get payload => 'Payload';
+
+	/// zh: '快捷键'
+	String get key => '快捷键';
+
+	/// zh: '不绑定'
+	String get noKey => '不绑定';
+
+	/// zh: 'QoS / Retain'
+	String get qosRetain => 'QoS / Retain';
+
+	/// zh: '请填写名称'
+	String get needName => '请填写名称';
+
+	/// zh: 'Payload 为空'
+	String get needPayload => 'Payload 为空';
+
+	/// zh: '不沿用时必须填写 Topic'
+	String get needTopic => '不沿用时必须填写 Topic';
+
+	/// zh: '还没有快捷发布。点「新增」保存一条。'
+	String get empty => '还没有快捷发布。点「新增」保存一条。';
+
+	/// zh: '删除快捷发布「$name」后无法恢复。'
+	String delete({required Object name}) => '删除快捷发布「${name}」后无法恢复。';
+}
+
+// Path: mqtt.history
+class Translations$mqtt$history$zh {
+	Translations$mqtt$history$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '只记录用「发布」按钮发出的报文。点时间重发，点「填入」放回发布框。'
+	String get note => '只记录用「发布」按钮发出的报文。点时间重发，点「填入」放回发布框。';
+
+	/// zh: '清空'
+	String get clear => '清空';
+
+	/// zh: '填入'
+	String get fill => '填入';
+
+	/// zh: '还没有发布记录。'
+	String get empty => '还没有发布记录。';
+
+	/// zh: '清空 $count 条历史发布？清空后无法恢复。'
+	String deleteAll({required Object count}) => '清空 ${count} 条历史发布？清空后无法恢复。';
+}
+
+// Path: mqtt.script
+class Translations$mqtt$script$zh {
+	Translations$mqtt$script$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '已启用 $enabled / $total'
+	String note({required Object enabled, required Object total}) => '已启用 ${enabled} / ${total}';
+
+	/// zh: '新建'
+	String get add => '新建';
+
+	/// zh: '等待触发'
+	String get waiting => '等待触发';
+
+	/// zh: '已停用'
+	String get off => '已停用';
+
+	/// zh: '已输出 $count 次'
+	String outputs({required Object count}) => '已输出 ${count} 次';
+
+	/// zh: '有错误'
+	String get broken => '有错误';
+
+	/// zh: '无钩子'
+	String get noHook => '无钩子';
+
+	/// zh: 'on_message'
+	String get hookMessage => 'on_message';
+
+	/// zh: 'before_publish'
+	String get hookPublish => 'before_publish';
+
+	/// zh: 'Lua 脚本。on_message 在报文写入日志后运行；before_publish 经过发布框和快捷发布，返回改写后的消息再发出，返回 nil 则不发。 点一行在日志和发布框之间打开编辑器。开关只控制自动运行，「运行」用最近一封和发布框试算，不会发布。'
+	String get explain => 'Lua 脚本。on_message 在报文写入日志后运行；before_publish 经过发布框和快捷发布，返回改写后的消息再发出，返回 nil 则不发。\n点一行在日志和发布框之间打开编辑器。开关只控制自动运行，「运行」用最近一封和发布框试算，不会发布。';
+
+	/// zh: '我的脚本 $count'
+	String mine({required Object count}) => '我的脚本 ${count}';
+
+	/// zh: '教程'
+	String get tutorial => '教程';
+
+	/// zh: '用这课新建脚本'
+	String get lessonNew => '用这课新建脚本';
+
+	/// zh: '样例试跑'
+	String get lessonTry => '样例试跑';
+
+	/// zh: '死循环会被中止，os.execute 等危险函数已移除。样例试跑只写运行日志，不会发布。'
+	String get tutorialNote => '死循环会被中止，os.execute 等危险函数已移除。样例试跑只写运行日志，不会发布。';
+
+	/// zh: '样例试跑 · $hook ← $sample'
+	String tried({required Object hook, required Object sample}) => '样例试跑 · ${hook} ← ${sample}';
+
+	late final Translations$mqtt$script$lessons$zh lessons = Translations$mqtt$script$lessons$zh.internal(_root);
+
+	/// zh: '还没有脚本。点「新建」写一个。'
+	String get empty => '还没有脚本。点「新建」写一个。';
+
+	/// zh: '自动运行中'
+	String get autoOn => '自动运行中';
+
+	/// zh: '已停用，仅手动运行'
+	String get autoOff => '已停用，仅手动运行';
+
+	/// zh: 'Lua · 输入即保存 · Tab 缩进两格'
+	String get editorHint => 'Lua · 输入即保存 · Tab 缩进两格';
+
+	/// zh: '运行'
+	String get run => '运行';
+
+	/// zh: '收起'
+	String get fold => '收起';
+
+	/// zh: '重命名'
+	String get rename => '重命名';
+
+	/// zh: '重命名脚本'
+	String get renameTitle => '重命名脚本';
+
+	/// zh: '删除「$name」？'
+	String delete({required Object name}) => '删除「${name}」？';
+
+	/// zh: '运行日志'
+	String get logTitle => '运行日志';
+
+	/// zh: '清空'
+	String get clear => '清空';
+
+	/// zh: '还没有输出。启用脚本后，收到或发布时会写在这里。'
+	String get logEmpty => '还没有输出。启用脚本后，收到或发布时会写在这里。';
+
+	/// zh: '$from → $to'
+	String changed({required Object from, required Object to}) => '${from} → ${to}';
+
+	/// zh: '$from → nil，已拦截，未发布'
+	String blocked({required Object from}) => '${from} → nil，已拦截，未发布';
+
+	/// zh: '试算 $from → $to（未发布）'
+	String dryRun({required Object from, required Object to}) => '试算 ${from} → ${to}（未发布）';
+
+	/// zh: '试算 $from → nil，这一次会被拦截（未发布）'
+	String dryBlocked({required Object from}) => '试算 ${from} → nil，这一次会被拦截（未发布）';
+
+	/// zh: '手动运行 · 最近一封 $label'
+	String manualRx({required Object label}) => '手动运行 · 最近一封 ${label}';
+
+	/// zh: '手动运行 · 还没有收到报文'
+	String get noRx => '手动运行 · 还没有收到报文';
+
+	/// zh: '发布框的 Topic 或 Payload 为空，无法试算 before_publish'
+	String get badTx => '发布框的 Topic 或 Payload 为空，无法试算 before_publish';
+
+	/// zh: '没有定义 on_message 或 before_publish'
+	String get noHookLog => '没有定义 on_message 或 before_publish';
+
+	/// zh: '执行超过指令上限，可能是死循环，已中止'
+	String get tooLong => '执行超过指令上限，可能是死循环，已中止';
 }
 
 // Path: mqtt.status
@@ -2252,8 +2482,8 @@ class Translations$mqtt$notice$zh {
 	/// zh: '日志已清除'
 	String get cleared => '日志已清除';
 
-	/// zh: '快捷指令已保存'
-	String get quickSaved => '快捷指令已保存';
+	/// zh: '快捷发布已保存'
+	String get quickSaved => '快捷发布已保存';
 
 	/// zh: '已删除'
 	String get deleted => '已删除';
@@ -2294,6 +2524,18 @@ class Translations$serial$reply$lessons$zh {
 	late final Translations$serial$reply$lessons$reword$zh reword = Translations$serial$reply$lessons$reword$zh.internal(_root);
 	late final Translations$serial$reply$lessons$groups$zh groups = Translations$serial$reply$lessons$groups$zh.internal(_root);
 	late final Translations$serial$reply$lessons$reascii$zh reascii = Translations$serial$reply$lessons$reascii$zh.internal(_root);
+}
+
+// Path: mqtt.script.lessons
+class Translations$mqtt$script$lessons$zh {
+	Translations$mqtt$script$lessons$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$mqtt$script$lessons$hooks$zh hooks = Translations$mqtt$script$lessons$hooks$zh.internal(_root);
+	late final Translations$mqtt$script$lessons$print$zh print = Translations$mqtt$script$lessons$print$zh.internal(_root);
+	late final Translations$mqtt$script$lessons$rewrite$zh rewrite = Translations$mqtt$script$lessons$rewrite$zh.internal(_root);
 }
 
 // Path: serial.script.lessons.hooks
@@ -2570,6 +2812,51 @@ class Translations$serial$reply$lessons$reascii$zh {
 
 	/// zh: '收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 \$1。'
 	String get rxNote => '收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 \$1。';
+}
+
+// Path: mqtt.script.lessons.hooks
+class Translations$mqtt$script$lessons$hooks$zh {
+	Translations$mqtt$script$lessons$hooks$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '脚本什么时候运行'
+	String get title => '脚本什么时候运行';
+
+	/// zh: 'on_message(msg) 在收到报文并写入日志后调用。before_publish(msg) 在发布框和快捷发布发出前调用，返回的表才会发出。msg 含 topic、payload、qos、retain。开关只控制自动运行。'
+	String get text => 'on_message(msg) 在收到报文并写入日志后调用。before_publish(msg) 在发布框和快捷发布发出前调用，返回的表才会发出。msg 含 topic、payload、qos、retain。开关只控制自动运行。';
+}
+
+// Path: mqtt.script.lessons.print
+class Translations$mqtt$script$lessons$print$zh {
+	Translations$mqtt$script$lessons$print$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '把主题和内容打出来'
+	String get title => '把主题和内容打出来';
+
+	/// zh: 'log 把内容写到运行日志，多个参数用空格连起来。print 和 log 是同一个函数。'
+	String get text => 'log 把内容写到运行日志，多个参数用空格连起来。print 和 log 是同一个函数。';
+}
+
+// Path: mqtt.script.lessons.rewrite
+class Translations$mqtt$script$lessons$rewrite$zh {
+	Translations$mqtt$script$lessons$rewrite$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '发布前改写或拦截'
+	String get title => '发布前改写或拦截';
+
+	/// zh: 'before_publish 返回改过的 msg 就会按新内容发布。payload 等于 drop 时返回 nil，这一次不发。其他内容在 payload 前加上 cmd:。'
+	String get text => 'before_publish 返回改过的 msg 就会按新内容发布。payload 等于 drop 时返回 nil，这一次不发。其他内容在 payload 前加上 cmd:。';
 }
 
 /// The flat map containing all translations for locale <zh>.
@@ -3156,18 +3443,28 @@ extension on Translations {
 			'mqtt.willQos' => '遗嘱 QoS',
 			'mqtt.willRetain' => '遗嘱 Retain',
 			'mqtt.subs.title' => '订阅列表',
+			'mqtt.subs.note' => '右侧切换订阅和退订。右键编辑或删除。',
 			'mqtt.subs.topic' => 'Topic，可用 + 或 #',
+			'mqtt.subs.qos' => 'QoS',
+			'mqtt.subs.dialogTitle' => '订阅',
+			'mqtt.subs.editTitle' => '编辑订阅',
+			'mqtt.subs.needTopic' => '请填写 Topic',
 			'mqtt.subs.subscribe' => '订阅',
 			'mqtt.subs.unsubscribe' => '退订',
-			'mqtt.subs.empty' => '尚未订阅',
+			'mqtt.subs.delete' => ({required Object topic}) => '删除「${topic}」？这条会从列表移除。',
+			'mqtt.subs.empty' => '还没有订阅。点「新增」添加一条。',
 			'mqtt.pubs.title' => '发布主题',
 			'mqtt.pubs.name' => '名称',
 			'mqtt.pubs.topic' => 'Topic',
 			'mqtt.pubs.add' => '添加',
 			'mqtt.pubs.fill' => '填入',
 			'mqtt.pubs.delete' => '删除',
+			'mqtt.pubs.newTitle' => '添加发布主题',
+			'mqtt.pubs.needName' => '请填写名称',
+			'mqtt.pubs.needTopic' => '请填写 Topic',
+			'mqtt.pubs.empty' => '还没有发布主题。点「新增」保存一条，再点「填入」写到发布框。',
 			'mqtt.pubs.deleteTitle' => '删除发布主题',
-			'mqtt.pubs.deleteBody' => ({required Object name, required Object topic}) => '删除「${name}」${topic}？发送区里已填的 Topic 不会改。',
+			'mqtt.pubs.deleteBody' => ({required Object name, required Object topic}) => '删除「${name}」${topic}？发布框里已填的 Topic 不会改。',
 			'mqtt.log.title' => '报文日志',
 			'mqtt.log.search' => '搜索 Topic / Payload',
 			'mqtt.log.records' => ({required Object count}) => '${count} 条',
@@ -3179,12 +3476,74 @@ extension on Translations {
 			'mqtt.compose.retain' => 'Retain',
 			'mqtt.compose.bytes' => ({required Object count}) => '实发 ${count} 字节',
 			'mqtt.compose.ctrlEnter' => 'Ctrl+Enter',
-			'mqtt.quick.bar' => '可覆盖 Topic / QoS / Retain',
-			'mqtt.quick.kOverride' => '覆盖目标',
+			'mqtt.tab.subs' => '订阅',
+			'mqtt.tab.quick' => '快捷发布',
+			'mqtt.tab.history' => '历史发送',
+			'mqtt.tab.script' => '脚本',
+			'mqtt.quick.bar' => '可沿用或覆盖发布框',
 			'mqtt.quick.publish' => '发布',
-			'mqtt.quick.inherit' => '继承连接默认 Topic',
+			'mqtt.quick.inherit' => '沿用发布框的 Topic、QoS、Retain',
 			'mqtt.quick.inheritLabel' => ({required Object topic, required Object qos}) => '继承 · ${topic} · QoS ${qos}',
-			'mqtt.quick.dialogTitle' => '覆盖发布目标',
+			'mqtt.quick.newTitle' => '新增快捷发布',
+			'mqtt.quick.editTitle' => '编辑快捷发布',
+			'mqtt.quick.name' => '名称',
+			'mqtt.quick.payload' => 'Payload',
+			'mqtt.quick.key' => '快捷键',
+			'mqtt.quick.noKey' => '不绑定',
+			'mqtt.quick.qosRetain' => 'QoS / Retain',
+			'mqtt.quick.needName' => '请填写名称',
+			'mqtt.quick.needPayload' => 'Payload 为空',
+			'mqtt.quick.needTopic' => '不沿用时必须填写 Topic',
+			'mqtt.quick.empty' => '还没有快捷发布。点「新增」保存一条。',
+			'mqtt.quick.delete' => ({required Object name}) => '删除快捷发布「${name}」后无法恢复。',
+			'mqtt.history.note' => '只记录用「发布」按钮发出的报文。点时间重发，点「填入」放回发布框。',
+			'mqtt.history.clear' => '清空',
+			'mqtt.history.fill' => '填入',
+			'mqtt.history.empty' => '还没有发布记录。',
+			'mqtt.history.deleteAll' => ({required Object count}) => '清空 ${count} 条历史发布？清空后无法恢复。',
+			'mqtt.script.note' => ({required Object enabled, required Object total}) => '已启用 ${enabled} / ${total}',
+			'mqtt.script.add' => '新建',
+			'mqtt.script.waiting' => '等待触发',
+			'mqtt.script.off' => '已停用',
+			'mqtt.script.outputs' => ({required Object count}) => '已输出 ${count} 次',
+			'mqtt.script.broken' => '有错误',
+			'mqtt.script.noHook' => '无钩子',
+			'mqtt.script.hookMessage' => 'on_message',
+			'mqtt.script.hookPublish' => 'before_publish',
+			'mqtt.script.explain' => 'Lua 脚本。on_message 在报文写入日志后运行；before_publish 经过发布框和快捷发布，返回改写后的消息再发出，返回 nil 则不发。\n点一行在日志和发布框之间打开编辑器。开关只控制自动运行，「运行」用最近一封和发布框试算，不会发布。',
+			'mqtt.script.mine' => ({required Object count}) => '我的脚本 ${count}',
+			'mqtt.script.tutorial' => '教程',
+			'mqtt.script.lessonNew' => '用这课新建脚本',
+			'mqtt.script.lessonTry' => '样例试跑',
+			'mqtt.script.tutorialNote' => '死循环会被中止，os.execute 等危险函数已移除。样例试跑只写运行日志，不会发布。',
+			'mqtt.script.tried' => ({required Object hook, required Object sample}) => '样例试跑 · ${hook} ← ${sample}',
+			'mqtt.script.lessons.hooks.title' => '脚本什么时候运行',
+			'mqtt.script.lessons.hooks.text' => 'on_message(msg) 在收到报文并写入日志后调用。before_publish(msg) 在发布框和快捷发布发出前调用，返回的表才会发出。msg 含 topic、payload、qos、retain。开关只控制自动运行。',
+			'mqtt.script.lessons.print.title' => '把主题和内容打出来',
+			'mqtt.script.lessons.print.text' => 'log 把内容写到运行日志，多个参数用空格连起来。print 和 log 是同一个函数。',
+			'mqtt.script.lessons.rewrite.title' => '发布前改写或拦截',
+			'mqtt.script.lessons.rewrite.text' => 'before_publish 返回改过的 msg 就会按新内容发布。payload 等于 drop 时返回 nil，这一次不发。其他内容在 payload 前加上 cmd:。',
+			'mqtt.script.empty' => '还没有脚本。点「新建」写一个。',
+			'mqtt.script.autoOn' => '自动运行中',
+			'mqtt.script.autoOff' => '已停用，仅手动运行',
+			'mqtt.script.editorHint' => 'Lua · 输入即保存 · Tab 缩进两格',
+			'mqtt.script.run' => '运行',
+			'mqtt.script.fold' => '收起',
+			'mqtt.script.rename' => '重命名',
+			'mqtt.script.renameTitle' => '重命名脚本',
+			'mqtt.script.delete' => ({required Object name}) => '删除「${name}」？',
+			'mqtt.script.logTitle' => '运行日志',
+			'mqtt.script.clear' => '清空',
+			'mqtt.script.logEmpty' => '还没有输出。启用脚本后，收到或发布时会写在这里。',
+			'mqtt.script.changed' => ({required Object from, required Object to}) => '${from} → ${to}',
+			'mqtt.script.blocked' => ({required Object from}) => '${from} → nil，已拦截，未发布',
+			'mqtt.script.dryRun' => ({required Object from, required Object to}) => '试算 ${from} → ${to}（未发布）',
+			'mqtt.script.dryBlocked' => ({required Object from}) => '试算 ${from} → nil，这一次会被拦截（未发布）',
+			'mqtt.script.manualRx' => ({required Object label}) => '手动运行 · 最近一封 ${label}',
+			'mqtt.script.noRx' => '手动运行 · 还没有收到报文',
+			'mqtt.script.badTx' => '发布框的 Topic 或 Payload 为空，无法试算 before_publish',
+			'mqtt.script.noHookLog' => '没有定义 on_message 或 before_publish',
+			'mqtt.script.tooLong' => '执行超过指令上限，可能是死循环，已中止',
 			'mqtt.status.subs' => ({required Object count}) => '订阅 ${count}',
 			'mqtt.compact' => '精简模式',
 			'mqtt.toolsPanel' => '工具面板',
@@ -3208,7 +3567,7 @@ extension on Translations {
 			'mqtt.notice.needName' => '请填写名称和 Topic',
 			'mqtt.notice.logSaved' => '报文日志已保存',
 			'mqtt.notice.cleared' => '日志已清除',
-			'mqtt.notice.quickSaved' => '快捷指令已保存',
+			'mqtt.notice.quickSaved' => '快捷发布已保存',
 			'mqtt.notice.deleted' => '已删除',
 			'mqtt.notice.portInvalid' => '端口需为 1–65535',
 			'mqtt.notice.keepAliveInvalid' => 'Keep Alive 需为正整数',

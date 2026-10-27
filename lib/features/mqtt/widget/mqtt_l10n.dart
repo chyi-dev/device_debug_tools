@@ -38,6 +38,26 @@ String mqttNoticeText(Translations t, MqttNotice notice) {
   };
 }
 
+String mqttScriptLogText(Translations t, MqttScriptLogEntry entry) {
+  final s = t.mqtt.script;
+  return switch (entry.kind) {
+    MqttScriptLogKind.output || MqttScriptLogKind.error => entry.text,
+    MqttScriptLogKind.changed => s.changed(from: entry.from, to: entry.to),
+    MqttScriptLogKind.blocked => s.blocked(from: entry.from),
+    MqttScriptLogKind.dryRun => s.dryRun(from: entry.from, to: entry.to),
+    MqttScriptLogKind.dryBlocked => s.dryBlocked(from: entry.from),
+    MqttScriptLogKind.manualRx => s.manualRx(label: entry.from),
+    MqttScriptLogKind.noRx => s.noRx,
+    MqttScriptLogKind.badTx => s.badTx,
+    MqttScriptLogKind.noHook => s.noHookLog,
+    MqttScriptLogKind.tooLong => s.tooLong,
+    MqttScriptLogKind.lessonTry => s.tried(
+      hook: entry.text,
+      sample: entry.from,
+    ),
+  };
+}
+
 String mqttFileLabel(Translations t, String path) {
   if (path.trim().isEmpty) return t.mqtt.unset;
   final parts = path.replaceAll('\\', '/').split('/');

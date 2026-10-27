@@ -1,3 +1,4 @@
+import '../../serial/model/serial_models.dart';
 import '../model/mqtt_models.dart';
 
 const _keep = Object();
@@ -37,6 +38,15 @@ class MqttConsoleState {
     required this.subs,
     required this.pubTopics,
     required this.quick,
+    required this.history,
+    required this.scripts,
+    required this.toolTab,
+    required this.selectedScriptId,
+    required this.scriptDock,
+    required this.scriptTutorial,
+    required this.openLesson,
+    required this.scriptMeta,
+    required this.scriptLog,
     required this.lines,
     required this.rxCount,
     required this.txCount,
@@ -82,6 +92,15 @@ class MqttConsoleState {
       subs: ws.subs,
       pubTopics: ws.pubTopics,
       quick: ws.quick,
+      history: ws.history,
+      scripts: ws.scripts,
+      toolTab: ws.toolTab,
+      selectedScriptId: ws.selectedScriptId,
+      scriptDock: ws.scriptDock,
+      scriptTutorial: false,
+      openLesson: null,
+      scriptMeta: const {},
+      scriptLog: const [],
       lines: const [],
       rxCount: 0,
       txCount: 0,
@@ -125,6 +144,15 @@ class MqttConsoleState {
   final List<MqttSubscription> subs;
   final List<MqttPublishTopic> pubTopics;
   final List<MqttQuickCommand> quick;
+  final List<MqttHistoryEntry> history;
+  final List<LuaScript> scripts;
+  final MqttToolTab toolTab;
+  final String? selectedScriptId;
+  final bool scriptDock;
+  final bool scriptTutorial;
+  final String? openLesson;
+  final Map<String, MqttScriptMeta> scriptMeta;
+  final List<MqttScriptLogEntry> scriptLog;
   final List<MqttLogLine> lines;
   final int rxCount;
   final int txCount;
@@ -133,12 +161,23 @@ class MqttConsoleState {
   final MqttNotice hint;
   final MqttNotice? toast;
 
-  String get endpoint => mqttEndpoint(
-    scheme: scheme,
-    host: host,
-    port: port,
-    wsPath: wsPath,
-  );
+  LuaScript? get selectedScript {
+    final id = selectedScriptId;
+    if (id == null) return null;
+    for (final script in scripts) {
+      if (script.id == id) return script;
+    }
+    return null;
+  }
+
+  /// 脚本页签且未收起时停靠。没有选中脚本时只在已有运行日志（样例试跑）时出现。
+  bool get scriptDockVisible =>
+      toolTab == MqttToolTab.script &&
+      scriptDock &&
+      (selectedScript != null || scriptLog.isNotEmpty);
+
+  String get endpoint =>
+      mqttEndpoint(scheme: scheme, host: host, port: port, wsPath: wsPath);
 
   MqttConsoleState copyWith({
     String? host,
@@ -174,6 +213,15 @@ class MqttConsoleState {
     List<MqttSubscription>? subs,
     List<MqttPublishTopic>? pubTopics,
     List<MqttQuickCommand>? quick,
+    List<MqttHistoryEntry>? history,
+    List<LuaScript>? scripts,
+    MqttToolTab? toolTab,
+    Object? selectedScriptId = _keep,
+    bool? scriptDock,
+    bool? scriptTutorial,
+    Object? openLesson = _keep,
+    Map<String, MqttScriptMeta>? scriptMeta,
+    List<MqttScriptLogEntry>? scriptLog,
     List<MqttLogLine>? lines,
     int? rxCount,
     int? txCount,
@@ -216,6 +264,19 @@ class MqttConsoleState {
       subs: subs ?? this.subs,
       pubTopics: pubTopics ?? this.pubTopics,
       quick: quick ?? this.quick,
+      history: history ?? this.history,
+      scripts: scripts ?? this.scripts,
+      toolTab: toolTab ?? this.toolTab,
+      selectedScriptId: identical(selectedScriptId, _keep)
+          ? this.selectedScriptId
+          : selectedScriptId as String?,
+      scriptDock: scriptDock ?? this.scriptDock,
+      scriptTutorial: scriptTutorial ?? this.scriptTutorial,
+      openLesson: identical(openLesson, _keep)
+          ? this.openLesson
+          : openLesson as String?,
+      scriptMeta: scriptMeta ?? this.scriptMeta,
+      scriptLog: scriptLog ?? this.scriptLog,
       lines: lines ?? this.lines,
       rxCount: rxCount ?? this.rxCount,
       txCount: txCount ?? this.txCount,
@@ -256,5 +317,10 @@ class MqttConsoleState {
     subs: subs,
     pubTopics: pubTopics,
     quick: quick,
+    history: history,
+    scripts: scripts,
+    toolTab: toolTab,
+    selectedScriptId: selectedScriptId,
+    scriptDock: scriptDock,
   );
 }

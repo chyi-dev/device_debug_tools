@@ -7,11 +7,13 @@
 <style>
 /*
   Assumptions
-  - 视觉锁在 design.md 白底经典 + option-a 浅色 --mqtt #b86b0a。
-  - 演示 Broker：broker.local:1883，MQTT 5.0，Client ID ddt-desktop-01。
-  - 本文件只演示 MQTT 调试区骨架，不进入 Flutter，不改 option-a。
-  - MQTT 5 User Properties / 共享订阅 / 主题别名不进本稿。
-  form 来自内容：Topic 路径放进字段——左栏订/发，中间仍是串口式日志。
+    - 视觉锁在 design.md 白底经典 + option-a 浅色 --mqtt #b86b0a。
+    - 左栏只留连接，整栏不折叠，连接设置始终展开。
+    - 右栏页签：订阅 | 快捷发布 | 历史发送 | 脚本。脚本页用竖线隔开。
+    - 订阅和快捷发布都从工具条「新增」进对话框。快捷发布页只留发布主题。行上是主操作，删除在右键（稿里用按钮代替右键）。
+    - 历史发送只记录「发布」按钮。点时间重发，点「填入」放回发布框。
+    - 发布主题在快捷发布页顶部，点「填入」只写发送区 Topic。
+  form 来自内容：连接参数留在左栏，订/发/脚本是同一条会话的三种动作，所以并进右栏页签。
 */
 :root{
   --win:#e9edf1;--panel:#f7f8fa;--field:#fff;--line:#c5ced7;--line2:#dfe4e9;
@@ -30,32 +32,30 @@ button{cursor:pointer}
 input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .app{height:100%;min-width:1180px;display:grid;grid-template-rows:34px minmax(0,1fr) 30px}
-.menubar{display:flex;align-items:center;gap:2px;padding:0 0 0 8px;background:var(--panel);border-bottom:1px solid var(--line);user-select:none}
+.menubar{display:flex;align-items:center;gap:2px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line);user-select:none}
 .brand{font-weight:600;padding:0 10px 0 4px}
 .dir{font-size:12px;color:var(--muted);margin-right:8px}
 .menu>button{border:0;background:none;height:28px;padding:0 12px;border-radius:4px}
 .menu>button:hover{background:var(--hover)}
 .spacer{flex:1}
-.iconbtn{border:1px solid transparent;background:none;height:26px;padding:0 10px;border-radius:4px;font-size:13px;color:var(--muted)}
-.iconbtn:hover,.iconbtn.on{border-color:var(--line);color:var(--text);background:var(--field)}
-.wins{display:flex;align-self:stretch;margin-left:8px}
+.wins{display:flex;align-self:stretch}
 .wins button{width:46px;border:0;border-radius:0;background:transparent}
 .wins button:hover{background:var(--hover)}
 .wins .close:hover{background:var(--off);color:#fff}
 .body{min-height:0;display:grid;grid-template-rows:36px minmax(0,1fr);padding:8px;gap:8px}
 .tabs{display:flex;align-items:stretch;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.tab{min-width:158px;display:flex;align-items:center;gap:7px;padding:0 10px;border-right:1px solid var(--line);color:var(--muted);cursor:pointer}
+.tab{min-width:158px;display:flex;align-items:center;gap:7px;padding:0 10px;border-right:1px solid var(--line);color:var(--muted)}
 .tab.on{color:var(--text);background:var(--field);box-shadow:inset 0 -2px var(--accent)}
 .kind{font:10px var(--mono);font-weight:700;color:var(--mqtt);border:1px solid var(--mqtt);border-radius:3px;padding:1px 4px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--idle);flex:0 0 auto}
 .dot.on{background:var(--on)}
 .grid{min-height:0;display:grid;grid-template-columns:272px minmax(0,1fr) 352px;gap:8px}
-.side{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.side{min-height:0;overflow:auto}
 .group{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:7px 12px 8px}
-.legend{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.legend .grow{flex:1}
+.legend{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin:8px 0 6px}
 .form{display:grid;grid-template-columns:72px minmax(0,1fr);gap:5px 8px;align-items:center}
-.form label,.field>span,.note,.sub-meta{font-size:12px;color:var(--muted)}
+.form label,.note,.sub-meta,.sec{font-size:12px;color:var(--muted)}
+.sec{font-weight:600;margin:8px 0 4px}
 .inp,select{height:26px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 6px;outline:none;min-width:0;width:100%}
 .inp:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent)}
 .btn{height:28px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 12px;white-space:nowrap}
@@ -63,39 +63,30 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 .btn.sm{height:24px;padding:0 8px;font-size:13px}
 .btn.danger{color:var(--off)}
-.btn:disabled{opacity:.45;cursor:default}
 .openbtn{width:100%;height:32px;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600}
 .lamp{width:12px;height:12px;border-radius:50%;background:var(--off)}
 .lamp.on{background:var(--on)}
 .check{display:flex;align-items:center;gap:6px;font-size:12px;margin:5px 0}
 .more{border:0;background:none;color:var(--accent);font-size:12px;padding:0;margin:6px 0 2px}
-.more:hover{text-decoration:underline}
-.settings{display:none;border-top:1px solid var(--line2);padding-top:7px;margin-top:6px}
-.settings.show{display:block}
-.sub,.ptopic{padding:7px 0;border-bottom:1px solid var(--line2);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;align-items:center}
-.sub:last-of-type,.ptopic:last-of-type{border-bottom:0}
-.ptopic{grid-template-columns:minmax(0,1fr) auto;cursor:pointer}
-.ptopic:hover{background:var(--hover)}
-.ptopic.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
-.ptopic .nm{font-size:13px;font-weight:600}
-.ptopic .ops{display:flex;flex-direction:column;gap:4px;align-items:stretch}
-.sub-topic{font:12px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.addrow{display:grid;grid-template-columns:minmax(0,1fr) 52px auto;gap:6px;margin-top:6px}
-.addrow.topics{grid-template-columns:72px minmax(0,1fr) auto}
-.center{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:8px}
-.logbox{min-height:0;border:1px solid var(--line);border-radius:6px;background:var(--log-bg);display:grid;grid-template-rows:36px minmax(0,1fr);overflow:hidden}
+.settings{display:block;border-top:1px solid var(--line2);padding-top:4px;margin-top:6px}
+.center{min-height:0;display:flex;flex-direction:column;gap:8px}
+.logbox{min-height:0;flex:1;border:1px solid var(--line);border-radius:6px;background:var(--log-bg);display:grid;grid-template-rows:36px minmax(0,1fr);overflow:hidden}
 .loghead{display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
 .loghead b{font-weight:600}
-.loghead .meta{flex:1;font:12px var(--mono);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loghead .meta{flex:1;font:12px var(--mono);color:var(--muted)}
 .search{width:150px;height:24px}
 .log{overflow:auto;padding:10px 12px;font:14px/1.6 var(--mono)}
-.line{padding:2px 4px;border-radius:3px;cursor:pointer}
-.line:hover{background:var(--hover)}
-.line.sel{background:var(--mark)}
 .line .p{color:var(--log-prompt)}
 .line.rx .body{color:var(--log-rx)}
 .line.tx .body{color:var(--log-tx)}
 .line.sys{color:var(--log-sys)}
+.dock{height:312px;flex:0 0 auto;border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-rows:36px minmax(0,1fr);overflow:hidden}
+.dockhead{display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line)}
+.dockhead b{font-size:13px}
+.dockhead .grow{flex:1;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dockbody{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 380px}
+.dockbody pre{margin:0;padding:8px 10px;overflow:auto;font:13px/1.55 var(--mono);background:var(--log-bg);white-space:pre}
+.dockbody .run{border-left:1px solid var(--line);overflow:auto;padding:8px 10px;font:12px/1.55 var(--mono);color:var(--muted)}
 .compose{border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-columns:minmax(0,1fr) 120px;grid-template-rows:32px minmax(0,1fr) 28px;overflow:hidden}
 .compose-top{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:0 8px;border-bottom:1px solid var(--line2)}
 .compose-top .inp{height:24px;font:12px var(--mono)}
@@ -103,30 +94,43 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sendside{border-left:1px solid var(--line);padding:8px;display:flex;flex-direction:column;gap:6px}
 .sendbtn{flex:1;font-size:15px}
 .sendfoot{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 10px;border-top:1px solid var(--line2);font:12px var(--mono);color:var(--muted)}
+.sendfoot .grow{flex:1}
 .tools{min-height:0;border:1px solid var(--line);border-radius:6px;background:var(--panel);display:grid;grid-template-rows:38px minmax(0,1fr);overflow:hidden}
-.tool-body{min-height:0;overflow:auto;align-content:start}
-.tooltabs{display:flex;border-bottom:1px solid var(--line)}
-.tooltabs span{flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;box-shadow:inset 0 -2px var(--accent)}
+.tooltabs{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
+.tooltabs button{flex:1;border:0;background:none;font-size:12px;color:var(--muted)}
+.tooltabs button.on{color:var(--text);font-weight:600;box-shadow:inset 0 -2px var(--accent)}
+.tooltabs .rule{width:1px;margin:10px 4px;background:var(--line);flex:0 0 auto}
+.tooltabs .script{flex:0 0 auto;padding:0 14px}
+.tool-body{min-height:0;overflow:auto}
+.block{padding:8px 10px;border-bottom:1px solid var(--line2)}
+.block .cap{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;display:flex;align-items:center}
+.block .cap span{margin-left:auto;font-weight:400}
+.sub,.ptopic{padding:6px 0;border-bottom:1px solid var(--line2);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;align-items:center}
+.ptopic.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.ptopic .nm{font-size:13px;font-weight:600}
+.sub-topic{font:12px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addrow{display:grid;grid-template-columns:minmax(0,1fr) 52px auto;gap:6px;margin-top:6px}
+.addrow.topics{grid-template-columns:72px minmax(0,1fr) auto}
 .toolbar{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line2);font-size:12px;color:var(--muted)}
 .toolbar .grow{flex:1}
 .it{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line2)}
-.it:hover{background:var(--hover)}
 .it .nm{font-weight:600}
 .it .dt{font:12px var(--mono);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.target{display:inline-block;margin-top:3px;font:10px var(--mono);color:var(--mqtt);border:1px solid color-mix(in srgb,var(--mqtt) 55%,var(--line));border-radius:3px;padding:1px 4px}
 .key{font:12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
-.status{display:flex;align-items:center;gap:0;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.explain{padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.5}
+.status{display:flex;align-items:center;background:var(--panel);border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
 .status>span{padding:0 12px;border-right:1px solid var(--line2);height:100%;display:flex;align-items:center;gap:6px}
 .status b{color:var(--text);font:600 12px var(--mono)}
 .status .last{margin-left:auto;border-right:0;border-left:1px solid var(--line2)}
 .toast{position:fixed;left:50%;bottom:42px;transform:translateX(-50%);z-index:30;background:var(--text);color:var(--win);padding:7px 14px;border-radius:5px}
 .toast.bad{background:var(--off);color:#fff}
 .mask{position:fixed;inset:0;z-index:20;background:rgba(10,14,20,.38);display:grid;place-items:center;padding:20px}
-.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.25)}
+.dialog{width:min(640px,100%);background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.25)}
 .dialog h3{padding:14px 18px;border-bottom:1px solid var(--line2);font-size:15px}
 .dialog .body{padding:14px 18px;display:flex;flex-direction:column;gap:10px}
-.dialog .row{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;align-items:center}
+.dialog .row{display:grid;grid-template-columns:148px minmax(0,1fr);gap:10px;align-items:center}
 .dialog .row>label{font-size:13px;color:var(--muted)}
+.dialog .pair{display:grid;grid-template-columns:88px 1fr;gap:8px}
 .dialog .err{color:var(--off);font-size:13px;min-height:18px}
 .dialog .foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line2)}
 </style>
@@ -136,369 +140,310 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <script>
 (function () {
   'use strict';
+  var ports = { mqtt: 1883, mqtts: 8883, ws: 8083, wss: 8084 };
   function esc(v) {
-    return String(v == null ? '' : v)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-  function stamp(ms) {
-    var d = ms ? new Date(ms) : new Date();
-    function p(n, len) { return String(n).padStart(len || 2, '0'); }
-    return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + '.' + p(d.getMilliseconds(), 3);
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function bytes(text) { return new TextEncoder().encode(String(text)).length; }
   function uid(prefix) { state.seq += 1; return prefix + state.seq; }
-
-  var seed = Date.parse('2026-10-21T11:42:01');
   var state = {
-    seq: 10,
-    connected: true,
-    settingsOpen: false,
-    selectedId: 'm2',
-    search: '',
-    toast: null,
-    dialog: null,
+    seq: 10, connected: true, tool: 'sub', dock: true,
+    search: '', toast: null, dialog: null,
     config: {
-      host: 'broker.local', port: 1883, version: '5.0', clientId: 'ddt-desktop-01',
-      username: 'device-lab', password: '••••••••', tls: false, caFile: '未选择',
-      clientCert: '未选择', keepAlive: 30, cleanStart: true, sessionExpiry: 3600,
-      autoReconnect: true, willTopic: 'device/status', willPayload: 'offline',
-      willQos: 1, willRetain: true
+      scheme: 'mqtt', host: 'broker.local', port: 1883, path: '', version: '5.0',
+      clientId: 'ddt-desktop-01', username: 'device-lab', password: '••••••••',
+      keepAlive: 30, cleanStart: true, sessionExpiry: 3600, autoReconnect: true,
+      willTopic: 'device/status', willPayload: 'offline', willQos: 1, willRetain: true
     },
     pub: { topic: 'device/demo/command', qos: 1, retain: false, payload: '{"led":true}' },
     pubTopics: [
       { id: 't1', name: '指示灯', topic: 'device/demo/command' },
-      { id: 't2', name: '读遥测', topic: 'device/room1/command' },
-      { id: 't3', name: '状态', topic: 'device/status' }
+      { id: 't2', name: '读遥测', topic: 'device/room1/command' }
     ],
     draftPub: { name: '', topic: '' },
     subs: [
-      { id: 's1', topic: 'device/+/telemetry', qos: 1, retain: false },
-      { id: 's2', topic: 'device/status', qos: 1, retain: true }
+      { id: 's1', topic: 'device/+/telemetry', qos: 1 },
+      { id: 's2', topic: 'device/status', qos: 1 }
     ],
-    draftSub: { topic: 'device/ack', qos: 1 },
+    draftSub: { topic: '', qos: 0 },
     quick: [
       { id: 'q1', name: '打开指示灯', key: 'F1', data: '{"led":true}', inherit: true, topic: '', qos: 1, retain: false },
-      { id: 'q2', name: '关闭指示灯', key: 'F2', data: '{"led":false}', inherit: true, topic: '', qos: 1, retain: false },
       { id: 'q3', name: '读遥测', key: 'F3', data: '{"cmd":"read"}', inherit: false, topic: 'device/room1/command', qos: 1, retain: false }
     ],
-    messages: [
-      { id: 'm0', dir: 'sys', time: stamp(seed), topic: '', qos: 0, retain: false, payload: '已连接 broker.local:1883，Client ID ddt-desktop-01' },
-      { id: 'm1', dir: 'rx', time: stamp(seed + 102), topic: 'device/status', qos: 1, retain: true, payload: 'online' },
-      { id: 'm2', dir: 'rx', time: stamp(seed + 1340), topic: 'device/room1/telemetry', qos: 1, retain: false, payload: '{"temp":23.4,"hum":51.8}' },
-      { id: 'm3', dir: 'tx', time: stamp(seed + 7012), topic: 'device/demo/command', qos: 1, retain: false, payload: '{"led":true}' },
-      { id: 'm4', dir: 'rx', time: stamp(seed + 7231), topic: 'device/ack', qos: 1, retain: false, payload: '{"ok":true}' }
+    history: [
+      { topic: 'device/demo/command', payload: '{"led":true}', qos: 1, retain: false, time: '09:12:04' }
     ],
-    rxCount: 0, txCount: 13
+    script: { name: 'print_message.lua', code: 'function on_message(msg)\n  log(msg.topic, msg.payload)\nend\n' },
+    messages: [
+      { dir: 'sys', payload: '已连接 mqtt://broker.local:1883，Client ID ddt-desktop-01' },
+      { dir: 'rx', topic: 'device/status', qos: 1, retain: true, payload: 'online' },
+      { dir: 'tx', topic: 'device/demo/command', qos: 1, retain: false, payload: '{"led":true}' }
+    ]
   };
-  state.rxCount = bytes('online') + bytes('{"temp":23.4,"hum":51.8}') + bytes('{"ok":true}');
-
   function toast(text, bad) {
     state.toast = { text: text, bad: !!bad };
     render();
-    setTimeout(function () { state.toast = null; render(); }, 1900);
-  }
-  function push(msg) {
-    state.messages.push(msg);
-    if (msg.dir === 'rx') state.rxCount += bytes(msg.payload);
-    if (msg.dir === 'tx') state.txCount += bytes(msg.payload);
+    setTimeout(function () { state.toast = null; render(); }, 1600);
   }
   function requireOpen(action) {
     if (state.connected) return true;
     toast('MQTT 未连接，' + action + '已拦截', true);
     return false;
   }
-  function connect() {
-    state.connected = true;
-    push({ id: uid('m'), dir: 'sys', time: stamp(), topic: '', qos: 0, retain: false, payload: '已连接 ' + state.config.host + ':' + state.config.port + '，Client ID ' + state.config.clientId });
-    push({ id: uid('m'), dir: 'rx', time: stamp(), topic: 'device/status', qos: 1, retain: true, payload: 'online' });
-    push({ id: uid('m'), dir: 'rx', time: stamp(), topic: 'device/room1/telemetry', qos: 1, retain: false, payload: '{"temp":23.4,"hum":51.8}' });
-    toast('已连接到 ' + state.config.host);
-    render();
-  }
-  function disconnect() {
-    state.connected = false;
-    push({ id: uid('m'), dir: 'sys', time: stamp(), topic: '', qos: 0, retain: false, payload: '已断开 ' + state.config.host + ':' + state.config.port });
-    toast('已断开连接');
-    render();
+  function endpoint() {
+    var c = state.config;
+    var path = (c.scheme === 'ws' || c.scheme === 'wss') ? (c.path || '/') : '';
+    return c.scheme + '://' + c.host + ':' + c.port + path;
   }
   function publish(topic, qos, retain, payload, record) {
     if (!requireOpen('发布')) return;
-    if (!String(topic).trim()) { toast('请填写 Topic', true); return; }
-    if (!String(payload).length) { toast('请填写 Payload', true); return; }
-    var msg = { id: uid('m'), dir: 'tx', time: stamp(), topic: topic, qos: Number(qos), retain: !!retain, payload: payload };
-    push(msg);
-    state.selectedId = msg.id;
-    if (record) state.pub.payload = payload;
+    topic = String(topic).trim();
+    if (!topic) { toast('请填写发布 Topic', true); return; }
+    if (!String(payload).length) { toast('Payload 为空', true); return; }
+    state.messages.push({ dir: 'tx', topic: topic, qos: qos, retain: retain, payload: payload });
+    if (record) {
+      var now = new Date();
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      var entry = {
+        topic: topic, payload: payload, qos: qos, retain: !!retain,
+        time: pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds())
+      };
+      state.history = [entry].concat(state.history.filter(function (item) {
+        return !(item.topic === entry.topic && item.payload === entry.payload && item.qos === entry.qos && item.retain === entry.retain);
+      })).slice(0, 12);
+    }
     toast('已发布 ' + topic);
     render();
-    setTimeout(function () {
-      if (!state.connected) return;
-      var ack = { id: uid('m'), dir: 'rx', time: stamp(), topic: 'device/ack', qos: 1, retain: false, payload: '{"ok":true,"echo":' + JSON.stringify(payload) + '}' };
-      push(ack);
-      render();
-    }, 220);
   }
-  function subscribe() {
-    if (!requireOpen('订阅')) return;
-    var topic = String(state.draftSub.topic || '').trim();
-    if (!topic) { toast('请填写订阅 Topic', true); return; }
-    if (state.subs.some(function (s) { return s.topic === topic; })) { toast('已经订阅过该主题', true); return; }
-    state.subs.push({ id: uid('s'), topic: topic, qos: Number(state.draftSub.qos), retain: false });
-    push({ id: uid('m'), dir: 'sys', time: stamp(), topic: '', qos: 0, retain: false, payload: '已订阅 ' + topic + ' · QoS ' + state.draftSub.qos });
-    state.draftSub.topic = '';
-    toast('已订阅 ' + topic);
-    render();
-  }
-  function fillTopic(id) {
-    var item = state.pubTopics.find(function (t) { return t.id === id; });
-    if (!item) return;
-    state.pub.topic = item.topic;
-    toast('已填入 ' + item.topic);
-    render();
-  }
-  function addPubTopic() {
-    var name = String(state.draftPub.name || '').trim();
-    var topic = String(state.draftPub.topic || '').trim();
-    if (!topic) { toast('请填写发布 Topic', true); return; }
-    if (state.pubTopics.some(function (t) { return t.topic === topic; })) { toast('已经录入过该主题', true); return; }
-    if (!name) name = topic.split('/').pop() || topic;
-    state.pubTopics.push({ id: uid('t'), name: name, topic: topic });
-    state.draftPub = { name: '', topic: '' };
-    toast('已录入 ' + topic);
-    render();
-  }
-  function removePubTopic(id) {
-    var item = state.pubTopics.find(function (t) { return t.id === id; });
-    if (!item) return;
-    state.pubTopics = state.pubTopics.filter(function (t) { return t.id !== id; });
-    state.dialog = null;
-    toast('已删除 ' + item.name);
-    render();
-  }
-  function unsubscribe(id) {
-    var sub = state.subs.find(function (s) { return s.id === id; });
-    if (!sub) return;
-    if (!requireOpen('退订')) return;
-    state.subs = state.subs.filter(function (s) { return s.id !== id; });
-    push({ id: uid('m'), dir: 'sys', time: stamp(), topic: '', qos: 0, retain: false, payload: '已退订 ' + sub.topic });
-    toast('已退订 ' + sub.topic);
-    render();
-  }
-  function targetText(q) {
-    if (q.inherit) return '继承 · ' + state.pub.topic + ' · QoS ' + state.pub.qos + (state.pub.retain ? ' · Retain' : '');
-    return q.topic + ' · QoS ' + q.qos + (q.retain ? ' · Retain' : '');
-  }
-  function visibleMessages() {
-    var q = state.search.trim().toLowerCase();
-    if (!q) return state.messages;
-    return state.messages.filter(function (m) {
-      return (m.topic + ' ' + m.payload + ' ' + m.time).toLowerCase().indexOf(q) >= 0;
-    });
-  }
-
   function field(label, key, value, extra) {
     extra = extra || {};
-    var ctrl = extra.type === 'select'
+    var ctrl = extra.select
       ? '<select data-cfg="' + key + '">' + extra.items.map(function (it) {
           return '<option' + (String(it) === String(value) ? ' selected' : '') + '>' + esc(it) + '</option>';
         }).join('') + '</select>'
-      : '<input class="inp" data-cfg="' + key + '" value="' + esc(value) + '"' + (extra.password ? ' type="password"' : '') + '>';
+      : '<input class="inp" data-cfg="' + key + '" value="' + esc(value) + '">';
     return '<label>' + esc(label) + '</label>' + ctrl;
   }
-
   function render() {
     var c = state.config;
-    var lines = visibleMessages().map(function (m) {
-      if (m.dir === 'sys') {
-        return '<div class="line sys ' + (m.id === state.selectedId ? 'sel' : '') + '" data-act="select" data-id="' + m.id + '"><span class="p">[' + esc(m.time) + ']# </span>' + esc(m.payload) + '</div>';
-      }
+    var secure = c.scheme === 'mqtts' || c.scheme === 'wss';
+    var ws = c.scheme === 'ws' || c.scheme === 'wss';
+    var lines = state.messages.map(function (m) {
+      if (m.dir === 'sys') return '<div class="line sys"><span class="p"># </span>' + esc(m.payload) + '</div>';
       var tag = m.dir === 'rx' ? 'RECV' : 'PUB';
-      var flags = 'QoS' + m.qos + (m.retain ? ' RETAIN' : '');
-      return '<div class="line ' + m.dir + ' ' + (m.id === state.selectedId ? 'sel' : '') + '" data-act="select" data-id="' + m.id + '">' +
-        '<div><span class="p">[' + esc(m.time) + ']# ' + tag + ' [' + esc(m.topic) + '] ' + flags + '&gt;</span></div>' +
-        '<div class="body">' + esc(m.payload) + '</div></div>';
+      return '<div class="line ' + m.dir + '"><div><span class="p"># ' + tag + ' [' + esc(m.topic) + '] QoS' + m.qos + (m.retain ? ' RETAIN' : '') + '&gt;</span></div><div class="body">' + esc(m.payload) + '</div></div>';
     }).join('');
     var subs = state.subs.map(function (s) {
-      return '<div class="sub"><div><div class="sub-topic">' + esc(s.topic) + '</div><div class="sub-meta">QoS ' + s.qos + (s.retain ? ' · Retain' : '') + '</div></div>' +
-        '<button class="btn sm danger" data-act="unsub" data-id="' + s.id + '">退订</button></div>';
-    }).join('');
+      var on = s.active !== false;
+      return '<div class="it" style="grid-template-columns:minmax(0,1fr) auto"><div><div class="nm">' + esc(s.topic) + '</div><div class="sub-meta">QoS ' + s.qos + '</div></div><button class="btn sm ' + (on ? 'danger' : 'pri') + '" data-act="toggle-sub" data-id="' + s.id + '">' + (on ? '退订' : '订阅') + '</button></div>';
+    }).join('') || '<div class="explain">还没有订阅。点「新增」添加一条。</div>';
     var pubs = state.pubTopics.map(function (t) {
-      return '<div class="ptopic ' + (t.topic === state.pub.topic ? 'on' : '') + '" data-act="fill-topic" data-id="' + t.id + '">' +
-        '<div><div class="nm">' + esc(t.name) + '</div><div class="sub-topic">' + esc(t.topic) + '</div></div>' +
-        '<div class="ops"><button class="btn sm" data-act="fill-topic" data-id="' + t.id + '">填入</button>' +
-        '<button class="btn sm danger" data-act="del-topic" data-id="' + t.id + '">删除</button></div></div>';
-    }).join('');
+      return '<div class="it"><button class="btn sm" data-act="fill" data-id="' + t.id + '">填入</button><div><div class="nm">' + esc(t.name) + '</div><div class="sub-topic">' + esc(t.topic) + '</div></div></div>';
+    }).join('') || '<div class="explain">还没有发布主题。点「新增」保存一条，再点「填入」写到发布框。</div>';
     var quick = state.quick.map(function (q) {
-      return '<div class="it"><button class="btn sm pri" data-act="quick" data-id="' + q.id + '">发布</button>' +
-        '<div><div class="nm">' + esc(q.name) + ' <span class="key">' + esc(q.key) + '</span></div>' +
-        '<div class="dt">' + esc(q.data) + '</div><span class="target">' + esc(targetText(q)) + '</span></div></div>';
+      var target = q.inherit ? ('继承 · ' + state.pub.topic + ' · QoS ' + state.pub.qos) : (q.topic + ' · QoS ' + q.qos);
+      return '<div class="it"><button class="btn sm pri" data-act="quick" data-id="' + q.id + '">发布</button><div><div class="nm">' + esc(q.name) + (q.key ? ' <span class="key">' + esc(q.key) + '</span>' : '') + '</div><div class="dt">' + esc(q.data) + '</div><div class="sub-meta">' + esc(target) + '</div></div></div>';
     }).join('');
+    var tool = '';
+    if (state.tool === 'sub') {
+      tool = '<div class="toolbar"><span class="grow">右侧切换订阅和退订。右键编辑或删除。</span><button class="btn sm" data-act="add-sub">新增</button></div>' + subs;
+    } else if (state.tool === 'quick') {
+      tool = '<div class="toolbar"><span class="grow">发布主题</span><button class="btn sm" data-act="add-topic">新增</button></div>' + pubs;
+    } else if (state.tool === 'history') {
+      var hist = state.history.map(function (h, i) {
+        return '<div class="it"><button class="btn sm" data-act="resend" data-id="' + i + '">' + esc(h.time) + '</button><div><div class="nm">' + esc(h.payload) + '</div><div class="sub-meta">' + esc(h.topic) + ' · QoS ' + h.qos + (h.retain ? ' · Retain' : '') + ' <button class="more" data-act="fill-history" data-id="' + i + '">填入</button></div></div></div>';
+      }).join('');
+      tool = '<div class="toolbar"><span class="grow">只记录用「发布」按钮发出的报文。点时间重发，点「填入」放回发布框。</span><button class="btn sm" data-act="clear-history">清空</button></div>' +
+        (hist || '<div class="explain">还没有发布记录。</div>');
+    } else {
+      tool = '<div class="toolbar"><span class="grow">已启用 1 / 1</span><button class="btn sm">新建</button></div>' +
+        '<div class="it"><div class="nm">' + esc(state.script.name) + '</div><div class="sub-meta">on_message · 等待触发</div></div>' +
+        '<div class="explain">on_message 在报文写入日志后运行。before_publish 经过发布框和快捷发布，返回 nil 则不发。</div>';
+    }
+    var dock = state.tool === 'script' && state.dock
+      ? '<div class="dock"><div class="dockhead"><b>' + esc(state.script.name) + '</b><span class="grow">on_message · 已停用，仅手动运行</span><button class="btn sm pri" data-act="run">运行</button><button class="more" data-act="fold">收起</button></div><div class="dockbody"><pre>' + esc(state.script.code) + '</pre><div class="run">运行日志</div></div></div>'
+      : '';
     var dlg = '';
     if (state.dialog) {
       var d = state.dialog;
-      if (d.kind === 'del-topic') {
-        dlg = '<div class="mask" data-act="close-dlg"><div class="dialog" data-stop="1"><h3>删除发布主题</h3><div class="body">' +
-          '<p>删除「' + esc(d.name) + '」' + esc(d.topic) + '？发送区里已填的 Topic 不会改。</p>' +
-          '</div><div class="foot"><button class="btn" data-act="close-dlg">取消</button><button class="btn pri" data-act="confirm-del-topic">删除</button></div></div></div>';
+      var body = '';
+      var title = '新增快捷发布';
+      var ok = '保存';
+      if (d.kind === 'sub') {
+        title = '订阅';
+        ok = '订阅';
+        body = '<div class="row"><label>Topic</label><input class="inp" id="dlgTopic" value="' + esc(d.topic) + '"></div>' +
+          '<div class="row"><label>QoS</label><select id="dlgQos"><option' + (d.qos === 0 ? ' selected' : '') + '>0</option><option' + (d.qos === 1 ? ' selected' : '') + '>1</option><option' + (d.qos === 2 ? ' selected' : '') + '>2</option></select></div>';
+      } else if (d.kind === 'topic') {
+        title = '添加发布主题';
+        body = '<div class="row"><label>名称</label><input class="inp" id="dlgName" value="' + esc(d.name) + '"></div>' +
+          '<div class="row"><label>Topic</label><input class="inp" id="dlgTopic" value="' + esc(d.topic) + '"></div>';
       } else {
-        dlg = '<div class="mask" data-act="close-dlg"><div class="dialog" data-stop="1"><h3>覆盖发布目标</h3><div class="body">' +
-          '<div class="row"><label>名称</label><input class="inp" value="' + esc(d.name) + '" disabled></div>' +
-          '<label class="check"><input type="checkbox" id="dlgInherit"' + (d.inherit ? ' checked' : '') + '> 继承连接默认 Topic</label>' +
-          '<div class="row"><label>Topic</label><input class="inp" id="dlgTopic" value="' + esc(d.topic) + '"' + (d.inherit ? ' disabled' : '') + '></div>' +
-          '<div class="row"><label>QoS</label><select id="dlgQos"><option' + (d.qos === 0 ? ' selected' : '') + '>0</option><option' + (d.qos === 1 ? ' selected' : '') + '>1</option><option' + (d.qos === 2 ? ' selected' : '') + '>2</option></select></div>' +
-          '<label class="check"><input type="checkbox" id="dlgRetain"' + (d.retain ? ' checked' : '') + '> Retain</label>' +
-          '<div class="err" id="dlgErr"></div></div><div class="foot"><button class="btn" data-act="close-dlg">取消</button><button class="btn pri" data-act="save-dlg">保存</button></div></div></div>';
+        title = d.id ? '编辑快捷发布' : '新增快捷发布';
+        body = '<div class="row"><label>名称</label><input class="inp" id="dlgName" value="' + esc(d.name) + '"></div>' +
+          '<div class="row"><label>Payload</label><input class="inp" id="dlgData" value="' + esc(d.data) + '"></div>' +
+          '<div class="row"><label>快捷键</label><select id="dlgKey"><option value="">不绑定</option><option' + (d.key === 'F1' ? ' selected' : '') + '>F1</option><option' + (d.key === 'F3' ? ' selected' : '') + '>F3</option></select></div>' +
+          '<label class="check"><input type="checkbox" id="dlgInherit"' + (d.inherit ? ' checked' : '') + '> 沿用发送区的 Topic、QoS、Retain</label>' +
+          (d.inherit ? '' : '<div class="row"><label>Topic</label><input class="inp" id="dlgTopic" value="' + esc(d.topic) + '"></div><div class="row"><label>QoS / Retain</label><div class="pair"><select id="dlgQos"><option' + (d.qos === 0 ? ' selected' : '') + '>0</option><option' + (d.qos === 1 ? ' selected' : '') + '>1</option><option' + (d.qos === 2 ? ' selected' : '') + '>2</option></select><label class="check" style="margin:0"><input type="checkbox" id="dlgRetain"' + (d.retain ? ' checked' : '') + '> Retain</label></div></div>');
       }
+      dlg = '<div class="mask" data-act="close-dlg"><div class="dialog" data-stop="1"><h3>' + title + '</h3><div class="body">' +
+        body + '<div class="err" id="dlgErr"></div></div><div class="foot"><button class="btn" data-act="close-dlg">取消</button><button class="btn pri" data-act="save-dlg">' + ok + '</button></div></div></div>';
     }
     document.getElementById('app').innerHTML =
-      '<div class="app"><header class="menubar"><span class="brand">设备调试工具</span><span class="dir">MQTT 调试 · 会话继承</span>' +
-      '<div class="menu"><button type="button">文件</button></div><div class="menu"><button type="button">设置</button></div>' +
-      '<div class="menu"><button type="button">帮助</button></div><span class="spacer"></span>' +
-      '<button class="iconbtn" type="button">精简模式</button><button class="iconbtn on" type="button">工具面板</button>' +
+      '<div class="app"><header class="menubar"><span class="brand">设备调试工具</span><span class="dir">MQTT 调试</span>' +
+      '<div class="menu"><button type="button">文件</button></div><div class="menu"><button type="button">设置</button></div><div class="menu"><button type="button">帮助</button></div><span class="spacer"></span>' +
       '<div class="wins"><button type="button">─</button><button type="button">□</button><button class="close" type="button">×</button></div></header>' +
-      '<main class="body"><div class="tabs">' +
-      '<div class="tab on"><span class="dot ' + (state.connected ? 'on' : '') + '"></span><span class="kind">MQTT</span>车间 Broker</div>' +
-      '<div class="tab" data-act="other-tab"><span class="dot"></span><span class="kind" style="color:#1f9d55;border-color:#1f9d55">SERIAL</span>COM3</div>' +
-      '</div><div class="grid"><aside class="side">' +
-      '<section class="group"><div class="legend">MQTT 连接</div><div class="form">' +
+      '<main class="body"><div class="tabs"><div class="tab on"><span class="dot on"></span><span class="kind">MQTT</span>车间 Broker</div></div>' +
+      '<div class="grid"><aside class="side"><section class="group"><div class="legend" style="margin-top:0">MQTT 连接</div><div class="form">' +
+      field('协议', 'scheme', c.scheme, { select: true, items: ['mqtt', 'mqtts', 'ws', 'wss'] }) +
       field('Broker', 'host', c.host) + field('端口', 'port', c.port) +
-      '</div><button class="btn openbtn ' + (state.connected ? '' : 'pri') + '" data-act="toggle"><i class="lamp ' + (state.connected ? 'on' : '') + '"></i>' +
-      (state.connected ? '断开' : '连接') + '</button>' +
-      '<button class="more" data-act="toggle-settings">' + (state.settingsOpen ? '收起连接设置' : '展开连接设置') + '</button>' +
-      '<div class="settings ' + (state.settingsOpen ? 'show' : '') + '"><div class="form">' +
-      field('版本', 'version', c.version, { type: 'select', items: ['3.1.1', '5.0'] }) +
+      (ws ? field('路径', 'path', c.path) : '') +
+      '</div><button class="btn openbtn" data-act="toggle"><i class="lamp on"></i>断开</button>' +
+      '<div class="settings"><div class="sec">会话</div><div class="form">' +
+      field('版本', 'version', c.version, { select: true, items: ['3.1.1', '5.0'] }) +
       field('Client ID', 'clientId', c.clientId) + field('用户名', 'username', c.username) +
-      field('密码', 'password', c.password, { password: true }) +
-      '</div><label class="check"><input type="checkbox" data-cfg="tls"' + (c.tls ? ' checked' : '') + '> 启用 TLS</label>' +
-      '<div class="form">' + field('CA 证书', 'caFile', c.caFile) + field('客户端证书', 'clientCert', c.clientCert) +
-      field('Keep Alive', 'keepAlive', c.keepAlive) + field('Session Expiry', 'sessionExpiry', c.sessionExpiry) +
+      field('Keep Alive', 'keepAlive', c.keepAlive) +
+      (c.version === '5.0' ? field('Session Expiry', 'sessionExpiry', c.sessionExpiry) : '') +
       '</div><label class="check"><input type="checkbox" data-cfg="cleanStart"' + (c.cleanStart ? ' checked' : '') + '> Clean Start</label>' +
       '<label class="check"><input type="checkbox" data-cfg="autoReconnect"' + (c.autoReconnect ? ' checked' : '') + '> 断线自动重连</label>' +
-      '<div class="form">' + field('遗嘱 Topic', 'willTopic', c.willTopic) + field('遗嘱 Payload', 'willPayload', c.willPayload) +
-      field('遗嘱 QoS', 'willQos', c.willQos, { type: 'select', items: [0, 1, 2] }) +
-      '</div><label class="check"><input type="checkbox" data-cfg="willRetain"' + (c.willRetain ? ' checked' : '') + '> 遗嘱 Retain</label></div></section>' +
-      '<section class="group"><div class="legend">订阅列表<span class="grow"></span><span>' + state.subs.length + '</span></div>' +
-      subs + '<div class="addrow"><input class="inp" data-draft="topic" placeholder="Topic，可用 + 或 #" value="' + esc(state.draftSub.topic) + '">' +
-      '<select data-draft="qos"><option' + (state.draftSub.qos === 0 ? ' selected' : '') + '>0</option><option' + (state.draftSub.qos === 1 ? ' selected' : '') + '>1</option><option' + (state.draftSub.qos === 2 ? ' selected' : '') + '>2</option></select>' +
-      '<button class="btn sm pri" data-act="sub">订阅</button></div></section>' +
-      '<section class="group"><div class="legend">发布主题<span class="grow"></span><span>' + state.pubTopics.length + '</span></div>' +
-      pubs + '<div class="addrow topics"><input class="inp" data-draft-pub="name" placeholder="名称" value="' + esc(state.draftPub.name) + '">' +
-      '<input class="inp" data-draft-pub="topic" placeholder="Topic" value="' + esc(state.draftPub.topic) + '">' +
-      '<button class="btn sm pri" data-act="add-topic">添加</button></div></section>' +
-      '</aside><section class="center"><div class="logbox"><div class="loghead"><b>报文日志</b><span class="meta">' + state.messages.length + ' 条 · ' + esc(state.pub.topic) + '</span>' +
-      '<input class="inp search" data-search placeholder="搜索 Topic / Payload" value="' + esc(state.search) + '">' +
-      '<button class="btn sm" data-act="clear">清空</button></div><div class="log" id="log">' + lines + '</div></div>' +
+      (secure ? '<div class="sec">TLS</div><div class="form">' + field('CA 证书', 'ca', '未选择') + field('客户端证书', 'cert', '未选择') + field('私钥', 'key', '未选择') + '</div>' : '') +
+      '<div class="sec">遗嘱</div><div class="form">' + field('遗嘱 Topic', 'willTopic', c.willTopic) + field('遗嘱 Payload', 'willPayload', c.willPayload) +
+      field('遗嘱 QoS', 'willQos', c.willQos, { select: true, items: [0, 1, 2] }) +
+      '</div><label class="check"><input type="checkbox" data-cfg="willRetain"' + (c.willRetain ? ' checked' : '') + '> 遗嘱 Retain</label></div></section></aside>' +
+      '<section class="center"><div class="logbox"><div class="loghead"><b>报文日志</b><span class="meta">' + state.messages.length + ' 条</span></div><div class="log">' + lines + '</div></div>' +
+      dock +
       '<div class="compose"><div class="compose-top"><span class="note">发布到</span><input class="inp" data-pub="topic" value="' + esc(state.pub.topic) + '" style="flex:1">' +
-      '<select data-pub="qos" style="width:64px"><option' + (state.pub.qos === 0 ? ' selected' : '') + '>0</option><option' + (state.pub.qos === 1 ? ' selected' : '') + '>1</option><option' + (state.pub.qos === 2 ? ' selected' : '') + '>2</option></select>' +
+      '<select data-pub="qos" style="width:64px"><option' + (state.pub.qos === 1 ? ' selected' : '') + '>1</option></select>' +
       '<label class="check" style="margin:0"><input type="checkbox" data-pub="retain"' + (state.pub.retain ? ' checked' : '') + '> Retain</label></div>' +
-      '<textarea data-pub="payload" placeholder="Payload">' + esc(state.pub.payload) + '</textarea>' +
+      '<textarea data-pub="payload">' + esc(state.pub.payload) + '</textarea>' +
       '<div class="sendside"><button class="btn pri sendbtn" data-act="pub">发布</button><button class="btn" data-act="clear-tx">清除</button></div>' +
-      '<div class="sendfoot"><span>实发 ' + bytes(state.pub.payload) + ' 字节</span><span>' + esc(state.pub.topic) + ' · QoS ' + state.pub.qos + (state.pub.retain ? ' · Retain' : '') + '</span><span class="grow"></span><span>Ctrl+Enter</span></div></div>' +
-      '</section><aside class="tools"><div class="tooltabs"><span>快捷指令</span></div>' +
-      '<div class="tool-body"><div class="toolbar"><span class="grow">可覆盖 Topic / QoS / Retain</span><button class="btn sm" data-act="edit-quick">覆盖目标</button></div>' +
-      quick + '</div></aside></div></main>' +
-      '<footer class="status"><span><i class="lamp ' + (state.connected ? 'on' : '') + '" style="width:9px;height:9px"></i><b>' +
-      esc(c.host) + ':' + c.port + ' ' + (state.connected ? 'OPENED' : 'CLOSED') + ', MQTT ' + esc(c.version) + ', ' + esc(c.clientId) + '</b></span>' +
-      '<span>RX <b>' + state.rxCount + '</b></span><span>TX <b>' + state.txCount + '</b></span><span>订阅 ' + state.subs.length + '</span>' +
-      '<span class="last">' + (state.connected ? 'Retain 末值 online' : '未连接') + '</span></footer></div>' +
+      '<div class="sendfoot"><span>实发 ' + bytes(state.pub.payload) + ' 字节</span><span class="grow"></span><span>Ctrl+Enter</span></div></div></section>' +
+      '<aside class="tools"><div class="tooltabs">' +
+      '<button type="button" class="' + (state.tool === 'sub' ? 'on' : '') + '" data-act="tool" data-id="sub">订阅</button>' +
+      '<button type="button" class="' + (state.tool === 'quick' ? 'on' : '') + '" data-act="tool" data-id="quick">快捷发布</button>' +
+      '<button type="button" class="' + (state.tool === 'history' ? 'on' : '') + '" data-act="tool" data-id="history">历史发送</button>' +
+      '<i class="rule"></i><button type="button" class="script ' + (state.tool === 'script' ? 'on' : '') + '" data-act="tool" data-id="script">脚本</button></div>' +
+      '<div class="tool-body">' + tool + '</div></aside></div></main>' +
+      '<footer class="status"><span><i class="lamp on" style="width:9px;height:9px"></i><b>' + esc(endpoint()) + ' OPENED, MQTT ' + esc(c.version) + ', ' + esc(c.clientId) + '</b></span>' +
+      '<span>订阅 ' + state.subs.length + '</span><span class="last">Retain 末值 online</span></footer></div>' +
       (state.toast ? '<div class="toast' + (state.toast.bad ? ' bad' : '') + '">' + esc(state.toast.text) + '</div>' : '') + dlg;
   }
-
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-act]');
-    if (!t) return;
-    if (t.classList.contains('mask') && e.target !== t) return;
+    if (!t || (t.classList.contains('mask') && e.target !== t)) return;
     var act = t.getAttribute('data-act');
-    if (act === 'toggle') { state.connected ? disconnect() : connect(); return; }
-    if (act === 'toggle-settings') { state.settingsOpen = !state.settingsOpen; render(); return; }
-    if (act === 'sub') { subscribe(); return; }
-    if (act === 'unsub') { unsubscribe(t.getAttribute('data-id')); return; }
-    if (act === 'fill-topic') { fillTopic(t.getAttribute('data-id')); return; }
-    if (act === 'add-topic') { addPubTopic(); return; }
-    if (act === 'del-topic') {
-      var del = state.pubTopics.find(function (x) { return x.id === t.getAttribute('data-id'); });
-      if (!del) return;
-      state.dialog = { kind: 'del-topic', id: del.id, name: del.name, topic: del.topic };
+    if (act === 'tool') { state.tool = t.getAttribute('data-id'); render(); }
+    if (act === 'fold') { state.dock = false; render(); }
+    if (act === 'add-sub') {
+      state.dialog = { kind: 'sub', topic: '', qos: 0 };
       render();
-      return;
     }
-    if (act === 'confirm-del-topic') { removePubTopic(state.dialog.id); return; }
-    if (act === 'pub') { publish(state.pub.topic, state.pub.qos, state.pub.retain, state.pub.payload, true); return; }
-    if (act === 'clear-tx') { state.pub.payload = ''; render(); return; }
-    if (act === 'clear') { state.messages = []; state.selectedId = null; render(); return; }
-    if (act === 'select') { state.selectedId = t.getAttribute('data-id'); render(); return; }
-    if (act === 'other-tab') { toast('本方向稿只演示 MQTT'); return; }
+    if (act === 'toggle-sub') {
+      state.subs.forEach(function (s) {
+        if (s.id === t.getAttribute('data-id')) s.active = s.active === false;
+      });
+      render();
+    }
+    if (act === 'fill') {
+      var item = state.pubTopics.find(function (x) { return x.id === t.getAttribute('data-id'); });
+      if (item) { state.pub.topic = item.topic; toast('已填入 ' + item.topic); render(); }
+    }
+    if (act === 'add-topic') {
+      state.dialog = { kind: 'topic', name: '', topic: '' };
+      render();
+    }
+    if (act === 'resend') {
+      var again = state.history[Number(t.getAttribute('data-id'))];
+      if (again) publish(again.topic, again.qos, again.retain, again.payload, true);
+    }
+    if (act === 'fill-history') {
+      var back = state.history[Number(t.getAttribute('data-id'))];
+      if (!back) return;
+      state.pub.topic = back.topic;
+      state.pub.payload = back.payload;
+      state.pub.qos = back.qos;
+      state.pub.retain = back.retain;
+      render();
+    }
+    if (act === 'clear-history') { state.history = []; render(); }
+    if (act === 'pub') publish(state.pub.topic, state.pub.qos, state.pub.retain, state.pub.payload, true);
     if (act === 'quick') {
       var q = state.quick.find(function (x) { return x.id === t.getAttribute('data-id'); });
       if (!q) return;
       publish(q.inherit ? state.pub.topic : q.topic, q.inherit ? state.pub.qos : q.qos, q.inherit ? state.pub.retain : q.retain, q.data, false);
-      return;
     }
-    if (act === 'edit-quick') {
-      var first = state.quick[2];
-      state.dialog = { id: first.id, name: first.name, inherit: first.inherit, topic: first.topic, qos: first.qos, retain: first.retain };
+    if (act === 'add-quick') {
+      state.dialog = { kind: 'quick', id: '', name: '', data: '', key: '', inherit: true, topic: '', qos: 0, retain: false };
       render();
-      return;
     }
-    if (act === 'close-dlg') { state.dialog = null; render(); return; }
+    if (act === 'close-dlg') { state.dialog = null; render(); }
     if (act === 'save-dlg') {
+      var errBox = document.getElementById('dlgErr');
+      if (state.dialog.kind === 'sub') {
+        if (!requireOpen('订阅')) return;
+        var subTopic = document.getElementById('dlgTopic').value.trim();
+        if (!subTopic) { errBox.textContent = '请填写 Topic'; return; }
+        state.subs.push({ id: uid('s'), topic: subTopic, qos: Number(document.getElementById('dlgQos').value) || 0 });
+        state.dialog = null;
+        toast('已订阅 ' + subTopic);
+        render();
+        return;
+      }
+      if (state.dialog.kind === 'topic') {
+        var topicName = document.getElementById('dlgName').value.trim();
+        var topicValue = document.getElementById('dlgTopic').value.trim();
+        if (!topicName) { errBox.textContent = '请填写名称'; return; }
+        if (!topicValue) { errBox.textContent = '请填写 Topic'; return; }
+        state.pubTopics.push({ id: uid('t'), name: topicName, topic: topicValue });
+        state.dialog = null;
+        render();
+        return;
+      }
       var inherit = document.getElementById('dlgInherit').checked;
-      var topic = document.getElementById('dlgTopic').value.trim();
-      if (!inherit && !topic) { document.getElementById('dlgErr').textContent = '覆盖时必须填写 Topic'; return; }
-      var item = state.quick.find(function (x) { return x.id === state.dialog.id; });
-      item.inherit = inherit;
-      item.topic = topic;
-      item.qos = Number(document.getElementById('dlgQos').value);
-      item.retain = document.getElementById('dlgRetain').checked;
+      var name = document.getElementById('dlgName').value.trim();
+      var data = document.getElementById('dlgData').value;
+      var topicEl = document.getElementById('dlgTopic');
+      var topic = topicEl ? topicEl.value.trim() : state.dialog.topic;
+      var err = document.getElementById('dlgErr');
+      if (!name) { err.textContent = '请填写名称'; return; }
+      if (!data) { err.textContent = 'Payload 为空'; return; }
+      if (!inherit && !topic) { err.textContent = '不沿用时必须填写 Topic'; return; }
+      var saved = {
+        id: state.dialog.id || uid('q'), name: name, data: data,
+        key: document.getElementById('dlgKey').value,
+        inherit: inherit, topic: topic,
+        qos: inherit ? state.dialog.qos : Number((document.getElementById('dlgQos') || {}).value || 0),
+        retain: inherit ? state.dialog.retain : !!(document.getElementById('dlgRetain') && document.getElementById('dlgRetain').checked)
+      };
+      var found = false;
+      state.quick = state.quick.map(function (item) { if (item.id !== saved.id) return item; found = true; return saved; });
+      if (!found) state.quick.push(saved);
       state.dialog = null;
-      toast('已更新覆盖目标');
+      toast('快捷发布已保存');
       render();
     }
+    if (act === 'run') toast('试算 before_publish，未发布');
+    if (act === 'clear-tx') { state.pub.payload = ''; render(); }
+    if (act === 'toggle') toast('本方向稿保持已连接，便于看订阅和发布');
   });
   document.addEventListener('change', function (e) {
     var el = e.target;
-    if (el.hasAttribute('data-cfg')) {
-      var key = el.getAttribute('data-cfg');
-      state.config[key] = el.type === 'checkbox' ? el.checked : (el.type === 'number' || key === 'port' || key === 'keepAlive' || key === 'sessionExpiry' || key === 'willQos' ? Number(el.value) || el.value : el.value);
-      if (key === 'willQos') state.config.willQos = Number(el.value);
-      return;
-    }
-    if (el.hasAttribute('data-pub')) {
-      var pk = el.getAttribute('data-pub');
-      state.pub[pk] = el.type === 'checkbox' ? el.checked : (pk === 'qos' ? Number(el.value) : el.value);
-      if (pk !== 'payload') render();
-      return;
-    }
-    if (el.hasAttribute('data-draft')) {
-      state.draftSub[el.getAttribute('data-draft')] = el.getAttribute('data-draft') === 'qos' ? Number(el.value) : el.value;
-      return;
-    }
-    if (el.hasAttribute('data-draft-pub')) {
-      state.draftPub[el.getAttribute('data-draft-pub')] = el.value;
-      return;
-    }
-    if (el.id === 'dlgInherit') {
-      document.getElementById('dlgTopic').disabled = el.checked;
-    }
+    if (el.id === 'dlgInherit') { state.dialog.inherit = el.checked; render(); var box = document.getElementById('dlgName'); if (box) box.focus(); return; }
+    if (!el.hasAttribute('data-cfg')) return;
+    var key = el.getAttribute('data-cfg');
+    var prev = state.config.scheme;
+    state.config[key] = el.type === 'checkbox' ? el.checked : el.value;
+    if (key === 'scheme' && state.config.port === ports[prev]) state.config.port = ports[el.value];
+    if (key === 'port' || key === 'keepAlive' || key === 'sessionExpiry' || key === 'willQos') state.config[key] = Number(el.value) || state.config[key];
+    render();
   });
   document.addEventListener('input', function (e) {
-    if (e.target.hasAttribute('data-search')) { state.search = e.target.value; render(); e.target.focus(); e.target.setSelectionRange(state.search.length, state.search.length); return; }
-    if (e.target.getAttribute('data-pub') === 'payload') state.pub.payload = e.target.value;
-    if (e.target.getAttribute('data-draft') === 'topic') state.draftSub.topic = e.target.value;
-    if (e.target.hasAttribute('data-draft-pub')) state.draftPub[e.target.getAttribute('data-draft-pub')] = e.target.value;
+    var el = e.target;
+    if (el.getAttribute('data-pub') === 'topic') state.pub.topic = el.value;
+    if (el.getAttribute('data-pub') === 'payload') state.pub.payload = el.value;
+    if (el.getAttribute('data-draft') === 'topic') state.draftSub.topic = el.value;
+    if (el.hasAttribute('data-draft-pub')) state.draftPub[el.getAttribute('data-draft-pub')] = el.value;
   });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && state.dialog) { state.dialog = null; render(); return; }
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); publish(state.pub.topic, state.pub.qos, state.pub.retain, state.pub.payload, true); return; }
-    if (e.key === 'F1' || e.key === 'F2' || e.key === 'F3') {
-      e.preventDefault();
-      var q = state.quick.find(function (x) { return x.key === e.key; });
-      if (q) publish(q.inherit ? state.pub.topic : q.topic, q.inherit ? state.pub.qos : q.qos, q.inherit ? state.pub.retain : q.retain, q.data, false);
-    }
-  });
-
-  window.MqttDemo = { state: state, render: render, connect: connect, disconnect: disconnect, publish: publish };
   render();
 })();
 </script>

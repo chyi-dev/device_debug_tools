@@ -1,3 +1,5 @@
+import '../../serial/model/serial_models.dart';
+
 enum MqttVersion { v311, v5 }
 
 enum MqttScheme {
@@ -82,6 +84,7 @@ class MqttSubscription {
     required this.topic,
     required this.qos,
     this.retain = false,
+    this.subscribed = true,
   });
 
   final String id;
@@ -89,11 +92,28 @@ class MqttSubscription {
   final int qos;
   final bool retain;
 
+  /// 列表里的条目是否正在向 Broker 订阅。退订只关掉这一项，不从列表删除。
+  final bool subscribed;
+
+  MqttSubscription copyWith({
+    String? topic,
+    int? qos,
+    bool? retain,
+    bool? subscribed,
+  }) => MqttSubscription(
+    id: id,
+    topic: topic ?? this.topic,
+    qos: qos ?? this.qos,
+    retain: retain ?? this.retain,
+    subscribed: subscribed ?? this.subscribed,
+  );
+
   Map<String, Object> toJson() => {
     'id': id,
     'topic': topic,
     'qos': qos,
     'retain': retain,
+    'subscribed': subscribed,
   };
 
   static MqttSubscription? fromJson(Object? raw) {
@@ -105,8 +125,9 @@ class MqttSubscription {
           ? raw['id'].toString()
           : 's${DateTime.now().microsecondsSinceEpoch}',
       topic: topic,
-      qos: _int(raw['qos'], 0),
+      qos: _int(raw['qos'], 0).clamp(0, 2),
       retain: raw['retain'] == true,
+      subscribed: raw['subscribed'] != false,
     );
   }
 }
@@ -286,6 +307,139 @@ class MqttLinkConfig {
       caFile.isNotEmpty || clientCert.isNotEmpty || clientKey.isNotEmpty;
 }
 
+enum MqttToolTab { subs, quick, history, script }
+
+/// 用「发布」按钮发出的一条记录。快捷发布不进入这里。
+class MqttHistoryEntry {
+  const MqttHistoryEntry({
+    required this.topic,
+    required this.payload,
+    required this.qos,
+    required this.retain,
+    this.time,
+  });
+
+  final String topic;
+  final String payload;
+  final int qos;
+  final bool retain;
+  final DateTime? time;
+
+  bool sameAs(MqttHistoryEntry other) =>
+      topic == other.topic &&
+      payload == other.payload &&
+      qos == other.qos &&
+      retain == other.retain;
+
+  Map<String, Object?> toJson() => {
+    'topic': topic,
+    'payload': payload,
+    'qos': qos,
+    'retain': retain,
+    'time': time?.toIso8601String(),
+  };
+
+  static MqttHistoryEntry? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final topic = raw['topic']?.toString() ?? '';
+    final payload = raw['payload']?.toString() ?? '';
+    if (topic.isEmpty || payload.isEmpty) return null;
+    final timeRaw = raw['time']?.toString();
+    return MqttHistoryEntry(
+      topic: topic,
+      payload: payload,
+      qos: _int(raw['qos'], 0).clamp(0, 2),
+      retain: raw['retain'] == true,
+      time: timeRaw == null ? null : DateTime.tryParse(timeRaw),
+    );
+  }
+}
+
+enum MqttScriptHook { onMessage, beforePublish }
+
+/// 交给 Lua 的一条 MQTT 消息。payload 是字符串。
+class MqttScriptMessage {
+  const MqttScriptMessage({
+    required this.topic,
+    required this.payload,
+    required this.qos,
+    required this.retain,
+  });
+
+  final String topic;
+  final String payload;
+  final int qos;
+  final bool retain;
+
+  MqttScriptMessage copyWith({
+    String? topic,
+    String? payload,
+    int? qos,
+    bool? retain,
+  }) => MqttScriptMessage(
+    topic: topic ?? this.topic,
+    payload: payload ?? this.payload,
+    qos: qos ?? this.qos,
+    retain: retain ?? this.retain,
+  );
+
+  String get label =>
+      '$topic · QoS $qos${retain ? ' · Retain' : ''} · $payload';
+}
+
+/// 脚本编译结果与输出次数，不持久化。
+class MqttScriptMeta {
+  const MqttScriptMeta({this.hooks = const {}, this.error, this.outputs = 0});
+
+  final Set<MqttScriptHook> hooks;
+  final String? error;
+  final int outputs;
+
+  MqttScriptMeta copyWith({int? outputs}) => MqttScriptMeta(
+    hooks: hooks,
+    error: error,
+    outputs: outputs ?? this.outputs,
+  );
+}
+
+enum MqttScriptLogKind {
+  output,
+  error,
+  changed,
+  blocked,
+  dryRun,
+  dryBlocked,
+  manualRx,
+  noRx,
+  badTx,
+  noHook,
+  tooLong,
+  lessonTry,
+}
+
+class MqttScriptLogEntry {
+  const MqttScriptLogEntry({
+    required this.time,
+    required this.name,
+    required this.kind,
+    this.text = '',
+    this.from = '',
+    this.to = '',
+  });
+
+  final DateTime time;
+  final String name;
+  final MqttScriptLogKind kind;
+  final String text;
+  final String from;
+  final String to;
+
+  bool get isError =>
+      kind == MqttScriptLogKind.error ||
+      kind == MqttScriptLogKind.tooLong ||
+      kind == MqttScriptLogKind.badTx;
+}
+
 class MqttWorkspace {
   const MqttWorkspace({
     required this.host,
@@ -317,6 +471,11 @@ class MqttWorkspace {
     required this.subs,
     required this.pubTopics,
     required this.quick,
+    required this.history,
+    required this.scripts,
+    required this.toolTab,
+    required this.selectedScriptId,
+    required this.scriptDock,
   });
 
   factory MqttWorkspace.defaults() => MqttWorkspace(
@@ -349,6 +508,11 @@ class MqttWorkspace {
     subs: const [],
     pubTopics: const [],
     quick: const [],
+    history: const [],
+    scripts: const [],
+    toolTab: MqttToolTab.subs,
+    selectedScriptId: null,
+    scriptDock: false,
   );
 
   final String host;
@@ -380,6 +544,11 @@ class MqttWorkspace {
   final List<MqttSubscription> subs;
   final List<MqttPublishTopic> pubTopics;
   final List<MqttQuickCommand> quick;
+  final List<MqttHistoryEntry> history;
+  final List<LuaScript> scripts;
+  final MqttToolTab toolTab;
+  final String? selectedScriptId;
+  final bool scriptDock;
 
   MqttLinkConfig get link => MqttLinkConfig(
     host: host,
@@ -433,6 +602,11 @@ class MqttWorkspace {
     'subs': subs.map((item) => item.toJson()).toList(),
     'pubTopics': pubTopics.map((item) => item.toJson()).toList(),
     'quick': quick.map((item) => item.toJson()).toList(),
+    'history': history.map((item) => item.toJson()).toList(),
+    'scripts': scripts.map((item) => item.toJson()).toList(),
+    'toolTab': toolTab.name,
+    'selectedScriptId': ?selectedScriptId,
+    'scriptDock': scriptDock,
   };
 
   static MqttWorkspace fromJson(Object raw) {
@@ -440,6 +614,8 @@ class MqttWorkspace {
     final subs = <MqttSubscription>[];
     final pubs = <MqttPublishTopic>[];
     final quick = <MqttQuickCommand>[];
+    final history = <MqttHistoryEntry>[];
+    final scripts = <LuaScript>[];
     final subsRaw = map['subs'];
     if (subsRaw is List) {
       for (final item in subsRaw) {
@@ -461,10 +637,29 @@ class MqttWorkspace {
         if (command != null) quick.add(command);
       }
     }
+    final historyRaw = map['history'];
+    if (historyRaw is List) {
+      for (final item in historyRaw) {
+        final entry = MqttHistoryEntry.fromJson(item);
+        if (entry != null) history.add(entry);
+      }
+    }
+    final scriptsRaw = map['scripts'];
+    if (scriptsRaw is List) {
+      for (final item in scriptsRaw) {
+        final script = LuaScript.fromJson(item);
+        if (script != null) scripts.add(script);
+      }
+    }
+    final selected = map['selectedScriptId']?.toString();
+    final selectedId = scripts.any((item) => item.id == selected)
+        ? selected
+        : null;
     return MqttWorkspace(
       host: map['host']?.toString() ?? '127.0.0.1',
       port: _int(map['port'], 1883),
-      version: MqttVersion.values.asNameMap()[map['version']?.toString()] ??
+      version:
+          MqttVersion.values.asNameMap()[map['version']?.toString()] ??
           MqttVersion.v5,
       clientId: map['clientId']?.toString() ?? 'ddt-desktop-01',
       username: map['username']?.toString() ?? '',
@@ -492,6 +687,13 @@ class MqttWorkspace {
       subs: subs,
       pubTopics: pubs,
       quick: quick,
+      history: history,
+      scripts: scripts,
+      toolTab:
+          MqttToolTab.values.asNameMap()[map['toolTab']?.toString()] ??
+          MqttToolTab.subs,
+      selectedScriptId: selectedId,
+      scriptDock: map['scriptDock'] == true && selectedId != null,
     );
   }
 }

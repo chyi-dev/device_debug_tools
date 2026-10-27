@@ -83,6 +83,124 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     expect(gateway.subscribed, ['device/+/telemetry', 'device/status']);
   });
+
+  test('退订只切换状态，重连不恢复已退订', () async {
+    await cubit.toggleConnect();
+    cubit.patch(draftSubTopic: 'device/status', draftSubQos: 1);
+    await cubit.subscribe();
+    final id = cubit.state.subs.single.id;
+    await cubit.toggleSubscription(id);
+    expect(cubit.state.subs, hasLength(1));
+    expect(cubit.state.subs.single.subscribed, isFalse);
+    expect(gateway.unsubscribed, ['device/status']);
+    gateway.subscribed.clear();
+    gateway.emitConnection(false);
+    await Future<void>.delayed(Duration.zero);
+    gateway.emitConnection(true);
+    await Future<void>.delayed(Duration.zero);
+    expect(gateway.subscribed, isEmpty);
+    await cubit.toggleSubscription(id);
+    expect(cubit.state.subs.single.subscribed, isTrue);
+    expect(gateway.subscribed, ['device/status']);
+    await cubit.deleteSubscription(id);
+    expect(cubit.state.subs, isEmpty);
+    expect(gateway.unsubscribed, ['device/status', 'device/status']);
+  });
+
+  test('旧工作区没有脚本时读成空列表', () {
+    final workspace = MqttWorkspace.fromJson({'tls': true});
+    expect(workspace.scheme, MqttScheme.mqtts);
+    expect(workspace.scripts, isEmpty);
+    expect(workspace.history, isEmpty);
+    expect(workspace.toolTab, MqttToolTab.subs);
+  });
+
+  test('before_publish 返回 nil 时不发布', () async {
+    await cubit.toggleConnect();
+    cubit.newScript();
+    final id = cubit.state.scripts.single.id;
+    cubit.setScriptCode(
+      id,
+      'function before_publish(msg)\n  return nil\nend\n',
+    );
+    cubit.toggleScript(id);
+    cubit.patch(pubTopic: 'a/b', payload: 'hi');
+    await cubit.publish();
+    expect(gateway.published, isEmpty);
+    expect(
+      cubit.state.lines.any(
+        (line) => line.dir == MqttDir.sys && line.payload.contains('拦截'),
+      ),
+      isTrue,
+    );
+    expect(cubit.state.history, isEmpty);
+  });
+
+  test('before_publish 改写 payload 后再发布', () async {
+    await cubit.toggleConnect();
+    cubit.newScript();
+    final id = cubit.state.scripts.single.id;
+    cubit.setScriptCode(
+      id,
+      'function before_publish(msg)\n'
+      '  msg.payload = "next"\n'
+      '  return msg\n'
+      'end\n',
+    );
+    cubit.toggleScript(id);
+    cubit.patch(pubTopic: 'a/b', payload: 'hi');
+    await cubit.publish();
+    expect(gateway.published, ['a/b']);
+    expect(gateway.payloads, ['next']);
+    expect(cubit.state.history.single.payload, 'next');
+  });
+
+  test('只有发布按钮记入历史，填入写回发布框', () async {
+    await cubit.toggleConnect();
+    cubit.patch(pubTopic: 'a/b', payload: 'hi', pubQos: 1, pubRetain: true);
+    await cubit.publish();
+    await cubit.publish();
+    expect(cubit.state.history, hasLength(1));
+    cubit.saveQuick(const MqttQuickCommand(id: 'q1', name: '灯', data: 'on'));
+    await cubit.publishQuick('q1');
+    expect(cubit.state.history, hasLength(1));
+    expect(gateway.payloads, ['hi', 'hi', 'on']);
+    cubit.patch(pubTopic: 'x', payload: 'y', pubQos: 0, pubRetain: false);
+    cubit.fillHistory(0);
+    expect(cubit.state.pubTopic, 'a/b');
+    expect(cubit.state.payload, 'hi');
+    expect(cubit.state.pubQos, 1);
+    expect(cubit.state.pubRetain, isTrue);
+    await cubit.resendHistory(0);
+    expect(gateway.payloads.where((item) => item == 'hi'), hasLength(3));
+    final restored = MqttWorkspace.fromJson(cubit.state.toWorkspace().toJson());
+    expect(restored.history.single.topic, 'a/b');
+    cubit.removeHistory(0);
+    expect(cubit.state.history, isEmpty);
+  });
+
+  test('on_message 把主题记进运行日志', () async {
+    cubit.newScript();
+    final id = cubit.state.scripts.single.id;
+    cubit.setScriptCode(
+      id,
+      'function on_message(msg)\n  log(msg.topic)\nend\n',
+    );
+    cubit.toggleScript(id);
+    gateway.emitMessage(
+      const MqttIncoming(
+        topic: 'device/status',
+        payload: 'online',
+        qos: 1,
+        retain: false,
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(
+      cubit.state.scriptLog.map((entry) => entry.text),
+      contains('device/status'),
+    );
+  });
 }
 
 class _FakeGateway implements MqttGateway {
@@ -90,7 +208,9 @@ class _FakeGateway implements MqttGateway {
   final _connections = StreamController<bool>.broadcast();
   final _errors = StreamController<String>.broadcast();
   final published = <String>[];
+  final payloads = <String>[];
   final subscribed = <String>[];
+  final unsubscribed = <String>[];
   var _connected = false;
 
   @override
@@ -128,7 +248,9 @@ class _FakeGateway implements MqttGateway {
   }
 
   @override
-  Future<void> unsubscribe(String topic) async {}
+  Future<void> unsubscribe(String topic) async {
+    unsubscribed.add(topic);
+  }
 
   @override
   Future<void> publish({
@@ -138,7 +260,10 @@ class _FakeGateway implements MqttGateway {
     required bool retain,
   }) async {
     published.add(topic);
+    payloads.add(payload);
   }
+
+  void emitMessage(MqttIncoming message) => _messages.add(message);
 
   @override
   Future<void> dispose() async {

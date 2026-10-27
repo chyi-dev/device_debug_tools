@@ -753,7 +753,7 @@ class SerialFoldPane extends StatelessWidget {
 class SerialItemRow extends StatelessWidget {
   const SerialItemRow({
     super.key,
-    required this.leading,
+    this.leading,
     required this.title,
     required this.detail,
     this.trailing = const [],
@@ -763,7 +763,7 @@ class SerialItemRow extends StatelessWidget {
     this.color,
   });
 
-  final Widget leading;
+  final Widget? leading;
   final String title;
   final String detail;
   final List<Widget> trailing;
@@ -791,8 +791,10 @@ class SerialItemRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            leading,
-            const SizedBox(width: AppSpacing.sm + 2),
+            if (leading != null) ...[
+              leading!,
+              const SizedBox(width: AppSpacing.sm + 2),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -886,14 +888,23 @@ class SerialSectionLabel extends StatelessWidget {
 }
 
 class SerialToolBar extends StatelessWidget {
-  const SerialToolBar({super.key, required this.note, this.actions = const []});
+  const SerialToolBar({
+    super.key,
+    required this.note,
+    this.actions = const [],
+    this.leading,
+  });
 
   final String note;
   final List<Widget> actions;
 
+  /// 工具条左侧的分段控件，例如脚本页的「我的 / 教程」。
+  final Widget? leading;
+
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
+    final leading = this.leading;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
@@ -901,6 +912,10 @@ class SerialToolBar extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (leading != null) ...[
+            leading,
+            const SizedBox(width: AppSpacing.sm),
+          ],
           Expanded(
             child: Text(
               note,

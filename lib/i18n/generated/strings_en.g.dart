@@ -227,7 +227,10 @@ class _Translations$mqtt$en extends Translations$mqtt$zh {
 	@override late final _Translations$mqtt$pubs$en pubs = _Translations$mqtt$pubs$en._(_root);
 	@override late final _Translations$mqtt$log$en log = _Translations$mqtt$log$en._(_root);
 	@override late final _Translations$mqtt$compose$en compose = _Translations$mqtt$compose$en._(_root);
+	@override late final _Translations$mqtt$tab$en tab = _Translations$mqtt$tab$en._(_root);
 	@override late final _Translations$mqtt$quick$en quick = _Translations$mqtt$quick$en._(_root);
+	@override late final _Translations$mqtt$history$en history = _Translations$mqtt$history$en._(_root);
+	@override late final _Translations$mqtt$script$en script = _Translations$mqtt$script$en._(_root);
 	@override late final _Translations$mqtt$status$en status = _Translations$mqtt$status$en._(_root);
 	@override String get compact => 'Compact';
 	@override String get toolsPanel => 'Tools';
@@ -993,10 +996,16 @@ class _Translations$mqtt$subs$en extends Translations$mqtt$subs$zh {
 
 	// Translations
 	@override String get title => 'Subscriptions';
+	@override String get note => 'Use the button on the right to subscribe or unsubscribe. Right-click to edit or delete.';
 	@override String get topic => 'Topic, + or # allowed';
+	@override String get qos => 'QoS';
+	@override String get dialogTitle => 'Subscribe';
+	@override String get editTitle => 'Edit subscription';
+	@override String get needTopic => 'Enter a topic';
 	@override String get subscribe => 'Subscribe';
 	@override String get unsubscribe => 'Unsubscribe';
-	@override String get empty => 'No subscriptions yet';
+	@override String delete({required Object topic}) => 'Delete "${topic}"? It will be removed from the list.';
+	@override String get empty => 'No subscriptions yet. Use Add to create one.';
 }
 
 // Path: mqtt.pubs
@@ -1012,8 +1021,12 @@ class _Translations$mqtt$pubs$en extends Translations$mqtt$pubs$zh {
 	@override String get add => 'Add';
 	@override String get fill => 'Fill';
 	@override String get delete => 'Delete';
+	@override String get newTitle => 'Add publish topic';
+	@override String get needName => 'Enter a name';
+	@override String get needTopic => 'Enter a topic';
+	@override String get empty => 'No publish topics yet. Add one, then Fill writes it into the compose box.';
 	@override String get deleteTitle => 'Delete publish topic';
-	@override String deleteBody({required Object name, required Object topic}) => 'Delete "${name}" ${topic}? The topic already in the send box will not change.';
+	@override String deleteBody({required Object name, required Object topic}) => 'Delete "${name}" ${topic}? The topic already in the compose box will not change.';
 }
 
 // Path: mqtt.log
@@ -1045,6 +1058,19 @@ class _Translations$mqtt$compose$en extends Translations$mqtt$compose$zh {
 	@override String get ctrlEnter => 'Ctrl+Enter';
 }
 
+// Path: mqtt.tab
+class _Translations$mqtt$tab$en extends Translations$mqtt$tab$zh {
+	_Translations$mqtt$tab$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get subs => 'Subscribe';
+	@override String get quick => 'Quick publish';
+	@override String get history => 'History';
+	@override String get script => 'Script';
+}
+
 // Path: mqtt.quick
 class _Translations$mqtt$quick$en extends Translations$mqtt$quick$zh {
 	_Translations$mqtt$quick$en._(TranslationsEn root) : this._root = root, super.internal(root);
@@ -1052,12 +1078,83 @@ class _Translations$mqtt$quick$en extends Translations$mqtt$quick$zh {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
-	@override String get bar => 'Topic / QoS / Retain can be overridden';
-	@override String get kOverride => 'Override target';
+	@override String get bar => 'Use the compose box, or override it';
 	@override String get publish => 'Publish';
-	@override String get inherit => 'Inherit the connection default topic';
+	@override String get inherit => 'Use the compose Topic, QoS, and Retain';
 	@override String inheritLabel({required Object topic, required Object qos}) => 'Inherit · ${topic} · QoS ${qos}';
-	@override String get dialogTitle => 'Override publish target';
+	@override String get newTitle => 'New quick publish';
+	@override String get editTitle => 'Edit quick publish';
+	@override String get name => 'Name';
+	@override String get payload => 'Payload';
+	@override String get key => 'Shortcut';
+	@override String get noKey => 'None';
+	@override String get qosRetain => 'QoS / Retain';
+	@override String get needName => 'Enter a name';
+	@override String get needPayload => 'Payload is empty';
+	@override String get needTopic => 'Enter a topic when not using the compose box';
+	@override String get empty => 'No quick publishes yet. Use Add to save one.';
+	@override String delete({required Object name}) => 'Delete quick publish "${name}"? This cannot be undone.';
+}
+
+// Path: mqtt.history
+class _Translations$mqtt$history$en extends Translations$mqtt$history$zh {
+	_Translations$mqtt$history$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get note => 'Only messages sent with the Publish button are kept. Click the time to send again, or Fill to put it back in the compose box.';
+	@override String get clear => 'Clear';
+	@override String get fill => 'Fill';
+	@override String get empty => 'No publish history yet.';
+	@override String deleteAll({required Object count}) => 'Clear all ${count} history items? This cannot be undone.';
+}
+
+// Path: mqtt.script
+class _Translations$mqtt$script$en extends Translations$mqtt$script$zh {
+	_Translations$mqtt$script$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String note({required Object enabled, required Object total}) => '${enabled} / ${total} enabled';
+	@override String get add => 'New';
+	@override String get waiting => 'Waiting';
+	@override String get off => 'Off';
+	@override String outputs({required Object count}) => '${count} outputs';
+	@override String get broken => 'Error';
+	@override String get noHook => 'No hook';
+	@override String get hookMessage => 'on_message';
+	@override String get hookPublish => 'before_publish';
+	@override String get explain => 'Lua. on_message runs after a message is logged. before_publish runs for the compose box and quick publish; return the message to send, or nil to drop it.\nSelect a row to open the editor between the log and the compose box. The switch only controls automatic runs.';
+	@override String mine({required Object count}) => 'My scripts ${count}';
+	@override String get tutorial => 'Lessons';
+	@override String get lessonNew => 'New script from this lesson';
+	@override String get lessonTry => 'Try sample';
+	@override String get tutorialNote => 'Infinite loops are stopped, and os.execute is removed. A sample run only writes the script log.';
+	@override String tried({required Object hook, required Object sample}) => 'Sample · ${hook} ← ${sample}';
+	@override late final _Translations$mqtt$script$lessons$en lessons = _Translations$mqtt$script$lessons$en._(_root);
+	@override String get empty => 'No scripts yet. Press New to write one.';
+	@override String get autoOn => 'Running automatically';
+	@override String get autoOff => 'Off, manual run only';
+	@override String get editorHint => 'Lua · saves as you type · Tab indents two spaces';
+	@override String get run => 'Run';
+	@override String get fold => 'Hide';
+	@override String get rename => 'Rename';
+	@override String get renameTitle => 'Rename script';
+	@override String delete({required Object name}) => 'Delete "${name}"?';
+	@override String get logTitle => 'Run log';
+	@override String get clear => 'Clear';
+	@override String get logEmpty => 'No output yet. Enabled scripts write here when a message arrives or a publish is attempted.';
+	@override String changed({required Object from, required Object to}) => '${from} → ${to}';
+	@override String blocked({required Object from}) => '${from} → nil, dropped';
+	@override String dryRun({required Object from, required Object to}) => 'Trial ${from} → ${to} (not published)';
+	@override String dryBlocked({required Object from}) => 'Trial ${from} → nil, this publish would be dropped';
+	@override String manualRx({required Object label}) => 'Manual · last message ${label}';
+	@override String get noRx => 'Manual · no message received yet';
+	@override String get badTx => 'Compose topic or payload is empty, cannot trial before_publish';
+	@override String get noHookLog => 'No on_message or before_publish';
+	@override String get tooLong => 'Instruction limit exceeded, stopped';
 }
 
 // Path: mqtt.status
@@ -1094,7 +1191,7 @@ class _Translations$mqtt$notice$en extends Translations$mqtt$notice$zh {
 	@override String get needName => 'Enter a name and topic';
 	@override String get logSaved => 'Message log saved';
 	@override String get cleared => 'Log cleared';
-	@override String get quickSaved => 'Quick command saved';
+	@override String get quickSaved => 'Quick publish saved';
 	@override String get deleted => 'Deleted';
 	@override String get portInvalid => 'Port must be 1–65535';
 	@override String get keepAliveInvalid => 'Keep Alive must be a positive integer';
@@ -1129,6 +1226,18 @@ class _Translations$serial$reply$lessons$en extends Translations$serial$reply$le
 	@override late final _Translations$serial$reply$lessons$reword$en reword = _Translations$serial$reply$lessons$reword$en._(_root);
 	@override late final _Translations$serial$reply$lessons$groups$en groups = _Translations$serial$reply$lessons$groups$en._(_root);
 	@override late final _Translations$serial$reply$lessons$reascii$en reascii = _Translations$serial$reply$lessons$reascii$en._(_root);
+}
+
+// Path: mqtt.script.lessons
+class _Translations$mqtt$script$lessons$en extends Translations$mqtt$script$lessons$zh {
+	_Translations$mqtt$script$lessons$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$mqtt$script$lessons$hooks$en hooks = _Translations$mqtt$script$lessons$hooks$en._(_root);
+	@override late final _Translations$mqtt$script$lessons$print$en print = _Translations$mqtt$script$lessons$print$en._(_root);
+	@override late final _Translations$mqtt$script$lessons$rewrite$en rewrite = _Translations$mqtt$script$lessons$rewrite$en._(_root);
 }
 
 // Path: serial.script.lessons.hooks
@@ -1299,6 +1408,39 @@ class _Translations$serial$reply$lessons$reascii$en extends Translations$serial$
 	@override String get name => 'After the comma';
 	@override String get text => 'An ASCII regex walks the received characters, not the spaced hex text. Characters caught by parentheses are filled into the reply as bytes. Ignore case is available only for ASCII. Anchors are still ^ and \$, written by you.';
 	@override String get rxNote => 'The characters are OK,42. (.+) puts both characters into the same \$1.';
+}
+
+// Path: mqtt.script.lessons.hooks
+class _Translations$mqtt$script$lessons$hooks$en extends Translations$mqtt$script$lessons$hooks$zh {
+	_Translations$mqtt$script$lessons$hooks$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'When a script runs';
+	@override String get text => 'on_message(msg) runs after a message is logged. before_publish(msg) runs before the compose box and quick publish send. msg has topic, payload, qos, and retain.';
+}
+
+// Path: mqtt.script.lessons.print
+class _Translations$mqtt$script$lessons$print$en extends Translations$mqtt$script$lessons$print$zh {
+	_Translations$mqtt$script$lessons$print$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Print the topic and payload';
+	@override String get text => 'log writes to the run log. print is the same function.';
+}
+
+// Path: mqtt.script.lessons.rewrite
+class _Translations$mqtt$script$lessons$rewrite$en extends Translations$mqtt$script$lessons$rewrite$zh {
+	_Translations$mqtt$script$lessons$rewrite$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Rewrite or drop a publish';
+	@override String get text => 'Return the edited msg to publish it. Return nil when payload is drop. Other payloads are prefixed with cmd:.';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -1885,18 +2027,28 @@ extension on TranslationsEn {
 			'mqtt.willQos' => 'Will QoS',
 			'mqtt.willRetain' => 'Will retain',
 			'mqtt.subs.title' => 'Subscriptions',
+			'mqtt.subs.note' => 'Use the button on the right to subscribe or unsubscribe. Right-click to edit or delete.',
 			'mqtt.subs.topic' => 'Topic, + or # allowed',
+			'mqtt.subs.qos' => 'QoS',
+			'mqtt.subs.dialogTitle' => 'Subscribe',
+			'mqtt.subs.editTitle' => 'Edit subscription',
+			'mqtt.subs.needTopic' => 'Enter a topic',
 			'mqtt.subs.subscribe' => 'Subscribe',
 			'mqtt.subs.unsubscribe' => 'Unsubscribe',
-			'mqtt.subs.empty' => 'No subscriptions yet',
+			'mqtt.subs.delete' => ({required Object topic}) => 'Delete "${topic}"? It will be removed from the list.',
+			'mqtt.subs.empty' => 'No subscriptions yet. Use Add to create one.',
 			'mqtt.pubs.title' => 'Publish topics',
 			'mqtt.pubs.name' => 'Name',
 			'mqtt.pubs.topic' => 'Topic',
 			'mqtt.pubs.add' => 'Add',
 			'mqtt.pubs.fill' => 'Fill',
 			'mqtt.pubs.delete' => 'Delete',
+			'mqtt.pubs.newTitle' => 'Add publish topic',
+			'mqtt.pubs.needName' => 'Enter a name',
+			'mqtt.pubs.needTopic' => 'Enter a topic',
+			'mqtt.pubs.empty' => 'No publish topics yet. Add one, then Fill writes it into the compose box.',
 			'mqtt.pubs.deleteTitle' => 'Delete publish topic',
-			'mqtt.pubs.deleteBody' => ({required Object name, required Object topic}) => 'Delete "${name}" ${topic}? The topic already in the send box will not change.',
+			'mqtt.pubs.deleteBody' => ({required Object name, required Object topic}) => 'Delete "${name}" ${topic}? The topic already in the compose box will not change.',
 			'mqtt.log.title' => 'Message log',
 			'mqtt.log.search' => 'Search topic / payload',
 			'mqtt.log.records' => ({required Object count}) => '${count} items',
@@ -1908,12 +2060,74 @@ extension on TranslationsEn {
 			'mqtt.compose.retain' => 'Retain',
 			'mqtt.compose.bytes' => ({required Object count}) => 'Sending ${count} bytes',
 			'mqtt.compose.ctrlEnter' => 'Ctrl+Enter',
-			'mqtt.quick.bar' => 'Topic / QoS / Retain can be overridden',
-			'mqtt.quick.kOverride' => 'Override target',
+			'mqtt.tab.subs' => 'Subscribe',
+			'mqtt.tab.quick' => 'Quick publish',
+			'mqtt.tab.history' => 'History',
+			'mqtt.tab.script' => 'Script',
+			'mqtt.quick.bar' => 'Use the compose box, or override it',
 			'mqtt.quick.publish' => 'Publish',
-			'mqtt.quick.inherit' => 'Inherit the connection default topic',
+			'mqtt.quick.inherit' => 'Use the compose Topic, QoS, and Retain',
 			'mqtt.quick.inheritLabel' => ({required Object topic, required Object qos}) => 'Inherit · ${topic} · QoS ${qos}',
-			'mqtt.quick.dialogTitle' => 'Override publish target',
+			'mqtt.quick.newTitle' => 'New quick publish',
+			'mqtt.quick.editTitle' => 'Edit quick publish',
+			'mqtt.quick.name' => 'Name',
+			'mqtt.quick.payload' => 'Payload',
+			'mqtt.quick.key' => 'Shortcut',
+			'mqtt.quick.noKey' => 'None',
+			'mqtt.quick.qosRetain' => 'QoS / Retain',
+			'mqtt.quick.needName' => 'Enter a name',
+			'mqtt.quick.needPayload' => 'Payload is empty',
+			'mqtt.quick.needTopic' => 'Enter a topic when not using the compose box',
+			'mqtt.quick.empty' => 'No quick publishes yet. Use Add to save one.',
+			'mqtt.quick.delete' => ({required Object name}) => 'Delete quick publish "${name}"? This cannot be undone.',
+			'mqtt.history.note' => 'Only messages sent with the Publish button are kept. Click the time to send again, or Fill to put it back in the compose box.',
+			'mqtt.history.clear' => 'Clear',
+			'mqtt.history.fill' => 'Fill',
+			'mqtt.history.empty' => 'No publish history yet.',
+			'mqtt.history.deleteAll' => ({required Object count}) => 'Clear all ${count} history items? This cannot be undone.',
+			'mqtt.script.note' => ({required Object enabled, required Object total}) => '${enabled} / ${total} enabled',
+			'mqtt.script.add' => 'New',
+			'mqtt.script.waiting' => 'Waiting',
+			'mqtt.script.off' => 'Off',
+			'mqtt.script.outputs' => ({required Object count}) => '${count} outputs',
+			'mqtt.script.broken' => 'Error',
+			'mqtt.script.noHook' => 'No hook',
+			'mqtt.script.hookMessage' => 'on_message',
+			'mqtt.script.hookPublish' => 'before_publish',
+			'mqtt.script.explain' => 'Lua. on_message runs after a message is logged. before_publish runs for the compose box and quick publish; return the message to send, or nil to drop it.\nSelect a row to open the editor between the log and the compose box. The switch only controls automatic runs.',
+			'mqtt.script.mine' => ({required Object count}) => 'My scripts ${count}',
+			'mqtt.script.tutorial' => 'Lessons',
+			'mqtt.script.lessonNew' => 'New script from this lesson',
+			'mqtt.script.lessonTry' => 'Try sample',
+			'mqtt.script.tutorialNote' => 'Infinite loops are stopped, and os.execute is removed. A sample run only writes the script log.',
+			'mqtt.script.tried' => ({required Object hook, required Object sample}) => 'Sample · ${hook} ← ${sample}',
+			'mqtt.script.lessons.hooks.title' => 'When a script runs',
+			'mqtt.script.lessons.hooks.text' => 'on_message(msg) runs after a message is logged. before_publish(msg) runs before the compose box and quick publish send. msg has topic, payload, qos, and retain.',
+			'mqtt.script.lessons.print.title' => 'Print the topic and payload',
+			'mqtt.script.lessons.print.text' => 'log writes to the run log. print is the same function.',
+			'mqtt.script.lessons.rewrite.title' => 'Rewrite or drop a publish',
+			'mqtt.script.lessons.rewrite.text' => 'Return the edited msg to publish it. Return nil when payload is drop. Other payloads are prefixed with cmd:.',
+			'mqtt.script.empty' => 'No scripts yet. Press New to write one.',
+			'mqtt.script.autoOn' => 'Running automatically',
+			'mqtt.script.autoOff' => 'Off, manual run only',
+			'mqtt.script.editorHint' => 'Lua · saves as you type · Tab indents two spaces',
+			'mqtt.script.run' => 'Run',
+			'mqtt.script.fold' => 'Hide',
+			'mqtt.script.rename' => 'Rename',
+			'mqtt.script.renameTitle' => 'Rename script',
+			'mqtt.script.delete' => ({required Object name}) => 'Delete "${name}"?',
+			'mqtt.script.logTitle' => 'Run log',
+			'mqtt.script.clear' => 'Clear',
+			'mqtt.script.logEmpty' => 'No output yet. Enabled scripts write here when a message arrives or a publish is attempted.',
+			'mqtt.script.changed' => ({required Object from, required Object to}) => '${from} → ${to}',
+			'mqtt.script.blocked' => ({required Object from}) => '${from} → nil, dropped',
+			'mqtt.script.dryRun' => ({required Object from, required Object to}) => 'Trial ${from} → ${to} (not published)',
+			'mqtt.script.dryBlocked' => ({required Object from}) => 'Trial ${from} → nil, this publish would be dropped',
+			'mqtt.script.manualRx' => ({required Object label}) => 'Manual · last message ${label}',
+			'mqtt.script.noRx' => 'Manual · no message received yet',
+			'mqtt.script.badTx' => 'Compose topic or payload is empty, cannot trial before_publish',
+			'mqtt.script.noHookLog' => 'No on_message or before_publish',
+			'mqtt.script.tooLong' => 'Instruction limit exceeded, stopped',
 			'mqtt.status.subs' => ({required Object count}) => 'Subs ${count}',
 			'mqtt.compact' => 'Compact',
 			'mqtt.toolsPanel' => 'Tools',
@@ -1937,7 +2151,7 @@ extension on TranslationsEn {
 			'mqtt.notice.needName' => 'Enter a name and topic',
 			'mqtt.notice.logSaved' => 'Message log saved',
 			'mqtt.notice.cleared' => 'Log cleared',
-			'mqtt.notice.quickSaved' => 'Quick command saved',
+			'mqtt.notice.quickSaved' => 'Quick publish saved',
 			'mqtt.notice.deleted' => 'Deleted',
 			'mqtt.notice.portInvalid' => 'Port must be 1–65535',
 			'mqtt.notice.keepAliveInvalid' => 'Keep Alive must be a positive integer',

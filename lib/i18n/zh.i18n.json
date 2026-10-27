@@ -685,10 +685,16 @@
     "willRetain": "遗嘱 Retain",
     "subs": {
       "title": "订阅列表",
+      "note": "右侧切换订阅和退订。右键编辑或删除。",
       "topic": "Topic，可用 + 或 #",
+      "qos": "QoS",
+      "dialogTitle": "订阅",
+      "editTitle": "编辑订阅",
+      "needTopic": "请填写 Topic",
       "subscribe": "订阅",
       "unsubscribe": "退订",
-      "empty": "尚未订阅"
+      "delete": "删除「$topic」？这条会从列表移除。",
+      "empty": "还没有订阅。点「新增」添加一条。"
     },
     "pubs": {
       "title": "发布主题",
@@ -697,8 +703,12 @@
       "add": "添加",
       "fill": "填入",
       "delete": "删除",
+      "newTitle": "添加发布主题",
+      "needName": "请填写名称",
+      "needTopic": "请填写 Topic",
+      "empty": "还没有发布主题。点「新增」保存一条，再点「填入」写到发布框。",
       "deleteTitle": "删除发布主题",
-      "deleteBody": "删除「$name」$topic？发送区里已填的 Topic 不会改。"
+      "deleteBody": "删除「$name」$topic？发布框里已填的 Topic 不会改。"
     },
     "log": {
       "title": "报文日志",
@@ -715,13 +725,89 @@
       "bytes": "实发 $count 字节",
       "ctrlEnter": "Ctrl+Enter"
     },
+    "tab": {
+      "subs": "订阅",
+      "quick": "快捷发布",
+      "history": "历史发送",
+      "script": "脚本"
+    },
     "quick": {
-      "bar": "可覆盖 Topic / QoS / Retain",
-      "override": "覆盖目标",
+      "bar": "可沿用或覆盖发布框",
       "publish": "发布",
-      "inherit": "继承连接默认 Topic",
+      "inherit": "沿用发布框的 Topic、QoS、Retain",
       "inheritLabel": "继承 · $topic · QoS $qos",
-      "dialogTitle": "覆盖发布目标"
+      "newTitle": "新增快捷发布",
+      "editTitle": "编辑快捷发布",
+      "name": "名称",
+      "payload": "Payload",
+      "key": "快捷键",
+      "noKey": "不绑定",
+      "qosRetain": "QoS / Retain",
+      "needName": "请填写名称",
+      "needPayload": "Payload 为空",
+      "needTopic": "不沿用时必须填写 Topic",
+      "empty": "还没有快捷发布。点「新增」保存一条。",
+      "delete": "删除快捷发布「$name」后无法恢复。"
+    },
+    "history": {
+      "note": "只记录用「发布」按钮发出的报文。点时间重发，点「填入」放回发布框。",
+      "clear": "清空",
+      "fill": "填入",
+      "empty": "还没有发布记录。",
+      "deleteAll": "清空 $count 条历史发布？清空后无法恢复。"
+    },
+    "script": {
+      "note": "已启用 $enabled / $total",
+      "add": "新建",
+      "waiting": "等待触发",
+      "off": "已停用",
+      "outputs": "已输出 $count 次",
+      "broken": "有错误",
+      "noHook": "无钩子",
+      "hookMessage": "on_message",
+      "hookPublish": "before_publish",
+      "explain": "Lua 脚本。on_message 在报文写入日志后运行；before_publish 经过发布框和快捷发布，返回改写后的消息再发出，返回 nil 则不发。\n点一行在日志和发布框之间打开编辑器。开关只控制自动运行，「运行」用最近一封和发布框试算，不会发布。",
+      "mine": "我的脚本 $count",
+      "tutorial": "教程",
+      "lessonNew": "用这课新建脚本",
+      "lessonTry": "样例试跑",
+      "tutorialNote": "死循环会被中止，os.execute 等危险函数已移除。样例试跑只写运行日志，不会发布。",
+      "tried": "样例试跑 · $hook ← $sample",
+      "lessons": {
+        "hooks": {
+          "title": "脚本什么时候运行",
+          "text": "on_message(msg) 在收到报文并写入日志后调用。before_publish(msg) 在发布框和快捷发布发出前调用，返回的表才会发出。msg 含 topic、payload、qos、retain。开关只控制自动运行。"
+        },
+        "print": {
+          "title": "把主题和内容打出来",
+          "text": "log 把内容写到运行日志，多个参数用空格连起来。print 和 log 是同一个函数。"
+        },
+        "rewrite": {
+          "title": "发布前改写或拦截",
+          "text": "before_publish 返回改过的 msg 就会按新内容发布。payload 等于 drop 时返回 nil，这一次不发。其他内容在 payload 前加上 cmd:。"
+        }
+      },
+      "empty": "还没有脚本。点「新建」写一个。",
+      "autoOn": "自动运行中",
+      "autoOff": "已停用，仅手动运行",
+      "editorHint": "Lua · 输入即保存 · Tab 缩进两格",
+      "run": "运行",
+      "fold": "收起",
+      "rename": "重命名",
+      "renameTitle": "重命名脚本",
+      "delete": "删除「$name」？",
+      "logTitle": "运行日志",
+      "clear": "清空",
+      "logEmpty": "还没有输出。启用脚本后，收到或发布时会写在这里。",
+      "changed": "$from → $to",
+      "blocked": "$from → nil，已拦截，未发布",
+      "dryRun": "试算 $from → $to（未发布）",
+      "dryBlocked": "试算 $from → nil，这一次会被拦截（未发布）",
+      "manualRx": "手动运行 · 最近一封 $label",
+      "noRx": "手动运行 · 还没有收到报文",
+      "badTx": "发布框的 Topic 或 Payload 为空，无法试算 before_publish",
+      "noHookLog": "没有定义 on_message 或 before_publish",
+      "tooLong": "执行超过指令上限，可能是死循环，已中止"
     },
     "status": {
       "subs": "订阅 $count"
@@ -749,7 +835,7 @@
       "needName": "请填写名称和 Topic",
       "logSaved": "报文日志已保存",
       "cleared": "日志已清除",
-      "quickSaved": "快捷指令已保存",
+      "quickSaved": "快捷发布已保存",
       "deleted": "已删除",
       "portInvalid": "端口需为 1–65535",
       "keepAliveInvalid": "Keep Alive 需为正整数"

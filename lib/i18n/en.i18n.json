@@ -685,10 +685,16 @@
     "willRetain": "Will retain",
     "subs": {
       "title": "Subscriptions",
+      "note": "Use the button on the right to subscribe or unsubscribe. Right-click to edit or delete.",
       "topic": "Topic, + or # allowed",
+      "qos": "QoS",
+      "dialogTitle": "Subscribe",
+      "editTitle": "Edit subscription",
+      "needTopic": "Enter a topic",
       "subscribe": "Subscribe",
       "unsubscribe": "Unsubscribe",
-      "empty": "No subscriptions yet"
+      "delete": "Delete \"$topic\"? It will be removed from the list.",
+      "empty": "No subscriptions yet. Use Add to create one."
     },
     "pubs": {
       "title": "Publish topics",
@@ -697,8 +703,12 @@
       "add": "Add",
       "fill": "Fill",
       "delete": "Delete",
+      "newTitle": "Add publish topic",
+      "needName": "Enter a name",
+      "needTopic": "Enter a topic",
+      "empty": "No publish topics yet. Add one, then Fill writes it into the compose box.",
       "deleteTitle": "Delete publish topic",
-      "deleteBody": "Delete \"$name\" $topic? The topic already in the send box will not change."
+      "deleteBody": "Delete \"$name\" $topic? The topic already in the compose box will not change."
     },
     "log": {
       "title": "Message log",
@@ -715,13 +725,89 @@
       "bytes": "Sending $count bytes",
       "ctrlEnter": "Ctrl+Enter"
     },
+    "tab": {
+      "subs": "Subscribe",
+      "quick": "Quick publish",
+      "history": "History",
+      "script": "Script"
+    },
     "quick": {
-      "bar": "Topic / QoS / Retain can be overridden",
-      "override": "Override target",
+      "bar": "Use the compose box, or override it",
       "publish": "Publish",
-      "inherit": "Inherit the connection default topic",
+      "inherit": "Use the compose Topic, QoS, and Retain",
       "inheritLabel": "Inherit · $topic · QoS $qos",
-      "dialogTitle": "Override publish target"
+      "newTitle": "New quick publish",
+      "editTitle": "Edit quick publish",
+      "name": "Name",
+      "payload": "Payload",
+      "key": "Shortcut",
+      "noKey": "None",
+      "qosRetain": "QoS / Retain",
+      "needName": "Enter a name",
+      "needPayload": "Payload is empty",
+      "needTopic": "Enter a topic when not using the compose box",
+      "empty": "No quick publishes yet. Use Add to save one.",
+      "delete": "Delete quick publish \"$name\"? This cannot be undone."
+    },
+    "history": {
+      "note": "Only messages sent with the Publish button are kept. Click the time to send again, or Fill to put it back in the compose box.",
+      "clear": "Clear",
+      "fill": "Fill",
+      "empty": "No publish history yet.",
+      "deleteAll": "Clear all $count history items? This cannot be undone."
+    },
+    "script": {
+      "note": "$enabled / $total enabled",
+      "add": "New",
+      "waiting": "Waiting",
+      "off": "Off",
+      "outputs": "$count outputs",
+      "broken": "Error",
+      "noHook": "No hook",
+      "hookMessage": "on_message",
+      "hookPublish": "before_publish",
+      "explain": "Lua. on_message runs after a message is logged. before_publish runs for the compose box and quick publish; return the message to send, or nil to drop it.\nSelect a row to open the editor between the log and the compose box. The switch only controls automatic runs.",
+      "mine": "My scripts $count",
+      "tutorial": "Lessons",
+      "lessonNew": "New script from this lesson",
+      "lessonTry": "Try sample",
+      "tutorialNote": "Infinite loops are stopped, and os.execute is removed. A sample run only writes the script log.",
+      "tried": "Sample · $hook ← $sample",
+      "lessons": {
+        "hooks": {
+          "title": "When a script runs",
+          "text": "on_message(msg) runs after a message is logged. before_publish(msg) runs before the compose box and quick publish send. msg has topic, payload, qos, and retain."
+        },
+        "print": {
+          "title": "Print the topic and payload",
+          "text": "log writes to the run log. print is the same function."
+        },
+        "rewrite": {
+          "title": "Rewrite or drop a publish",
+          "text": "Return the edited msg to publish it. Return nil when payload is drop. Other payloads are prefixed with cmd:."
+        }
+      },
+      "empty": "No scripts yet. Press New to write one.",
+      "autoOn": "Running automatically",
+      "autoOff": "Off, manual run only",
+      "editorHint": "Lua · saves as you type · Tab indents two spaces",
+      "run": "Run",
+      "fold": "Hide",
+      "rename": "Rename",
+      "renameTitle": "Rename script",
+      "delete": "Delete \"$name\"?",
+      "logTitle": "Run log",
+      "clear": "Clear",
+      "logEmpty": "No output yet. Enabled scripts write here when a message arrives or a publish is attempted.",
+      "changed": "$from → $to",
+      "blocked": "$from → nil, dropped",
+      "dryRun": "Trial $from → $to (not published)",
+      "dryBlocked": "Trial $from → nil, this publish would be dropped",
+      "manualRx": "Manual · last message $label",
+      "noRx": "Manual · no message received yet",
+      "badTx": "Compose topic or payload is empty, cannot trial before_publish",
+      "noHookLog": "No on_message or before_publish",
+      "tooLong": "Instruction limit exceeded, stopped"
     },
     "status": {
       "subs": "Subs $count"
@@ -749,7 +835,7 @@
       "needName": "Enter a name and topic",
       "logSaved": "Message log saved",
       "cleared": "Log cleared",
-      "quickSaved": "Quick command saved",
+      "quickSaved": "Quick publish saved",
       "deleted": "Deleted",
       "portInvalid": "Port must be 1–65535",
       "keepAliveInvalid": "Keep Alive must be a positive integer"
