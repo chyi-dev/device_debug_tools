@@ -10,7 +10,8 @@ class MqttConsoleState {
     required this.clientId,
     required this.username,
     required this.password,
-    required this.tls,
+    required this.scheme,
+    required this.wsPath,
     required this.caFile,
     required this.clientCert,
     required this.clientKey,
@@ -54,7 +55,8 @@ class MqttConsoleState {
       clientId: ws.clientId,
       username: ws.username,
       password: ws.password,
-      tls: ws.tls,
+      scheme: ws.scheme,
+      wsPath: ws.wsPath,
       caFile: ws.caFile,
       clientCert: ws.clientCert,
       clientKey: ws.clientKey,
@@ -96,7 +98,8 @@ class MqttConsoleState {
   final String clientId;
   final String username;
   final String password;
-  final bool tls;
+  final MqttScheme scheme;
+  final String wsPath;
   final String caFile;
   final String clientCert;
   final String clientKey;
@@ -130,7 +133,12 @@ class MqttConsoleState {
   final MqttNotice hint;
   final MqttNotice? toast;
 
-  String get endpoint => '$host:$port';
+  String get endpoint => mqttEndpoint(
+    scheme: scheme,
+    host: host,
+    port: port,
+    wsPath: wsPath,
+  );
 
   MqttConsoleState copyWith({
     String? host,
@@ -139,7 +147,8 @@ class MqttConsoleState {
     String? clientId,
     String? username,
     String? password,
-    bool? tls,
+    MqttScheme? scheme,
+    String? wsPath,
     String? caFile,
     String? clientCert,
     String? clientKey,
@@ -180,7 +189,8 @@ class MqttConsoleState {
       clientId: clientId ?? this.clientId,
       username: username ?? this.username,
       password: password ?? this.password,
-      tls: tls ?? this.tls,
+      scheme: scheme ?? this.scheme,
+      wsPath: wsPath ?? this.wsPath,
       caFile: caFile ?? this.caFile,
       clientCert: clientCert ?? this.clientCert,
       clientKey: clientKey ?? this.clientKey,
@@ -223,7 +233,8 @@ class MqttConsoleState {
     clientId: clientId,
     username: username,
     password: password,
-    tls: tls,
+    scheme: scheme,
+    wsPath: wsPath,
     caFile: caFile,
     clientCert: clientCert,
     clientKey: clientKey,

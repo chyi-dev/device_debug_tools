@@ -62,7 +62,8 @@ class MqttConsoleCubit extends Cubit<MqttConsoleState> {
     String? clientId,
     String? username,
     String? password,
-    bool? tls,
+    MqttScheme? scheme,
+    String? wsPath,
     String? caFile,
     String? clientCert,
     String? clientKey,
@@ -102,15 +103,22 @@ class MqttConsoleCubit extends Cubit<MqttConsoleState> {
         return;
       }
     }
+    final nextScheme = scheme ?? state.scheme;
+    final switched = scheme != null && scheme != state.scheme;
+    final nextPort = parsedPort ??
+        (switched && state.port == state.scheme.defaultPort
+            ? nextScheme.defaultPort
+            : null);
     emit(
       state.copyWith(
         host: host,
-        port: parsedPort,
+        port: nextPort,
         version: version,
         clientId: clientId,
         username: username,
         password: password,
-        tls: tls,
+        scheme: scheme,
+        wsPath: wsPath == null ? null : _storedWsPath(wsPath),
         caFile: caFile,
         clientCert: clientCert,
         clientKey: clientKey,
@@ -512,7 +520,8 @@ class MqttConsoleCubit extends Cubit<MqttConsoleState> {
       clientId: ws.clientId,
       username: ws.username,
       password: ws.password,
-      tls: ws.tls,
+      scheme: ws.scheme,
+      wsPath: ws.wsPath,
       caFile: ws.caFile,
       clientCert: ws.clientCert,
       clientKey: ws.clientKey,
@@ -535,6 +544,12 @@ class MqttConsoleCubit extends Cubit<MqttConsoleState> {
       pubTopics: ws.pubTopics,
       quick: ws.quick,
     );
+  }
+
+  String _storedWsPath(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty || trimmed == '/') return '';
+    return trimmed.startsWith('/') ? trimmed : '/$trimmed';
   }
 
   void _persist() {

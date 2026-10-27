@@ -652,8 +652,10 @@
   },
   "mqtt": {
     "title": "MQTT connection",
+    "scheme": "Scheme",
     "host": "Broker",
     "port": "Port",
+    "path": "Path",
     "connect": "Connect",
     "connecting": "Connecting…",
     "disconnect": "Disconnect",
@@ -668,7 +670,6 @@
     "clientId": "Client ID",
     "username": "Username",
     "password": "Password",
-    "tls": "Enable TLS",
     "ca": "CA certificate",
     "cert": "Client certificate",
     "key": "Private key",

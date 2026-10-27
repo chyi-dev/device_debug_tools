@@ -10,6 +10,7 @@ import '../../../core/exception/app_exception.dart';
 import '../../../core/logger/app_logger.dart';
 import '../../../core/logger/log_category.dart';
 import '../model/mqtt_models.dart';
+import 'mqtt_connect_plan.dart';
 import 'mqtt_gateway.dart';
 
 class MqttClientGateway implements MqttGateway {
@@ -36,8 +37,9 @@ class MqttClientGateway implements MqttGateway {
   @override
   Future<void> connect(MqttLinkConfig config) async {
     await disconnect();
+    final plan = MqttConnectPlan.resolve(config);
     final client = MqttServerClient.withPort(
-      config.host,
+      plan.server,
       config.clientId,
       config.port,
     );
@@ -52,7 +54,14 @@ class MqttClientGateway implements MqttGateway {
     } else {
       client.setProtocolV311();
     }
-    if (config.tls) {
+    if (plan.useWebSocket) {
+      client.useWebSocket = true;
+      client.websocketProtocols = MqttClientConstants.protocolsSingleDefault;
+      if (plan.alternateWebSocket) {
+        client.useAlternateWebSocketImplementation = true;
+        client.securityContext = _security(config);
+      }
+    } else if (plan.secure) {
       client.secure = true;
       client.securityContext = _security(config);
     }

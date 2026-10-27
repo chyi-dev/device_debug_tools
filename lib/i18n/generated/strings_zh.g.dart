@@ -311,11 +311,17 @@ class Translations$mqtt$zh {
 	/// zh: 'MQTT 连接'
 	String get title => 'MQTT 连接';
 
+	/// zh: '协议'
+	String get scheme => '协议';
+
 	/// zh: 'Broker'
 	String get host => 'Broker';
 
 	/// zh: '端口'
 	String get port => '端口';
+
+	/// zh: '路径'
+	String get path => '路径';
 
 	/// zh: '连接'
 	String get connect => '连接';
@@ -345,9 +351,6 @@ class Translations$mqtt$zh {
 
 	/// zh: '密码'
 	String get password => '密码';
-
-	/// zh: '启用 TLS'
-	String get tls => '启用 TLS';
 
 	/// zh: 'CA 证书'
 	String get ca => 'CA 证书';
@@ -3123,8 +3126,10 @@ extension on Translations {
 			'ble.notice.scriptSaved' => '脚本已保存',
 			'ble.notice.closedSend' => 'BLE 未连接，发送已拦截',
 			'mqtt.title' => 'MQTT 连接',
+			'mqtt.scheme' => '协议',
 			'mqtt.host' => 'Broker',
 			'mqtt.port' => '端口',
+			'mqtt.path' => '路径',
 			'mqtt.connect' => '连接',
 			'mqtt.connecting' => '连接中…',
 			'mqtt.disconnect' => '断开',
@@ -3137,7 +3142,6 @@ extension on Translations {
 			'mqtt.clientId' => 'Client ID',
 			'mqtt.username' => '用户名',
 			'mqtt.password' => '密码',
-			'mqtt.tls' => '启用 TLS',
 			'mqtt.ca' => 'CA 证书',
 			'mqtt.cert' => '客户端证书',
 			'mqtt.key' => '私钥',

@@ -50,6 +50,25 @@ void main() {
     expect(cubit.state.toast?.kind, MqttNoticeKind.filled);
   });
 
+  test('默认端口随协议切换，自定义端口保留', () {
+    expect(cubit.state.port, 1883);
+    cubit.patch(scheme: MqttScheme.ws);
+    expect(cubit.state.scheme, MqttScheme.ws);
+    expect(cubit.state.port, 8083);
+    expect(cubit.state.endpoint, 'ws://127.0.0.1:8083/');
+    cubit.patch(port: '9000');
+    cubit.patch(scheme: MqttScheme.wss);
+    expect(cubit.state.port, 9000);
+    expect(cubit.state.endpoint, 'wss://127.0.0.1:9000/');
+  });
+
+  test('路径补前导斜杠，Broker 原样保留', () {
+    cubit.patch(wsPath: 'mqtt', host: 'ws://broker');
+    expect(cubit.state.wsPath, '/mqtt');
+    expect(cubit.state.host, 'ws://broker');
+    expect(cubit.state.scheme, MqttScheme.mqtt);
+  });
+
   test('重连后按列表重新订阅', () async {
     await cubit.toggleConnect();
     cubit.patch(draftSubTopic: 'device/+/telemetry', draftSubQos: 1);

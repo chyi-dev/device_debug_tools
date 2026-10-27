@@ -196,8 +196,10 @@ class _Translations$mqtt$en extends Translations$mqtt$zh {
 
 	// Translations
 	@override String get title => 'MQTT connection';
+	@override String get scheme => 'Scheme';
 	@override String get host => 'Broker';
 	@override String get port => 'Port';
+	@override String get path => 'Path';
 	@override String get connect => 'Connect';
 	@override String get connecting => 'Connecting…';
 	@override String get disconnect => 'Disconnect';
@@ -208,7 +210,6 @@ class _Translations$mqtt$en extends Translations$mqtt$zh {
 	@override String get clientId => 'Client ID';
 	@override String get username => 'Username';
 	@override String get password => 'Password';
-	@override String get tls => 'Enable TLS';
 	@override String get ca => 'CA certificate';
 	@override String get cert => 'Client certificate';
 	@override String get key => 'Private key';
@@ -1854,8 +1855,10 @@ extension on TranslationsEn {
 			'ble.notice.scriptSaved' => 'Script saved',
 			'ble.notice.closedSend' => 'BLE is not connected, send blocked',
 			'mqtt.title' => 'MQTT connection',
+			'mqtt.scheme' => 'Scheme',
 			'mqtt.host' => 'Broker',
 			'mqtt.port' => 'Port',
+			'mqtt.path' => 'Path',
 			'mqtt.connect' => 'Connect',
 			'mqtt.connecting' => 'Connecting…',
 			'mqtt.disconnect' => 'Disconnect',
@@ -1868,7 +1871,6 @@ extension on TranslationsEn {
 			'mqtt.clientId' => 'Client ID',
 			'mqtt.username' => 'Username',
 			'mqtt.password' => 'Password',
-			'mqtt.tls' => 'Enable TLS',
 			'mqtt.ca' => 'CA certificate',
 			'mqtt.cert' => 'Client certificate',
 			'mqtt.key' => 'Private key',

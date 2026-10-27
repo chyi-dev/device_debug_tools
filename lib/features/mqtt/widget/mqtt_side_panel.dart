@@ -43,6 +43,8 @@ class _ConnGroup extends StatelessWidget {
       buildWhen: (a, b) =>
           a.host != b.host ||
           a.port != b.port ||
+          a.scheme != b.scheme ||
+          a.wsPath != b.wsPath ||
           a.connecting != b.connecting ||
           a.connected != b.connected ||
           a.settingsOpen != b.settingsOpen ||
@@ -50,7 +52,6 @@ class _ConnGroup extends StatelessWidget {
           a.clientId != b.clientId ||
           a.username != b.username ||
           a.password != b.password ||
-          a.tls != b.tls ||
           a.caFile != b.caFile ||
           a.clientCert != b.clientCert ||
           a.clientKey != b.clientKey ||
@@ -70,6 +71,19 @@ class _ConnGroup extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SerialFieldRow(
+                label: t.mqtt.scheme,
+                child: SerialDropdown<MqttScheme>(
+                  value: state.scheme,
+                  items: const [
+                    (value: MqttScheme.mqtt, label: 'mqtt'),
+                    (value: MqttScheme.mqtts, label: 'mqtts'),
+                    (value: MqttScheme.ws, label: 'ws'),
+                    (value: MqttScheme.wss, label: 'wss'),
+                  ],
+                  onChanged: (value) => cubit.patch(scheme: value),
+                ),
+              ),
+              SerialFieldRow(
                 label: t.mqtt.host,
                 child: _CommitField(
                   value: state.host,
@@ -84,6 +98,14 @@ class _ConnGroup extends StatelessWidget {
                   onCommit: (value) => cubit.patch(port: value),
                 ),
               ),
+              if (state.scheme.webSocket)
+                SerialFieldRow(
+                  label: t.mqtt.path,
+                  child: _CommitField(
+                    value: state.wsPath,
+                    onCommit: (value) => cubit.patch(wsPath: value),
+                  ),
+                ),
               SerialButton(
                 label: state.connecting
                     ? t.mqtt.connecting
@@ -174,27 +196,24 @@ class _ConnGroup extends StatelessWidget {
                             onChanged: (value) =>
                                 cubit.patch(autoReconnect: value),
                           ),
-                          SerialSectionLabel(t.mqtt.section.tls),
-                          SerialCheck(
-                            label: t.mqtt.tls,
-                            value: state.tls,
-                            onChanged: (value) => cubit.patch(tls: value),
-                          ),
-                          _FileRow(
-                            label: t.mqtt.ca,
-                            value: mqttFileLabel(t, state.caFile),
-                            onPick: cubit.pickCa,
-                          ),
-                          _FileRow(
-                            label: t.mqtt.cert,
-                            value: mqttFileLabel(t, state.clientCert),
-                            onPick: cubit.pickCert,
-                          ),
-                          _FileRow(
-                            label: t.mqtt.key,
-                            value: mqttFileLabel(t, state.clientKey),
-                            onPick: cubit.pickKey,
-                          ),
+                          if (state.scheme.showsCertificates) ...[
+                            SerialSectionLabel(t.mqtt.section.tls),
+                            _FileRow(
+                              label: t.mqtt.ca,
+                              value: mqttFileLabel(t, state.caFile),
+                              onPick: cubit.pickCa,
+                            ),
+                            _FileRow(
+                              label: t.mqtt.cert,
+                              value: mqttFileLabel(t, state.clientCert),
+                              onPick: cubit.pickCert,
+                            ),
+                            _FileRow(
+                              label: t.mqtt.key,
+                              value: mqttFileLabel(t, state.clientKey),
+                              onPick: cubit.pickKey,
+                            ),
+                          ],
                           SerialSectionLabel(t.mqtt.section.will),
                           SerialFieldRow(
                             label: t.mqtt.willTopic,

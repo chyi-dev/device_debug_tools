@@ -652,8 +652,10 @@
   },
   "mqtt": {
     "title": "MQTT 连接",
+    "scheme": "协议",
     "host": "Broker",
     "port": "端口",
+    "path": "路径",
     "connect": "连接",
     "connecting": "连接中…",
     "disconnect": "断开",
@@ -668,7 +670,6 @@
     "clientId": "Client ID",
     "username": "用户名",
     "password": "密码",
-    "tls": "启用 TLS",
     "ca": "CA 证书",
     "cert": "客户端证书",
     "key": "私钥",

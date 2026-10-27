@@ -1,5 +1,43 @@
 enum MqttVersion { v311, v5 }
 
+enum MqttScheme {
+  mqtt,
+  mqtts,
+  ws,
+  wss;
+
+  int get defaultPort => switch (this) {
+    MqttScheme.mqtt => 1883,
+    MqttScheme.mqtts => 8883,
+    MqttScheme.ws => 8083,
+    MqttScheme.wss => 8084,
+  };
+
+  bool get webSocket => this == MqttScheme.ws || this == MqttScheme.wss;
+
+  bool get showsCertificates =>
+      this == MqttScheme.mqtts || this == MqttScheme.wss;
+}
+
+/// 空路径与 `/` 都表示根路径。其余缺前导 `/` 时补上。
+String normalizeWsPath(String raw) {
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty || trimmed == '/') return '/';
+  return trimmed.startsWith('/') ? trimmed : '/$trimmed';
+}
+
+String mqttEndpoint({
+  required MqttScheme scheme,
+  required String host,
+  required int port,
+  String wsPath = '',
+}) {
+  if (scheme.webSocket) {
+    return '${scheme.name}://$host:$port${normalizeWsPath(wsPath)}';
+  }
+  return '${scheme.name}://$host:$port';
+}
+
 enum MqttNoticeKind {
   ready,
   connected,
@@ -209,7 +247,8 @@ class MqttLinkConfig {
     required this.clientId,
     required this.username,
     required this.password,
-    required this.tls,
+    required this.scheme,
+    required this.wsPath,
     required this.caFile,
     required this.clientCert,
     required this.clientKey,
@@ -229,7 +268,8 @@ class MqttLinkConfig {
   final String clientId;
   final String username;
   final String password;
-  final bool tls;
+  final MqttScheme scheme;
+  final String wsPath;
   final String caFile;
   final String clientCert;
   final String clientKey;
@@ -241,6 +281,9 @@ class MqttLinkConfig {
   final String willPayload;
   final int willQos;
   final bool willRetain;
+
+  bool get hasCustomCerts =>
+      caFile.isNotEmpty || clientCert.isNotEmpty || clientKey.isNotEmpty;
 }
 
 class MqttWorkspace {
@@ -251,7 +294,8 @@ class MqttWorkspace {
     required this.clientId,
     required this.username,
     required this.password,
-    required this.tls,
+    required this.scheme,
+    required this.wsPath,
     required this.caFile,
     required this.clientCert,
     required this.clientKey,
@@ -282,7 +326,8 @@ class MqttWorkspace {
     clientId: 'ddt-desktop-01',
     username: '',
     password: '',
-    tls: false,
+    scheme: MqttScheme.mqtt,
+    wsPath: '',
     caFile: '',
     clientCert: '',
     clientKey: '',
@@ -312,7 +357,8 @@ class MqttWorkspace {
   final String clientId;
   final String username;
   final String password;
-  final bool tls;
+  final MqttScheme scheme;
+  final String wsPath;
   final String caFile;
   final String clientCert;
   final String clientKey;
@@ -342,7 +388,8 @@ class MqttWorkspace {
     clientId: clientId,
     username: username,
     password: password,
-    tls: tls,
+    scheme: scheme,
+    wsPath: wsPath,
     caFile: caFile,
     clientCert: clientCert,
     clientKey: clientKey,
@@ -363,7 +410,8 @@ class MqttWorkspace {
     'clientId': clientId,
     'username': username,
     'password': password,
-    'tls': tls,
+    'scheme': scheme.name,
+    'wsPath': wsPath,
     'caFile': caFile,
     'clientCert': clientCert,
     'clientKey': clientKey,
@@ -421,7 +469,8 @@ class MqttWorkspace {
       clientId: map['clientId']?.toString() ?? 'ddt-desktop-01',
       username: map['username']?.toString() ?? '',
       password: map['password']?.toString() ?? '',
-      tls: map['tls'] == true,
+      scheme: _scheme(map),
+      wsPath: map['wsPath']?.toString() ?? '',
       caFile: map['caFile']?.toString() ?? '',
       clientCert: map['clientCert']?.toString() ?? '',
       clientKey: map['clientKey']?.toString() ?? '',
@@ -451,4 +500,10 @@ int _int(Object? value, int fallback) {
   if (value is int) return value;
   if (value is num) return value.toInt();
   return int.tryParse('$value') ?? fallback;
+}
+
+MqttScheme _scheme(Map<dynamic, dynamic> map) {
+  final named = MqttScheme.values.asNameMap()[map['scheme']?.toString()];
+  if (named != null) return named;
+  return map['tls'] == true ? MqttScheme.mqtts : MqttScheme.mqtt;
 }
