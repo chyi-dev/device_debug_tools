@@ -65,6 +65,12 @@ Future<void> _initWindow() async {
       TitleBarStyle.hidden,
       windowButtonVisibility: false,
     );
+    if (Platform.isMacOS) {
+      // Tahoe 的透明标题栏容器会盖住顶栏并吃掉点击。
+      // setAsFrameless 隐藏这块容器；阴影需要单独加回来。
+      await windowManager.setAsFrameless();
+      await windowManager.setHasShadow(true);
+    }
   } catch (e, s) {
     AppLogger.i.error(
       'Hide native title bar failed',

@@ -157,7 +157,11 @@ class SerialButton extends StatelessWidget {
       cursor: onPressed == null
           ? SystemMouseCursors.basic
           : SystemMouseCursors.click,
-      child: GestureDetector(onTap: onPressed, child: button),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: button,
+      ),
     );
   }
 }
@@ -378,6 +382,7 @@ class _SerialDropdownState<T> extends State<SerialDropdown<T>> {
                   ? SystemMouseCursors.click
                   : SystemMouseCursors.basic,
               child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: active
                     ? () => controller.isOpen
                           ? controller.close()
@@ -457,6 +462,7 @@ class SerialSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),

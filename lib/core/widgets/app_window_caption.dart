@@ -120,6 +120,7 @@ class _CaptionButtonState extends State<_CaptionButton> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: widget.onPressed,
         child: Container(
           width: _CaptionButton.width,
