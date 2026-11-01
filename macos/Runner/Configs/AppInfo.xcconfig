@@ -8,7 +8,7 @@
 PRODUCT_NAME = device_debug_tools
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.deviceDebugTools
+PRODUCT_BUNDLE_IDENTIFIER = com.device.debug.tools
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.

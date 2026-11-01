@@ -100,13 +100,29 @@ iscc installer/windows/device_debug_tools.iss
 
 产物：`build/installer/device_debug_tools-<version>-setup.exe`。脚本中的 `MyAppVersion` 需与 `pubspec.yaml` 的版本同步。目标机缺少 `VCRUNTIME140.dll` 时，需安装 Microsoft Visual C++ 2015–2022 可再发行组件（x64）。
 
-- macOS 访问串口、USB、网络或文件时，需要在 `macos/Runner/*.entitlements` 中声明对应权限。
+### macOS DMG
+
+需 macOS 与 Xcode。Release 默认为同时包含 Intel（`x86_64`）与 Apple 芯片（`arm64`）的通用二进制。在项目根目录执行：
+
+```bash
+flutter build macos --release
+installer/macos/make_dmg.sh
+```
+
+产物：`build/installer/device_debug_tools-<version>-macos.dmg`。版本号由脚本从 `pubspec.yaml` 读取。当前为临时签名，未公证。用户把 `device_debug_tools.app` 拖进“应用程序”后，若系统提示已损坏或无法验证开发者，在终端执行：
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/device_debug_tools.app"
+```
+
+访问串口、USB、网络或文件时，需要在 `macos/Runner/*.entitlements` 中声明对应权限。
 
 ### 发布检查清单
 
 - [ ] 正式包走 `main.dart`（`appIsDev=false`）
 - [ ] `flutter analyze` 无问题，`flutter test` 通过
 - [ ] `pubspec.yaml` 的 `version: x.y.z+build` 已更新，并同步 `installer/windows/device_debug_tools.iss` 的 `MyAppVersion`
+- [ ] macOS 安装镜像：`flutter build macos --release` 后执行 `installer/macos/make_dmg.sh`
 
 ## 架构要点
 
