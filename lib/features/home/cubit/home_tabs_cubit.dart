@@ -11,6 +11,9 @@ import '../../mqtt/cubit/mqtt_console_cubit.dart';
 import '../../mqtt/data/mqtt_session_factory.dart';
 import '../../serial/cubit/serial_console_cubit.dart';
 import '../../serial/data/serial_session_factory.dart';
+import '../../socket/cubit/socket_console_cubit.dart';
+import '../../socket/data/socket_session_factory.dart';
+import '../../socket/model/socket_models.dart';
 import '../data/home_tab_store.dart';
 import '../model/connection_kind.dart';
 import '../model/home_tab.dart';
@@ -31,20 +34,24 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
     required SerialSessionFactory sessions,
     required BleSessionFactory ble,
     required MqttSessionFactory mqtt,
+    required SocketSessionFactory sockets,
     required HomeTabStore tabs,
   }) : _sessions = sessions,
        _ble = ble,
        _mqtt = mqtt,
+       _sockets = sockets,
        _tabs = tabs,
        super(const HomeTabsState.empty());
 
   final SerialSessionFactory _sessions;
   final BleSessionFactory _ble;
   final MqttSessionFactory _mqtt;
+  final SocketSessionFactory _sockets;
   final HomeTabStore _tabs;
   final Map<String, SerialConsoleCubit> _serials = {};
   final Map<String, BleConsoleCubit> _bles = {};
   final Map<String, MqttConsoleCubit> _mqtts = {};
+  final Map<String, SocketConsoleCubit> _socketConsoles = {};
   final Map<String, Future<void>> _closing = {};
   var _seq = 0;
 
@@ -53,6 +60,8 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
   BleConsoleCubit? bleFor(String id) => _bles[id];
 
   MqttConsoleCubit? mqttFor(String id) => _mqtts[id];
+
+  SocketConsoleCubit? socketFor(String id) => _socketConsoles[id];
 
   HomeTabLive liveFor(String id) {
     final serial = _serials[id];
@@ -69,6 +78,13 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
     final mqtt = _mqtts[id];
     if (mqtt != null) {
       return HomeTabLive(open: mqtt.state.connected, title: mqtt.state.endpoint);
+    }
+    final socket = _socketConsoles[id];
+    if (socket != null) {
+      return HomeTabLive(
+        open: socket.state.open,
+        title: socket.state.endpoint,
+      );
     }
     return const HomeTabLive(open: false);
   }
@@ -139,19 +155,21 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
     final serial = _serials.remove(id);
     final ble = _bles.remove(id);
     final mqtt = _mqtts.remove(id);
+    final socket = _socketConsoles.remove(id);
     final tabs = state.tabs.where((tab) => tab.id != id).toList();
     final active = state.activeId == id
         ? (tabs.isEmpty ? null : tabs.last.id)
         : state.activeId;
     emit(state.copyWith(tabs: tabs, activeId: active));
     unawaited(_persist());
-    if (serial == null && ble == null && mqtt == null) {
+    if (serial == null && ble == null && mqtt == null && socket == null) {
       return Future<void>.value();
     }
     final done = Future<void>.delayed(Duration.zero, () async {
       if (serial != null && !serial.isClosed) await serial.close();
       if (ble != null && !ble.isClosed) await ble.close();
       if (mqtt != null && !mqtt.isClosed) await mqtt.close();
+      if (socket != null && !socket.isClosed) await socket.close();
       _closing.remove(id);
     });
     _closing[id] = done;
@@ -164,9 +182,11 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
     final serials = [..._serials.values];
     final bles = [..._bles.values];
     final mqtts = [..._mqtts.values];
+    final sockets = [..._socketConsoles.values];
     _serials.clear();
     _bles.clear();
     _mqtts.clear();
+    _socketConsoles.clear();
     await Future.wait(pending);
     for (final console in serials) {
       if (!console.isClosed) await console.close();
@@ -175,6 +195,9 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
       if (!console.isClosed) await console.close();
     }
     for (final console in mqtts) {
+      if (!console.isClosed) await console.close();
+    }
+    for (final console in sockets) {
       if (!console.isClosed) await console.close();
     }
     return super.close();
@@ -189,7 +212,8 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
   }) async {
     if (_serials.containsKey(id) ||
         _bles.containsKey(id) ||
-        _mqtts.containsKey(id)) {
+        _mqtts.containsKey(id) ||
+        _socketConsoles.containsKey(id)) {
       return;
     }
     switch (kind) {
@@ -199,6 +223,22 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
         _bles[id] = BleConsoleCubit(repository: _ble.open(storageKey));
       case ConnectionKind.mqtt:
         _mqtts[id] = MqttConsoleCubit(repository: _mqtt.open(storageKey));
+      case ConnectionKind.tcp:
+        _socketConsoles[id] = SocketConsoleCubit(
+          repository: _sockets.open(
+            storageKey,
+            protocol: SocketProtocol.tcp,
+          ),
+          protocol: SocketProtocol.tcp,
+        );
+      case ConnectionKind.udp:
+        _socketConsoles[id] = SocketConsoleCubit(
+          repository: _sockets.open(
+            storageKey,
+            protocol: SocketProtocol.udp,
+          ),
+          protocol: SocketProtocol.udp,
+        );
     }
     final tab = HomeTab(
       id: id,
@@ -215,6 +255,7 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
     await _serials[id]?.start();
     await _bles[id]?.start();
     await _mqtts[id]?.start();
+    await _socketConsoles[id]?.start();
     await _persist();
   }
 
@@ -223,6 +264,8 @@ class HomeTabsCubit extends Cubit<HomeTabsState> {
       ConnectionKind.serial => StorageKeys.serialWorkspace,
       ConnectionKind.ble => StorageKeys.bleWorkspace,
       ConnectionKind.mqtt => StorageKeys.mqttWorkspace,
+      ConnectionKind.tcp => StorageKeys.tcpWorkspace,
+      ConnectionKind.udp => StorageKeys.udpWorkspace,
     };
     final inUse = state.tabs.any((tab) => tab.storageKey == prefix);
     return inUse ? '${prefix}_$id' : prefix;

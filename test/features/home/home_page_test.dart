@@ -21,6 +21,12 @@ import 'package:device_debug_tools/features/serial/data/serial_session_factory.d
 import 'package:device_debug_tools/features/serial/data/serial_workspace_store.dart';
 import 'package:device_debug_tools/features/serial/model/serial_models.dart';
 import 'package:device_debug_tools/features/serial/repository/serial_console_repository.dart';
+import 'package:device_debug_tools/features/socket/data/idle_socket_gateway.dart';
+import 'package:device_debug_tools/features/socket/data/socket_file_gateway.dart';
+import 'package:device_debug_tools/features/socket/data/socket_session_factory.dart';
+import 'package:device_debug_tools/features/socket/data/socket_workspace_store.dart';
+import 'package:device_debug_tools/features/socket/model/socket_models.dart';
+import 'package:device_debug_tools/features/socket/repository/socket_console_repository.dart';
 import 'package:device_debug_tools/i18n/i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,6 +54,9 @@ void main() {
               ),
               RepositoryProvider<BleSessionFactory>.value(value: _FakeBle()),
               RepositoryProvider<MqttSessionFactory>.value(value: _FakeMqtt()),
+              RepositoryProvider<SocketSessionFactory>.value(
+                value: _FakeSockets(),
+              ),
               RepositoryProvider<HomeTabStore>.value(value: _MemoryTabs()),
             ],
             child: const HomePage(),
@@ -123,6 +132,20 @@ class _FakeMqtt implements MqttSessionFactory {
   }
 }
 
+class _FakeSockets implements SocketSessionFactory {
+  @override
+  SocketConsoleRepository open(
+    String storageKey, {
+    required SocketProtocol protocol,
+  }) {
+    return SocketConsoleRepository(
+      gateway: IdleSocketGateway(),
+      store: _MemorySocketStore(),
+      files: SocketFileGateway(files: _FakeFiles()),
+    );
+  }
+}
+
 class _FakePorts implements SerialPortGateway {
   final _incoming = StreamController<Uint8List>.broadcast();
 
@@ -191,4 +214,12 @@ class _MemoryMqttStore implements MqttWorkspaceStore {
 
   @override
   Future<void> write(MqttWorkspace workspace) async {}
+}
+
+class _MemorySocketStore implements SocketWorkspaceStore {
+  @override
+  SocketWorkspace? read() => null;
+
+  @override
+  Future<void> write(SocketWorkspace workspace) async {}
 }

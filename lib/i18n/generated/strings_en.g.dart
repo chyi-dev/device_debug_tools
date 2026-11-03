@@ -46,6 +46,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$serial$en serial = _Translations$serial$en._(_root);
 	@override late final _Translations$ble$en ble = _Translations$ble$en._(_root);
 	@override late final _Translations$mqtt$en mqtt = _Translations$mqtt$en._(_root);
+	@override late final _Translations$socket$en socket = _Translations$socket$en._(_root);
 }
 
 // Path: app
@@ -82,10 +83,14 @@ class _Translations$home$en extends Translations$home$zh {
 	@override String get kindSerial => 'Serial';
 	@override String get kindBle => 'Bluetooth LE';
 	@override String get kindMqtt => 'MQTT';
+	@override String get kindTcp => 'TCP';
+	@override String get kindUdp => 'UDP';
 	@override String get badgeSerial => 'SERIAL';
 	@override String get badgeBle => 'BLE';
 	@override String get badgeMqtt => 'MQTT';
-	@override String get emptyConnections => 'No connections yet. Use New to add a serial, BLE or MQTT tab.';
+	@override String get badgeTcp => 'TCP';
+	@override String get badgeUdp => 'UDP';
+	@override String get emptyConnections => 'No connections yet. Use New to add a serial, BLE, MQTT or TCP/UDP tab.';
 	@override String get rename => 'Rename';
 	@override String get renameTitle => 'Rename tab';
 	@override String get renameName => 'Name';
@@ -234,6 +239,25 @@ class _Translations$mqtt$en extends Translations$mqtt$zh {
 	@override String get toolsTip => 'Show or hide the tools pane';
 	@override String get saveLog => 'Save message log…';
 	@override late final _Translations$mqtt$notice$en notice = _Translations$mqtt$notice$en._(_root);
+}
+
+// Path: socket
+class _Translations$socket$en extends Translations$socket$zh {
+	_Translations$socket$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$socket$menu$en menu = _Translations$socket$menu$en._(_root);
+	@override late final _Translations$socket$kbd$en kbd = _Translations$socket$kbd$en._(_root);
+	@override String get compact => 'Compact';
+	@override String get toolsPanel => 'Tools';
+	@override String get compactTip => 'Collapse or expand the left pane';
+	@override String get toolsTip => 'Show or hide the tools pane';
+	@override late final _Translations$socket$conn$en conn = _Translations$socket$conn$en._(_root);
+	@override late final _Translations$socket$log$en log = _Translations$socket$log$en._(_root);
+	@override late final _Translations$socket$dialog$en dialog = _Translations$socket$dialog$en._(_root);
+	@override late final _Translations$socket$notice$en notice = _Translations$socket$notice$en._(_root);
 }
 
 // Path: serial.menu
@@ -1099,6 +1123,137 @@ class _Translations$mqtt$notice$en extends Translations$mqtt$notice$zh {
 	@override String get keepAliveInvalid => 'Keep Alive must be a positive integer';
 }
 
+// Path: socket.menu
+class _Translations$socket$menu$en extends Translations$socket$menu$zh {
+	_Translations$socket$menu$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get file => 'File';
+	@override String get settings => 'Settings';
+	@override String get tools => 'Tools';
+	@override String get help => 'Help';
+	@override String get saveLog => 'Save received data…';
+	@override String get themeLight => 'Classic light';
+	@override String get themeDark => 'Classic dark';
+	@override String get compact => 'Compact mode (hide left pane)';
+	@override String get toolsPanel => 'Show tools pane';
+	@override String get keys => 'Keyboard shortcuts';
+	@override String get about => 'About';
+}
+
+// Path: socket.kbd
+class _Translations$socket$kbd$en extends Translations$socket$kbd$zh {
+	_Translations$socket$kbd$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get ctrlS => 'Ctrl+S';
+	@override String get f12 => 'F12';
+}
+
+// Path: socket.conn
+class _Translations$socket$conn$en extends Translations$socket$conn$zh {
+	_Translations$socket$conn$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Connection';
+	@override String get role => 'Mode';
+	@override String get roleClient => 'Client';
+	@override String get roleServer => 'Server';
+	@override String get host => 'Host';
+	@override String get port => 'Port';
+	@override String get remoteTitle => 'Send target (UDP)';
+	@override String get remoteHost => 'Remote host';
+	@override String get remotePort => 'Remote port';
+	@override String get open => 'Open';
+	@override String get close => 'Close';
+	@override String get peers => 'Clients';
+	@override String peerAll({required Object count}) => 'All (${count})';
+	@override String get emptyPeers => 'Waiting for clients…';
+}
+
+// Path: socket.log
+class _Translations$socket$log$en extends Translations$socket$log$zh {
+	_Translations$socket$log$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Data log';
+	@override String get search => 'Search received data';
+	@override String get waiting => 'Waiting for data…';
+	@override String get closed => 'Not connected. Set host and port on the left, then Open.';
+	@override String matches({required Object count}) => '${count} matches';
+	@override String records({required Object count}) => '${count} records';
+	@override String get rxHidden => 'RX hidden';
+	@override String peerLabel({required Object peer}) => '${peer}';
+	@override String opened({required Object endpoint}) => '${endpoint} opened';
+	@override String closedEndpoint({required Object endpoint}) => '${endpoint} closed';
+}
+
+// Path: socket.dialog
+class _Translations$socket$dialog$en extends Translations$socket$dialog$zh {
+	_Translations$socket$dialog$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get aboutTitle => 'About network console';
+	@override String get aboutBody => 'TCP/UDP console shares the tools pane and Lua script engine with the serial console.';
+	@override String get aboutDetail => 'TCP server can send to all or one client; UDP requires a send target.';
+}
+
+// Path: socket.notice
+class _Translations$socket$notice$en extends Translations$socket$notice$zh {
+	_Translations$socket$notice$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get ready => 'Ready';
+	@override String get opened => 'Connection opened';
+	@override String get closed => 'Connection closed';
+	@override String get closedSend => 'Not connected, send blocked';
+	@override String get closedRule => 'Not connected, rules will not run';
+	@override String get closedBatch => 'Not connected, batch not started';
+	@override String openFailed({required Object detail}) => 'Open failed: ${detail}';
+	@override String get noRemote => 'Configure the UDP send target first';
+	@override String get noClient => 'No TCP clients connected';
+	@override String get hostInvalid => 'Host cannot be empty';
+	@override String get portInvalid => 'Port must be 1–65535';
+	@override String get timeoutInvalid => 'Packet timeout must be a non-negative integer';
+	@override String get periodInvalid => 'Loop period must be at least 10 ms';
+	@override String get repeatInvalid => 'Repeat count must be a positive integer';
+	@override String get saveStarted => 'Saving RX; file is written when you turn save off';
+	@override String saveWritten({required Object name, required Object count}) => 'Wrote ${name} (${count} lines)';
+	@override String get logSaved => 'Received data saved as text';
+	@override String get recvCleared => 'Log cleared';
+	@override String loopStarted({required Object period}) => 'Loop sending, period ${period} ms';
+	@override String get loopStopped => 'Loop stopped';
+	@override String batchRunning({required Object step, required Object total}) => 'Batch sending · step ${step}/${total}';
+	@override String get batchEnded => 'Batch finished';
+	@override String ruleOn({required Object name}) => '${name} enabled';
+	@override String ruleOff({required Object name}) => '${name} disabled';
+	@override String get deleted => 'Deleted';
+	@override String get duplicated => 'Duplicated';
+	@override String get quickSaved => 'Quick command saved';
+	@override String get folderSaved => 'Folder saved';
+	@override String get ruleSaved => 'Reply rule saved';
+	@override String get batchSaved => 'Batch job saved';
+	@override String get scriptSaved => 'Script renamed';
+	@override String lessonCreated({required Object name, required Object title}) => 'Created ${name} from “${title}”';
+	@override String get lessonTried => 'Sample run written to script log';
+	@override String fileLoaded({required Object name}) => 'Loaded ${name}';
+	@override String peerJoined({required Object address}) => 'Client joined: ${address}';
+	@override String peerLeft({required Object address}) => 'Client left: ${address}';
+	@override String get roleChanged => 'TCP mode changed; open the connection again';
+}
+
 // Path: serial.script.lessons
 class _Translations$serial$script$lessons$en extends Translations$serial$script$lessons$zh {
 	_Translations$serial$script$lessons$en._(TranslationsEn root) : this._root = root, super.internal(root);
@@ -1317,10 +1472,14 @@ extension on TranslationsEn {
 			'home.kindSerial' => 'Serial',
 			'home.kindBle' => 'Bluetooth LE',
 			'home.kindMqtt' => 'MQTT',
+			'home.kindTcp' => 'TCP',
+			'home.kindUdp' => 'UDP',
 			'home.badgeSerial' => 'SERIAL',
 			'home.badgeBle' => 'BLE',
 			'home.badgeMqtt' => 'MQTT',
-			'home.emptyConnections' => 'No connections yet. Use New to add a serial, BLE or MQTT tab.',
+			'home.badgeTcp' => 'TCP',
+			'home.badgeUdp' => 'UDP',
+			'home.emptyConnections' => 'No connections yet. Use New to add a serial, BLE, MQTT or TCP/UDP tab.',
 			'home.rename' => 'Rename',
 			'home.renameTitle' => 'Rename tab',
 			'home.renameName' => 'Name',
@@ -1816,12 +1975,12 @@ extension on TranslationsEn {
 			'ble.dialog.delay' => 'Delay ms',
 			'ble.dialog.repeat' => 'Repeat',
 			'ble.dialog.deleteQuick' => 'Delete quick command',
+			_ => null,
+		} ?? switch (path) {
 			'ble.dialog.deleteRule' => 'Delete reply rule',
 			'ble.dialog.deleteBatch' => 'Delete batch job',
 			'ble.dialog.deleteScript' => 'Delete script',
 			'ble.notice.ready' => 'Ready',
-			_ => null,
-		} ?? switch (path) {
 			'ble.notice.adapterOff' => 'Bluetooth adapter unavailable. Settings can still be saved.',
 			'ble.notice.scanDone' => ({required Object count}) => 'Scan finished, ${count} devices found',
 			'ble.notice.scanEmpty' => 'No matching devices',
@@ -1939,6 +2098,87 @@ extension on TranslationsEn {
 			'mqtt.notice.deleted' => 'Deleted',
 			'mqtt.notice.portInvalid' => 'Port must be 1–65535',
 			'mqtt.notice.keepAliveInvalid' => 'Keep Alive must be a positive integer',
+			'socket.menu.file' => 'File',
+			'socket.menu.settings' => 'Settings',
+			'socket.menu.tools' => 'Tools',
+			'socket.menu.help' => 'Help',
+			'socket.menu.saveLog' => 'Save received data…',
+			'socket.menu.themeLight' => 'Classic light',
+			'socket.menu.themeDark' => 'Classic dark',
+			'socket.menu.compact' => 'Compact mode (hide left pane)',
+			'socket.menu.toolsPanel' => 'Show tools pane',
+			'socket.menu.keys' => 'Keyboard shortcuts',
+			'socket.menu.about' => 'About',
+			'socket.kbd.ctrlS' => 'Ctrl+S',
+			'socket.kbd.f12' => 'F12',
+			'socket.compact' => 'Compact',
+			'socket.toolsPanel' => 'Tools',
+			'socket.compactTip' => 'Collapse or expand the left pane',
+			'socket.toolsTip' => 'Show or hide the tools pane',
+			'socket.conn.title' => 'Connection',
+			'socket.conn.role' => 'Mode',
+			'socket.conn.roleClient' => 'Client',
+			'socket.conn.roleServer' => 'Server',
+			'socket.conn.host' => 'Host',
+			'socket.conn.port' => 'Port',
+			'socket.conn.remoteTitle' => 'Send target (UDP)',
+			'socket.conn.remoteHost' => 'Remote host',
+			'socket.conn.remotePort' => 'Remote port',
+			'socket.conn.open' => 'Open',
+			'socket.conn.close' => 'Close',
+			'socket.conn.peers' => 'Clients',
+			'socket.conn.peerAll' => ({required Object count}) => 'All (${count})',
+			'socket.conn.emptyPeers' => 'Waiting for clients…',
+			'socket.log.title' => 'Data log',
+			'socket.log.search' => 'Search received data',
+			'socket.log.waiting' => 'Waiting for data…',
+			'socket.log.closed' => 'Not connected. Set host and port on the left, then Open.',
+			'socket.log.matches' => ({required Object count}) => '${count} matches',
+			'socket.log.records' => ({required Object count}) => '${count} records',
+			'socket.log.rxHidden' => 'RX hidden',
+			'socket.log.peerLabel' => ({required Object peer}) => '${peer}',
+			'socket.log.opened' => ({required Object endpoint}) => '${endpoint} opened',
+			'socket.log.closedEndpoint' => ({required Object endpoint}) => '${endpoint} closed',
+			'socket.dialog.aboutTitle' => 'About network console',
+			'socket.dialog.aboutBody' => 'TCP/UDP console shares the tools pane and Lua script engine with the serial console.',
+			'socket.dialog.aboutDetail' => 'TCP server can send to all or one client; UDP requires a send target.',
+			'socket.notice.ready' => 'Ready',
+			'socket.notice.opened' => 'Connection opened',
+			'socket.notice.closed' => 'Connection closed',
+			'socket.notice.closedSend' => 'Not connected, send blocked',
+			'socket.notice.closedRule' => 'Not connected, rules will not run',
+			'socket.notice.closedBatch' => 'Not connected, batch not started',
+			'socket.notice.openFailed' => ({required Object detail}) => 'Open failed: ${detail}',
+			'socket.notice.noRemote' => 'Configure the UDP send target first',
+			'socket.notice.noClient' => 'No TCP clients connected',
+			'socket.notice.hostInvalid' => 'Host cannot be empty',
+			'socket.notice.portInvalid' => 'Port must be 1–65535',
+			'socket.notice.timeoutInvalid' => 'Packet timeout must be a non-negative integer',
+			'socket.notice.periodInvalid' => 'Loop period must be at least 10 ms',
+			'socket.notice.repeatInvalid' => 'Repeat count must be a positive integer',
+			'socket.notice.saveStarted' => 'Saving RX; file is written when you turn save off',
+			'socket.notice.saveWritten' => ({required Object name, required Object count}) => 'Wrote ${name} (${count} lines)',
+			'socket.notice.logSaved' => 'Received data saved as text',
+			'socket.notice.recvCleared' => 'Log cleared',
+			'socket.notice.loopStarted' => ({required Object period}) => 'Loop sending, period ${period} ms',
+			'socket.notice.loopStopped' => 'Loop stopped',
+			'socket.notice.batchRunning' => ({required Object step, required Object total}) => 'Batch sending · step ${step}/${total}',
+			'socket.notice.batchEnded' => 'Batch finished',
+			'socket.notice.ruleOn' => ({required Object name}) => '${name} enabled',
+			'socket.notice.ruleOff' => ({required Object name}) => '${name} disabled',
+			'socket.notice.deleted' => 'Deleted',
+			'socket.notice.duplicated' => 'Duplicated',
+			'socket.notice.quickSaved' => 'Quick command saved',
+			'socket.notice.folderSaved' => 'Folder saved',
+			'socket.notice.ruleSaved' => 'Reply rule saved',
+			'socket.notice.batchSaved' => 'Batch job saved',
+			'socket.notice.scriptSaved' => 'Script renamed',
+			'socket.notice.lessonCreated' => ({required Object name, required Object title}) => 'Created ${name} from “${title}”',
+			'socket.notice.lessonTried' => 'Sample run written to script log',
+			'socket.notice.fileLoaded' => ({required Object name}) => 'Loaded ${name}',
+			'socket.notice.peerJoined' => ({required Object address}) => 'Client joined: ${address}',
+			'socket.notice.peerLeft' => ({required Object address}) => 'Client left: ${address}',
+			'socket.notice.roleChanged' => 'TCP mode changed; open the connection again',
 			_ => null,
 		};
 	}

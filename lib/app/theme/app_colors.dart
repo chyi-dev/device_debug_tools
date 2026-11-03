@@ -73,7 +73,11 @@ abstract final class AppColors {
   static const Color protocolSerial = Color(0xFF1F9D55);
   static const Color protocolBle = Color(0xFF2F76D2);
   static const Color protocolMqtt = Color(0xFFB86B0A);
+  static const Color protocolTcp = Color(0xFF0F766E);
+  static const Color protocolUdp = Color(0xFF7C3AED);
   static const Color protocolSerialDark = Color(0xFF3CCF7A);
   static const Color protocolBleDark = Color(0xFF5B9FFF);
   static const Color protocolMqttDark = Color(0xFFF0A04B);
+  static const Color protocolTcpDark = Color(0xFF2DD4BF);
+  static const Color protocolUdpDark = Color(0xFFA78BFA);
 }
