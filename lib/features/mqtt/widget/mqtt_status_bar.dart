@@ -70,7 +70,9 @@ class MqttStatusBar extends StatelessWidget {
                 ),
                 SerialStatusCell(
                   child: Text(
-                    t.mqtt.status.subs(count: state.subs.length),
+                    t.mqtt.status.subs(
+                      count: state.subs.where((item) => item.subscribed).length,
+                    ),
                     style: AppTextStyles.caption(
                       cs,
                     ).copyWith(color: palette.muted),

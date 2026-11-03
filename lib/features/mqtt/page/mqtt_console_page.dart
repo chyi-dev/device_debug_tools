@@ -17,6 +17,7 @@ import '../model/mqtt_models.dart';
 import '../widget/mqtt_compose.dart';
 import '../widget/mqtt_l10n.dart';
 import '../widget/mqtt_log_view.dart';
+import '../widget/mqtt_script_dock.dart';
 import '../widget/mqtt_side_panel.dart';
 import '../widget/mqtt_status_bar.dart';
 import '../widget/mqtt_tools_panel.dart';
@@ -40,8 +41,6 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
   String _query = '';
   Timer? _toastTimer;
   MqttNotice? _toast;
-  var _narrowApplied = false;
-
   @override
   void initState() {
     super.initState();
@@ -58,16 +57,6 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
       HardwareKeyboard.instance.addHandler(_onKey);
     } else {
       HardwareKeyboard.instance.removeHandler(_onKey);
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final width = MediaQuery.sizeOf(context).width;
-    if (!_narrowApplied && width < SerialMetrics.minWindow) {
-      _narrowApplied = true;
-      context.read<MqttConsoleCubit>().patch(compact: true);
     }
   }
 
@@ -144,8 +133,7 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
           if (toast != null) _showToast(toast);
         },
         child: BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
-          buildWhen: (a, b) =>
-              a.compact != b.compact || a.toolsVisible != b.toolsVisible,
+          buildWhen: (a, b) => a.scriptDockVisible != b.scriptDockVisible,
           builder: (context, chrome) {
             final cubit = context.read<MqttConsoleCubit>();
             return Stack(
@@ -153,8 +141,9 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                 Column(
                   children: [
                     WorkbenchMenuBar(
-                      compact: chrome.compact,
-                      toolsOn: chrome.toolsVisible,
+                      compact: false,
+                      toolsOn: true,
+                      showLayoutToggles: false,
                       fileItems: [
                         WorkbenchMenuAction(
                           t.mqtt.saveLog,
@@ -163,14 +152,16 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                         ),
                       ],
                       toolItems: [
-                        WorkbenchMenuAction(
-                          t.serial.tab.quick,
-                          () => cubit.patch(toolsVisible: true),
-                        ),
+                        for (final tab in MqttToolTab.values)
+                          WorkbenchMenuAction(switch (tab) {
+                            MqttToolTab.subs => t.mqtt.tab.subs,
+                            MqttToolTab.quick => t.mqtt.tab.quick,
+                            MqttToolTab.history => t.mqtt.tab.history,
+                            MqttToolTab.script => t.mqtt.tab.script,
+                          }, () => cubit.setTab(tab)),
                       ],
-                      onCompact: () => cubit.patch(compact: !chrome.compact),
-                      onTools: () =>
-                          cubit.patch(toolsVisible: !chrome.toolsVisible),
+                      onCompact: () {},
+                      onTools: () {},
                       onKeys: () => showShortcutHelp(context),
                       onAbout: () => showSerialAbout(context),
                       compactLabel: t.mqtt.compact,
@@ -184,12 +175,11 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         child: Row(
                           children: [
-                            SerialFoldPane(
-                              visible: !chrome.compact,
+                            const SizedBox(
                               width: SerialMetrics.sidebar,
-                              gapAfter: AppSpacing.sm,
-                              child: const MqttSidePanel(),
+                              child: MqttSidePanel(),
                             ),
+                            const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: Column(
                                 children: [
@@ -214,16 +204,22 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                                           },
                                         ),
                                   ),
+                                  if (chrome.scriptDockVisible) ...[
+                                    const SizedBox(height: AppSpacing.sm),
+                                    const SizedBox(
+                                      height: SerialMetrics.scriptDock,
+                                      child: MqttScriptDock(),
+                                    ),
+                                  ],
                                   const SizedBox(height: AppSpacing.sm),
                                   const MqttCompose(),
                                 ],
                               ),
                             ),
-                            SerialFoldPane(
-                              visible: chrome.toolsVisible,
+                            const SizedBox(width: AppSpacing.sm),
+                            const SizedBox(
                               width: SerialMetrics.tools,
-                              gapBefore: AppSpacing.sm,
-                              child: const MqttToolsPanel(),
+                              child: MqttToolsPanel(),
                             ),
                           ],
                         ),

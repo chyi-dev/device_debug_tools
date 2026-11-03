@@ -34,6 +34,7 @@ class WorkbenchMenuBar extends StatelessWidget {
     required this.toolsLabel,
     required this.compactTip,
     required this.toolsTip,
+    this.showLayoutToggles = true,
   });
 
   final bool compact;
@@ -48,6 +49,9 @@ class WorkbenchMenuBar extends StatelessWidget {
   final String toolsLabel;
   final String compactTip;
   final String toolsTip;
+
+  /// 为 false 时不显示精简模式和工具面板开关。MQTT 台两侧始终展开。
+  final bool showLayoutToggles;
 
   @override
   Widget build(BuildContext context) {
@@ -115,14 +119,16 @@ class WorkbenchMenuBar extends StatelessWidget {
                                       ThemeMode.dark,
                                     ),
                                   ),
-                                  WorkbenchMenuAction(
-                                    menu.compact,
-                                    onCompact,
-                                  ),
-                                  WorkbenchMenuAction(
-                                    menu.toolsPanel,
-                                    onTools,
-                                  ),
+                                  if (showLayoutToggles) ...[
+                                    WorkbenchMenuAction(
+                                      menu.compact,
+                                      onCompact,
+                                    ),
+                                    WorkbenchMenuAction(
+                                      menu.toolsPanel,
+                                      onTools,
+                                    ),
+                                  ],
                                 ],
                               ),
                               _Menu(label: menu.tools, items: toolItems),
@@ -148,20 +154,22 @@ class WorkbenchMenuBar extends StatelessWidget {
                   ),
                 ),
               ),
-              _IconToggle(
-                label: compactLabel,
-                tip: compactTip,
-                on: compact,
-                onPressed: onCompact,
-              ),
-              const SizedBox(width: AppSpacing.xs + 2),
-              _IconToggle(
-                label: toolsLabel,
-                tip: toolsTip,
-                on: toolsOn,
-                onPressed: onTools,
-              ),
-              const SizedBox(width: AppSpacing.sm),
+              if (showLayoutToggles) ...[
+                _IconToggle(
+                  label: compactLabel,
+                  tip: compactTip,
+                  on: compact,
+                  onPressed: onCompact,
+                ),
+                const SizedBox(width: AppSpacing.xs + 2),
+                _IconToggle(
+                  label: toolsLabel,
+                  tip: toolsTip,
+                  on: toolsOn,
+                  onPressed: onTools,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+              ],
               AppWindowButtons(
                 height: SerialMetrics.menuBar,
                 foreground: palette.text,
