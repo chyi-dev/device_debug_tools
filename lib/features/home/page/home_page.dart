@@ -11,6 +11,8 @@ import '../../mqtt/data/mqtt_session_factory.dart';
 import '../../mqtt/page/mqtt_console_page.dart';
 import '../../serial/data/serial_session_factory.dart';
 import '../../serial/page/serial_console_page.dart';
+import '../../socket/data/socket_session_factory.dart';
+import '../../socket/page/socket_console_page.dart';
 import '../cubit/home_tabs_cubit.dart';
 import '../data/home_tab_store.dart';
 import '../model/connection_kind.dart';
@@ -28,6 +30,7 @@ class HomePage extends StatelessWidget {
         sessions: context.read<SerialSessionFactory>(),
         ble: context.read<BleSessionFactory>(),
         mqtt: context.read<MqttSessionFactory>(),
+        sockets: context.read<SocketSessionFactory>(),
         tabs: context.read<HomeTabStore>(),
       )..start(),
       child: const _HomeView(),
@@ -114,6 +117,14 @@ class _TabPane extends StatelessWidget {
         return BlocProvider.value(
           value: console,
           child: MqttConsoleView(shortcutsEnabled: active, belowMenu: bar),
+        );
+      case ConnectionKind.tcp:
+      case ConnectionKind.udp:
+        final console = home.socketFor(tab.id);
+        if (console == null) return const SizedBox.shrink();
+        return BlocProvider.value(
+          value: console,
+          child: SocketConsoleView(shortcutsEnabled: active, belowMenu: bar),
         );
     }
   }

@@ -12,6 +12,9 @@ import 'package:device_debug_tools/features/mqtt/repository/mqtt_console_reposit
 import 'package:device_debug_tools/features/serial/data/serial_session_factory.dart';
 import 'package:device_debug_tools/features/serial/repository/serial_console_repository.dart';
 import 'package:device_debug_tools/features/serial/serial_metrics.dart';
+import 'package:device_debug_tools/features/socket/data/socket_session_factory.dart';
+import 'package:device_debug_tools/features/socket/model/socket_models.dart';
+import 'package:device_debug_tools/features/socket/repository/socket_console_repository.dart';
 import 'package:device_debug_tools/i18n/i18n.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -100,6 +103,7 @@ class _BareTabs extends HomeTabsCubit {
         sessions: _UnusedSessions(),
         ble: _UnusedBle(),
         mqtt: _UnusedMqtt(),
+        sockets: _UnusedSockets(),
         tabs: _MemoryTabs(),
       );
 
@@ -132,4 +136,12 @@ class _UnusedMqtt implements MqttSessionFactory {
   @override
   MqttConsoleRepository open(String storageKey) =>
       throw UnsupportedError(storageKey);
+}
+
+class _UnusedSockets implements SocketSessionFactory {
+  @override
+  SocketConsoleRepository open(
+    String storageKey, {
+    required SocketProtocol protocol,
+  }) => throw UnsupportedError(storageKey);
 }

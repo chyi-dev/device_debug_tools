@@ -48,6 +48,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$serial$zh serial = Translations$serial$zh.internal(_root);
 	late final Translations$ble$zh ble = Translations$ble$zh.internal(_root);
 	late final Translations$mqtt$zh mqtt = Translations$mqtt$zh.internal(_root);
+	late final Translations$socket$zh socket = Translations$socket$zh.internal(_root);
 }
 
 // Path: app
@@ -103,6 +104,12 @@ class Translations$home$zh {
 	/// zh: 'MQTT'
 	String get kindMqtt => 'MQTT';
 
+	/// zh: 'TCP'
+	String get kindTcp => 'TCP';
+
+	/// zh: 'UDP'
+	String get kindUdp => 'UDP';
+
 	/// zh: 'SERIAL'
 	String get badgeSerial => 'SERIAL';
 
@@ -112,8 +119,14 @@ class Translations$home$zh {
 	/// zh: 'MQTT'
 	String get badgeMqtt => 'MQTT';
 
-	/// zh: '还没有连接。点「新增」创建串口、蓝牙或 MQTT 页签。'
-	String get emptyConnections => '还没有连接。点「新增」创建串口、蓝牙或 MQTT 页签。';
+	/// zh: 'TCP'
+	String get badgeTcp => 'TCP';
+
+	/// zh: 'UDP'
+	String get badgeUdp => 'UDP';
+
+	/// zh: '还没有连接。点「新增」创建串口、蓝牙、MQTT 或 TCP/UDP 页签。'
+	String get emptyConnections => '还没有连接。点「新增」创建串口、蓝牙、MQTT 或 TCP/UDP 页签。';
 
 	/// zh: '重命名'
 	String get rename => '重命名';
@@ -417,6 +430,34 @@ class Translations$mqtt$zh {
 	String get saveLog => '保存报文日志…';
 
 	late final Translations$mqtt$notice$zh notice = Translations$mqtt$notice$zh.internal(_root);
+}
+
+// Path: socket
+class Translations$socket$zh {
+	Translations$socket$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$socket$menu$zh menu = Translations$socket$menu$zh.internal(_root);
+	late final Translations$socket$kbd$zh kbd = Translations$socket$kbd$zh.internal(_root);
+
+	/// zh: '精简模式'
+	String get compact => '精简模式';
+
+	/// zh: '工具面板'
+	String get toolsPanel => '工具面板';
+
+	/// zh: '收起或展开左侧设置栏'
+	String get compactTip => '收起或展开左侧设置栏';
+
+	/// zh: '显示或隐藏工具面板'
+	String get toolsTip => '显示或隐藏工具面板';
+
+	late final Translations$socket$conn$zh conn = Translations$socket$conn$zh.internal(_root);
+	late final Translations$socket$log$zh log = Translations$socket$log$zh.internal(_root);
+	late final Translations$socket$dialog$zh dialog = Translations$socket$dialog$zh.internal(_root);
+	late final Translations$socket$notice$zh notice = Translations$socket$notice$zh.internal(_root);
 }
 
 // Path: serial.menu
@@ -2495,6 +2536,291 @@ class Translations$mqtt$notice$zh {
 	String get keepAliveInvalid => 'Keep Alive 需为正整数';
 }
 
+// Path: socket.menu
+class Translations$socket$menu$zh {
+	Translations$socket$menu$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '文件'
+	String get file => '文件';
+
+	/// zh: '设置'
+	String get settings => '设置';
+
+	/// zh: '工具'
+	String get tools => '工具';
+
+	/// zh: '帮助'
+	String get help => '帮助';
+
+	/// zh: '保存接收数据…'
+	String get saveLog => '保存接收数据…';
+
+	/// zh: '白底经典'
+	String get themeLight => '白底经典';
+
+	/// zh: '黑底经典'
+	String get themeDark => '黑底经典';
+
+	/// zh: '精简模式（收起左栏）'
+	String get compact => '精简模式（收起左栏）';
+
+	/// zh: '显示工具面板'
+	String get toolsPanel => '显示工具面板';
+
+	/// zh: '快捷键说明'
+	String get keys => '快捷键说明';
+
+	/// zh: '关于'
+	String get about => '关于';
+}
+
+// Path: socket.kbd
+class Translations$socket$kbd$zh {
+	Translations$socket$kbd$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: 'Ctrl+S'
+	String get ctrlS => 'Ctrl+S';
+
+	/// zh: 'F12'
+	String get f12 => 'F12';
+}
+
+// Path: socket.conn
+class Translations$socket$conn$zh {
+	Translations$socket$conn$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '连接设置'
+	String get title => '连接设置';
+
+	/// zh: '模式'
+	String get role => '模式';
+
+	/// zh: '客户端'
+	String get roleClient => '客户端';
+
+	/// zh: '服务端'
+	String get roleServer => '服务端';
+
+	/// zh: '地址'
+	String get host => '地址';
+
+	/// zh: '端口'
+	String get port => '端口';
+
+	/// zh: '发送目标（UDP）'
+	String get remoteTitle => '发送目标（UDP）';
+
+	/// zh: '远端地址'
+	String get remoteHost => '远端地址';
+
+	/// zh: '远端端口'
+	String get remotePort => '远端端口';
+
+	/// zh: '打开'
+	String get open => '打开';
+
+	/// zh: '关闭'
+	String get close => '关闭';
+
+	/// zh: '客户端'
+	String get peers => '客户端';
+
+	/// zh: '全部（$count）'
+	String peerAll({required Object count}) => '全部（${count}）';
+
+	/// zh: '等待客户端接入…'
+	String get emptyPeers => '等待客户端接入…';
+}
+
+// Path: socket.log
+class Translations$socket$log$zh {
+	Translations$socket$log$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '数据日志'
+	String get title => '数据日志';
+
+	/// zh: '搜索接收内容'
+	String get search => '搜索接收内容';
+
+	/// zh: '等待数据…'
+	String get waiting => '等待数据…';
+
+	/// zh: '连接未打开。左侧填写地址与端口后点「打开」。'
+	String get closed => '连接未打开。左侧填写地址与端口后点「打开」。';
+
+	/// zh: '$count 处匹配'
+	String matches({required Object count}) => '${count} 处匹配';
+
+	/// zh: '$count 条记录'
+	String records({required Object count}) => '${count} 条记录';
+
+	/// zh: '接收不显示'
+	String get rxHidden => '接收不显示';
+
+	/// zh: '$peer'
+	String peerLabel({required Object peer}) => '${peer}';
+
+	/// zh: '$endpoint 已打开'
+	String opened({required Object endpoint}) => '${endpoint} 已打开';
+
+	/// zh: '$endpoint 已关闭'
+	String closedEndpoint({required Object endpoint}) => '${endpoint} 已关闭';
+}
+
+// Path: socket.dialog
+class Translations$socket$dialog$zh {
+	Translations$socket$dialog$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '关于网络调试'
+	String get aboutTitle => '关于网络调试';
+
+	/// zh: 'TCP / UDP 调试台与串口调试台共用工具面板与脚本引擎。'
+	String get aboutBody => 'TCP / UDP 调试台与串口调试台共用工具面板与脚本引擎。';
+
+	/// zh: 'TCP 服务端可向全部或单个客户端发送；UDP 需配置发送目标。'
+	String get aboutDetail => 'TCP 服务端可向全部或单个客户端发送；UDP 需配置发送目标。';
+}
+
+// Path: socket.notice
+class Translations$socket$notice$zh {
+	Translations$socket$notice$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '就绪'
+	String get ready => '就绪';
+
+	/// zh: '连接已打开'
+	String get opened => '连接已打开';
+
+	/// zh: '连接已关闭'
+	String get closed => '连接已关闭';
+
+	/// zh: '连接未打开，发送已拦截'
+	String get closedSend => '连接未打开，发送已拦截';
+
+	/// zh: '连接未打开，规则不会执行'
+	String get closedRule => '连接未打开，规则不会执行';
+
+	/// zh: '连接未打开，批量任务未启动'
+	String get closedBatch => '连接未打开，批量任务未启动';
+
+	/// zh: '打开连接失败：$detail'
+	String openFailed({required Object detail}) => '打开连接失败：${detail}';
+
+	/// zh: '请先配置 UDP 发送目标'
+	String get noRemote => '请先配置 UDP 发送目标';
+
+	/// zh: 'TCP 服务端尚无客户端'
+	String get noClient => 'TCP 服务端尚无客户端';
+
+	/// zh: '地址不能为空'
+	String get hostInvalid => '地址不能为空';
+
+	/// zh: '端口需为 1–65535'
+	String get portInvalid => '端口需为 1–65535';
+
+	/// zh: '分包超时需为非负整数'
+	String get timeoutInvalid => '分包超时需为非负整数';
+
+	/// zh: '循环周期至少 10 ms'
+	String get periodInvalid => '循环周期至少 10 ms';
+
+	/// zh: '重复次数需为正整数'
+	String get repeatInvalid => '重复次数需为正整数';
+
+	/// zh: '开始保存接收数据，取消勾选时写出文件'
+	String get saveStarted => '开始保存接收数据，取消勾选时写出文件';
+
+	/// zh: '已写出 $name（$count 条）'
+	String saveWritten({required Object name, required Object count}) => '已写出 ${name}（${count} 条）';
+
+	/// zh: '接收数据已保存为文本'
+	String get logSaved => '接收数据已保存为文本';
+
+	/// zh: '接收区已清除'
+	String get recvCleared => '接收区已清除';
+
+	/// zh: '循环发送中，周期 $period ms'
+	String loopStarted({required Object period}) => '循环发送中，周期 ${period} ms';
+
+	/// zh: '循环发送已停止'
+	String get loopStopped => '循环发送已停止';
+
+	/// zh: '批量发送中 · 第 $step/$total 条'
+	String batchRunning({required Object step, required Object total}) => '批量发送中 · 第 ${step}/${total} 条';
+
+	/// zh: '批量发送结束'
+	String get batchEnded => '批量发送结束';
+
+	/// zh: '$name 已启用'
+	String ruleOn({required Object name}) => '${name} 已启用';
+
+	/// zh: '$name 已停用'
+	String ruleOff({required Object name}) => '${name} 已停用';
+
+	/// zh: '已删除'
+	String get deleted => '已删除';
+
+	/// zh: '已复制'
+	String get duplicated => '已复制';
+
+	/// zh: '快捷指令已保存'
+	String get quickSaved => '快捷指令已保存';
+
+	/// zh: '文件夹已保存'
+	String get folderSaved => '文件夹已保存';
+
+	/// zh: '应答规则已保存'
+	String get ruleSaved => '应答规则已保存';
+
+	/// zh: '批量任务已保存'
+	String get batchSaved => '批量任务已保存';
+
+	/// zh: '脚本已重命名'
+	String get scriptSaved => '脚本已重命名';
+
+	/// zh: '已用「$title」新建 $name'
+	String lessonCreated({required Object title, required Object name}) => '已用「${title}」新建 ${name}';
+
+	/// zh: '样例试跑结果已写入运行日志'
+	String get lessonTried => '样例试跑结果已写入运行日志';
+
+	/// zh: '已载入 $name'
+	String fileLoaded({required Object name}) => '已载入 ${name}';
+
+	/// zh: '客户端接入：$address'
+	String peerJoined({required Object address}) => '客户端接入：${address}';
+
+	/// zh: '客户端断开：$address'
+	String peerLeft({required Object address}) => '客户端断开：${address}';
+
+	/// zh: 'TCP 模式已切换，请重新打开连接'
+	String get roleChanged => 'TCP 模式已切换，请重新打开连接';
+}
+
 // Path: serial.script.lessons
 class Translations$serial$script$lessons$zh {
 	Translations$serial$script$lessons$zh.internal(this._root);
@@ -2876,10 +3202,14 @@ extension on Translations {
 			'home.kindSerial' => '串口',
 			'home.kindBle' => '蓝牙 BLE',
 			'home.kindMqtt' => 'MQTT',
+			'home.kindTcp' => 'TCP',
+			'home.kindUdp' => 'UDP',
 			'home.badgeSerial' => 'SERIAL',
 			'home.badgeBle' => 'BLE',
 			'home.badgeMqtt' => 'MQTT',
-			'home.emptyConnections' => '还没有连接。点「新增」创建串口、蓝牙或 MQTT 页签。',
+			'home.badgeTcp' => 'TCP',
+			'home.badgeUdp' => 'UDP',
+			'home.emptyConnections' => '还没有连接。点「新增」创建串口、蓝牙、MQTT 或 TCP/UDP 页签。',
 			'home.rename' => '重命名',
 			'home.renameTitle' => '重命名页签',
 			'home.renameName' => '名称',
@@ -3375,12 +3705,12 @@ extension on Translations {
 			'ble.dialog.delay' => '延时 ms',
 			'ble.dialog.repeat' => '重复',
 			'ble.dialog.deleteQuick' => '删除快捷指令',
+			_ => null,
+		} ?? switch (path) {
 			'ble.dialog.deleteRule' => '删除应答规则',
 			'ble.dialog.deleteBatch' => '删除批量任务',
 			'ble.dialog.deleteScript' => '删除脚本',
 			'ble.notice.ready' => '就绪',
-			_ => null,
-		} ?? switch (path) {
 			'ble.notice.adapterOff' => '蓝牙适配器不可用，配置可保存。',
 			'ble.notice.scanDone' => ({required Object count}) => '扫描完成，发现 ${count} 个设备',
 			'ble.notice.scanEmpty' => '没有匹配的设备',
@@ -3571,6 +3901,87 @@ extension on Translations {
 			'mqtt.notice.deleted' => '已删除',
 			'mqtt.notice.portInvalid' => '端口需为 1–65535',
 			'mqtt.notice.keepAliveInvalid' => 'Keep Alive 需为正整数',
+			'socket.menu.file' => '文件',
+			'socket.menu.settings' => '设置',
+			'socket.menu.tools' => '工具',
+			'socket.menu.help' => '帮助',
+			'socket.menu.saveLog' => '保存接收数据…',
+			'socket.menu.themeLight' => '白底经典',
+			'socket.menu.themeDark' => '黑底经典',
+			'socket.menu.compact' => '精简模式（收起左栏）',
+			'socket.menu.toolsPanel' => '显示工具面板',
+			'socket.menu.keys' => '快捷键说明',
+			'socket.menu.about' => '关于',
+			'socket.kbd.ctrlS' => 'Ctrl+S',
+			'socket.kbd.f12' => 'F12',
+			'socket.compact' => '精简模式',
+			'socket.toolsPanel' => '工具面板',
+			'socket.compactTip' => '收起或展开左侧设置栏',
+			'socket.toolsTip' => '显示或隐藏工具面板',
+			'socket.conn.title' => '连接设置',
+			'socket.conn.role' => '模式',
+			'socket.conn.roleClient' => '客户端',
+			'socket.conn.roleServer' => '服务端',
+			'socket.conn.host' => '地址',
+			'socket.conn.port' => '端口',
+			'socket.conn.remoteTitle' => '发送目标（UDP）',
+			'socket.conn.remoteHost' => '远端地址',
+			'socket.conn.remotePort' => '远端端口',
+			'socket.conn.open' => '打开',
+			'socket.conn.close' => '关闭',
+			'socket.conn.peers' => '客户端',
+			'socket.conn.peerAll' => ({required Object count}) => '全部（${count}）',
+			'socket.conn.emptyPeers' => '等待客户端接入…',
+			'socket.log.title' => '数据日志',
+			'socket.log.search' => '搜索接收内容',
+			'socket.log.waiting' => '等待数据…',
+			'socket.log.closed' => '连接未打开。左侧填写地址与端口后点「打开」。',
+			'socket.log.matches' => ({required Object count}) => '${count} 处匹配',
+			'socket.log.records' => ({required Object count}) => '${count} 条记录',
+			'socket.log.rxHidden' => '接收不显示',
+			'socket.log.peerLabel' => ({required Object peer}) => '${peer}',
+			'socket.log.opened' => ({required Object endpoint}) => '${endpoint} 已打开',
+			'socket.log.closedEndpoint' => ({required Object endpoint}) => '${endpoint} 已关闭',
+			'socket.dialog.aboutTitle' => '关于网络调试',
+			'socket.dialog.aboutBody' => 'TCP / UDP 调试台与串口调试台共用工具面板与脚本引擎。',
+			'socket.dialog.aboutDetail' => 'TCP 服务端可向全部或单个客户端发送；UDP 需配置发送目标。',
+			'socket.notice.ready' => '就绪',
+			'socket.notice.opened' => '连接已打开',
+			'socket.notice.closed' => '连接已关闭',
+			'socket.notice.closedSend' => '连接未打开，发送已拦截',
+			'socket.notice.closedRule' => '连接未打开，规则不会执行',
+			'socket.notice.closedBatch' => '连接未打开，批量任务未启动',
+			'socket.notice.openFailed' => ({required Object detail}) => '打开连接失败：${detail}',
+			'socket.notice.noRemote' => '请先配置 UDP 发送目标',
+			'socket.notice.noClient' => 'TCP 服务端尚无客户端',
+			'socket.notice.hostInvalid' => '地址不能为空',
+			'socket.notice.portInvalid' => '端口需为 1–65535',
+			'socket.notice.timeoutInvalid' => '分包超时需为非负整数',
+			'socket.notice.periodInvalid' => '循环周期至少 10 ms',
+			'socket.notice.repeatInvalid' => '重复次数需为正整数',
+			'socket.notice.saveStarted' => '开始保存接收数据，取消勾选时写出文件',
+			'socket.notice.saveWritten' => ({required Object name, required Object count}) => '已写出 ${name}（${count} 条）',
+			'socket.notice.logSaved' => '接收数据已保存为文本',
+			'socket.notice.recvCleared' => '接收区已清除',
+			'socket.notice.loopStarted' => ({required Object period}) => '循环发送中，周期 ${period} ms',
+			'socket.notice.loopStopped' => '循环发送已停止',
+			'socket.notice.batchRunning' => ({required Object step, required Object total}) => '批量发送中 · 第 ${step}/${total} 条',
+			'socket.notice.batchEnded' => '批量发送结束',
+			'socket.notice.ruleOn' => ({required Object name}) => '${name} 已启用',
+			'socket.notice.ruleOff' => ({required Object name}) => '${name} 已停用',
+			'socket.notice.deleted' => '已删除',
+			'socket.notice.duplicated' => '已复制',
+			'socket.notice.quickSaved' => '快捷指令已保存',
+			'socket.notice.folderSaved' => '文件夹已保存',
+			'socket.notice.ruleSaved' => '应答规则已保存',
+			'socket.notice.batchSaved' => '批量任务已保存',
+			'socket.notice.scriptSaved' => '脚本已重命名',
+			'socket.notice.lessonCreated' => ({required Object title, required Object name}) => '已用「${title}」新建 ${name}',
+			'socket.notice.lessonTried' => '样例试跑结果已写入运行日志',
+			'socket.notice.fileLoaded' => ({required Object name}) => '已载入 ${name}',
+			'socket.notice.peerJoined' => ({required Object address}) => '客户端接入：${address}',
+			'socket.notice.peerLeft' => ({required Object address}) => '客户端断开：${address}',
+			'socket.notice.roleChanged' => 'TCP 模式已切换，请重新打开连接',
 			_ => null,
 		};
 	}

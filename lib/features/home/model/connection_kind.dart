@@ -2,7 +2,9 @@
 enum ConnectionKind {
   serial,
   ble,
-  mqtt;
+  mqtt,
+  tcp,
+  udp;
 
   static ConnectionKind? parse(String raw) {
     for (final kind in ConnectionKind.values) {

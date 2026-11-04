@@ -23,6 +23,12 @@ import 'package:device_debug_tools/features/serial/data/serial_session_factory.d
 import 'package:device_debug_tools/features/serial/data/serial_workspace_store.dart';
 import 'package:device_debug_tools/features/serial/model/serial_models.dart';
 import 'package:device_debug_tools/features/serial/repository/serial_console_repository.dart';
+import 'package:device_debug_tools/features/socket/data/idle_socket_gateway.dart';
+import 'package:device_debug_tools/features/socket/data/socket_file_gateway.dart';
+import 'package:device_debug_tools/features/socket/data/socket_session_factory.dart';
+import 'package:device_debug_tools/features/socket/data/socket_workspace_store.dart';
+import 'package:device_debug_tools/features/socket/model/socket_models.dart';
+import 'package:device_debug_tools/features/socket/repository/socket_console_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -30,6 +36,7 @@ void main() {
   late _FakeSessions sessions;
   late _FakeBle ble;
   late _FakeMqtt mqtt;
+  late _FakeSockets sockets;
   late HomeTabsCubit cubit;
 
   setUp(() async {
@@ -37,10 +44,12 @@ void main() {
     sessions = _FakeSessions();
     ble = _FakeBle();
     mqtt = _FakeMqtt();
+    sockets = _FakeSockets();
     cubit = HomeTabsCubit(
       sessions: sessions,
       ble: ble,
       mqtt: mqtt,
+      sockets: sockets,
       tabs: tabs,
     );
     await cubit.start();
@@ -76,17 +85,25 @@ void main() {
     ]);
   });
 
-  test('可以新增 BLE 和 MQTT 页签', () async {
+  test('可以新增 BLE、MQTT、TCP、UDP 页签', () async {
     expect(await cubit.add(ConnectionKind.ble), HomeTabAddResult.opened);
     expect(await cubit.add(ConnectionKind.mqtt), HomeTabAddResult.opened);
-    expect(cubit.state.tabs, hasLength(3));
+    expect(await cubit.add(ConnectionKind.tcp), HomeTabAddResult.opened);
+    expect(await cubit.add(ConnectionKind.udp), HomeTabAddResult.opened);
+    expect(cubit.state.tabs, hasLength(5));
     expect(cubit.state.tabs.map((tab) => tab.kind).toSet(), {
       ConnectionKind.serial,
       ConnectionKind.ble,
       ConnectionKind.mqtt,
+      ConnectionKind.tcp,
+      ConnectionKind.udp,
     });
     expect(ble.opened.single, StorageKeys.bleWorkspace);
     expect(mqtt.opened.single, StorageKeys.mqttWorkspace);
+    expect(sockets.opened.singleWhere((e) => e.$2 == SocketProtocol.tcp).$1,
+        StorageKeys.tcpWorkspace);
+    expect(sockets.opened.singleWhere((e) => e.$2 == SocketProtocol.udp).$1,
+        StorageKeys.udpWorkspace);
   });
 
   test('关闭 BLE 页签后可以再开', () async {
@@ -184,6 +201,23 @@ class _FakeMqtt implements MqttSessionFactory {
   }
 }
 
+class _FakeSockets implements SocketSessionFactory {
+  final List<(String, SocketProtocol)> opened = [];
+
+  @override
+  SocketConsoleRepository open(
+    String storageKey, {
+    required SocketProtocol protocol,
+  }) {
+    opened.add((storageKey, protocol));
+    return SocketConsoleRepository(
+      gateway: IdleSocketGateway(),
+      store: _MemorySocketStore(),
+      files: SocketFileGateway(files: _FakeFiles()),
+    );
+  }
+}
+
 class _FakePorts implements SerialPortGateway {
   final _incoming = StreamController<Uint8List>.broadcast();
 
@@ -252,4 +286,12 @@ class _MemoryMqttStore implements MqttWorkspaceStore {
 
   @override
   Future<void> write(MqttWorkspace workspace) async {}
+}
+
+class _MemorySocketStore implements SocketWorkspaceStore {
+  @override
+  SocketWorkspace? read() => null;
+
+  @override
+  Future<void> write(SocketWorkspace workspace) async {}
 }

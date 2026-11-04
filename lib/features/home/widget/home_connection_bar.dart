@@ -430,6 +430,8 @@ String _kindName(BuildContext context, ConnectionKind kind) {
     ConnectionKind.serial => t.home.kindSerial,
     ConnectionKind.ble => t.home.kindBle,
     ConnectionKind.mqtt => t.home.kindMqtt,
+    ConnectionKind.tcp => t.home.kindTcp,
+    ConnectionKind.udp => t.home.kindUdp,
   };
 }
 
@@ -438,6 +440,8 @@ String _kindBadge(Translations t, ConnectionKind kind) {
     ConnectionKind.serial => t.home.badgeSerial,
     ConnectionKind.ble => t.home.badgeBle,
     ConnectionKind.mqtt => t.home.badgeMqtt,
+    ConnectionKind.tcp => t.home.badgeTcp,
+    ConnectionKind.udp => t.home.badgeUdp,
   };
 }
 
@@ -450,5 +454,9 @@ Color _kindColor(BuildContext context, ConnectionKind kind) {
       dark ? AppColors.protocolBleDark : AppColors.protocolBle,
     ConnectionKind.mqtt =>
       dark ? AppColors.protocolMqttDark : AppColors.protocolMqtt,
+    ConnectionKind.tcp =>
+      dark ? AppColors.protocolTcpDark : AppColors.protocolTcp,
+    ConnectionKind.udp =>
+      dark ? AppColors.protocolUdpDark : AppColors.protocolUdp,
   };
 }
