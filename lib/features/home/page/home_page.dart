@@ -13,6 +13,7 @@ import '../../serial/data/serial_session_factory.dart';
 import '../../serial/page/serial_console_page.dart';
 import '../../socket/data/socket_session_factory.dart';
 import '../../socket/page/socket_console_page.dart';
+import '../../license/widget/license_banner.dart';
 import '../../update/widget/update_dialogs.dart';
 import '../cubit/home_tabs_cubit.dart';
 import '../data/home_tab_store.dart';
@@ -52,7 +53,7 @@ class _HomeView extends StatelessWidget {
         color: palette.win,
         child: Column(
           children: [
-            const HomeConnectionBar(),
+            const _ConnectionChrome(),
             Expanded(
               child: Center(
                 child: Padding(
@@ -96,28 +97,28 @@ class _TabPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final home = context.read<HomeTabsCubit>();
     // 每个页签都挂连接栏：新建/切换时不要把正在处理指针的 MenuAnchor 卸掉。
-    const bar = HomeConnectionBar();
+    const chrome = _ConnectionChrome();
     switch (tab.kind) {
       case ConnectionKind.serial:
         final console = home.serialFor(tab.id);
         if (console == null) return const SizedBox.shrink();
         return BlocProvider.value(
           value: console,
-          child: SerialConsoleView(shortcutsEnabled: active, belowMenu: bar),
+          child: SerialConsoleView(shortcutsEnabled: active, belowMenu: chrome),
         );
       case ConnectionKind.ble:
         final console = home.bleFor(tab.id);
         if (console == null) return const SizedBox.shrink();
         return BlocProvider.value(
           value: console,
-          child: BleConsoleView(shortcutsEnabled: active, belowMenu: bar),
+          child: BleConsoleView(shortcutsEnabled: active, belowMenu: chrome),
         );
       case ConnectionKind.mqtt:
         final console = home.mqttFor(tab.id);
         if (console == null) return const SizedBox.shrink();
         return BlocProvider.value(
           value: console,
-          child: MqttConsoleView(shortcutsEnabled: active, belowMenu: bar),
+          child: MqttConsoleView(shortcutsEnabled: active, belowMenu: chrome),
         );
       case ConnectionKind.tcp:
       case ConnectionKind.udp:
@@ -125,8 +126,24 @@ class _TabPane extends StatelessWidget {
         if (console == null) return const SizedBox.shrink();
         return BlocProvider.value(
           value: console,
-          child: SocketConsoleView(shortcutsEnabled: active, belowMenu: bar),
+          child: SocketConsoleView(shortcutsEnabled: active, belowMenu: chrome),
         );
     }
+  }
+}
+
+/// 页签栏 + 未激活提示（提示仅在需要时占位）。
+class _ConnectionChrome extends StatelessWidget {
+  const _ConnectionChrome();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HomeConnectionBar(),
+        LicenseBanner(),
+      ],
+    );
   }
 }

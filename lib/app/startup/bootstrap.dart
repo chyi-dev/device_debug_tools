@@ -15,6 +15,8 @@ import '../../core/storage/user_prefs_storage.dart';
 import '../../core/widgets/app_loading.dart';
 import '../../env/app_env.dart';
 import '../../i18n/i18n.dart';
+import '../../features/license/cubit/license_cubit.dart';
+import '../../features/license/repository/license_repository.dart';
 import '../../features/update/cubit/update_cubit.dart';
 import '../../features/update/repository/update_repository.dart';
 import '../app.dart';
@@ -92,6 +94,11 @@ Widget buildAppRoot({required UserPrefsStorage userPrefsStorage}) {
               create: (context) => UpdateCubit(
                 repository: context.read<UpdateRepository>(),
               ),
+            ),
+            BlocProvider(
+              create: (context) => LicenseCubit(
+                repository: context.read<LicenseRepository>(),
+              )..start(),
             ),
           ],
           child: TranslationProvider(child: const MyApp()),

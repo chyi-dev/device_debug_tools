@@ -48,6 +48,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$mqtt$en mqtt = _Translations$mqtt$en._(_root);
 	@override late final _Translations$socket$en socket = _Translations$socket$en._(_root);
 	@override late final _Translations$update$en update = _Translations$update$en._(_root);
+	@override late final _Translations$license$en license = _Translations$license$en._(_root);
 }
 
 // Path: app
@@ -290,6 +291,29 @@ class _Translations$update$en extends Translations$update$zh {
 	@override String checkFailed({required Object code}) => 'Update check failed (HTTP ${code})';
 }
 
+// Path: license
+class _Translations$license$en extends Translations$license$zh {
+	_Translations$license$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get banner => 'Unlicensed: trial ended. The app still works — tap here to enter an activation code.';
+	@override String get dialogTitle => 'Activate license';
+	@override String get deviceCode => 'Device code';
+	@override String get copyDeviceCode => 'Copy device code';
+	@override String get copied => 'Device code copied';
+	@override String trialEnds({required Object date}) => 'Trial ends: ${date}';
+	@override String licenseExpires({required Object date}) => 'License expires: ${date}';
+	@override String get unlicensed => 'Not activated';
+	@override String get activationCode => 'Activation code';
+	@override String get activationHint => 'Send the device code to the issuer, then paste the activation code here.';
+	@override String get activate => 'Activate';
+	@override String get invalid => 'Invalid activation code. Please check and try again.';
+	@override String get expired => 'This activation code has expired';
+	@override String get success => 'Activated successfully';
+}
+
 // Path: serial.menu
 class _Translations$serial$menu$en extends Translations$serial$menu$zh {
 	_Translations$serial$menu$en._(TranslationsEn root) : this._root = root, super.internal(root);
@@ -310,6 +334,7 @@ class _Translations$serial$menu$en extends Translations$serial$menu$zh {
 	@override String get toolsPanel => 'Show tools panel';
 	@override String get keys => 'Keyboard shortcuts';
 	@override String get checkUpdate => 'Check for updates';
+	@override String get activate => 'Activate…';
 	@override String get about => 'About';
 }
 
@@ -1266,6 +1291,7 @@ class _Translations$socket$menu$en extends Translations$socket$menu$zh {
 	@override String get toolsPanel => 'Show tools pane';
 	@override String get keys => 'Keyboard shortcuts';
 	@override String get checkUpdate => 'Check for updates';
+	@override String get activate => 'Activate…';
 	@override String get about => 'About';
 }
 
@@ -1683,6 +1709,7 @@ extension on TranslationsEn {
 			'serial.menu.toolsPanel' => 'Show tools panel',
 			'serial.menu.keys' => 'Keyboard shortcuts',
 			'serial.menu.checkUpdate' => 'Check for updates',
+			'serial.menu.activate' => 'Activate…',
 			'serial.menu.about' => 'About',
 			'serial.kbd.ctrlS' => 'Ctrl+S',
 			'serial.kbd.f12' => 'F12',
@@ -2145,9 +2172,9 @@ extension on TranslationsEn {
 			'ble.dialog.scriptTitle' => 'Script',
 			'ble.dialog.name' => 'Name',
 			'ble.dialog.data' => 'Data',
-			'ble.dialog.key' => 'Shortcut',
 			_ => null,
 		} ?? switch (path) {
+			'ble.dialog.key' => 'Shortcut',
 			'ble.dialog.pattern' => 'Pattern',
 			'ble.dialog.code' => 'Code',
 			'ble.dialog.delay' => 'Delay ms',
@@ -2358,6 +2385,7 @@ extension on TranslationsEn {
 			'socket.menu.toolsPanel' => 'Show tools pane',
 			'socket.menu.keys' => 'Keyboard shortcuts',
 			'socket.menu.checkUpdate' => 'Check for updates',
+			'socket.menu.activate' => 'Activate…',
 			'socket.menu.about' => 'About',
 			'socket.kbd.ctrlS' => 'Ctrl+S',
 			'socket.kbd.f12' => 'F12',
@@ -2441,6 +2469,20 @@ extension on TranslationsEn {
 			'update.downloadProgress' => ({required Object received, required Object total}) => 'Downloaded ${received} / ${total}',
 			'update.noRelease' => 'No published release yet',
 			'update.checkFailed' => ({required Object code}) => 'Update check failed (HTTP ${code})',
+			'license.banner' => 'Unlicensed: trial ended. The app still works — tap here to enter an activation code.',
+			'license.dialogTitle' => 'Activate license',
+			'license.deviceCode' => 'Device code',
+			'license.copyDeviceCode' => 'Copy device code',
+			'license.copied' => 'Device code copied',
+			'license.trialEnds' => ({required Object date}) => 'Trial ends: ${date}',
+			'license.licenseExpires' => ({required Object date}) => 'License expires: ${date}',
+			'license.unlicensed' => 'Not activated',
+			'license.activationCode' => 'Activation code',
+			'license.activationHint' => 'Send the device code to the issuer, then paste the activation code here.',
+			'license.activate' => 'Activate',
+			'license.invalid' => 'Invalid activation code. Please check and try again.',
+			'license.expired' => 'This activation code has expired',
+			'license.success' => 'Activated successfully',
 			_ => null,
 		};
 	}

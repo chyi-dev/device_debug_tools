@@ -10,6 +10,7 @@ import '../../features/mqtt/data/mqtt_session_factory.dart';
 import '../../features/serial/data/file_selector_gateway.dart';
 import '../../features/serial/data/serial_session_factory.dart';
 import '../../features/socket/data/socket_session_factory.dart';
+import '../../features/license/repository/license_repository.dart';
 import '../../features/update/repository/update_repository.dart';
 
 /// 全局依赖提供者；新增全局 Repository / Service 在此注册。
@@ -55,6 +56,11 @@ class AppDependencies extends StatelessWidget {
         ),
         RepositoryProvider<UpdateRepository>(
           create: (_) => UpdateRepository(prefs: userPrefsStorage),
+        ),
+        RepositoryProvider<LicenseRepository>(
+          create: (_) => LicenseRepository(
+            settings: Hive.box<dynamic>(StorageKeys.settingsBox),
+          ),
         ),
       ],
       child: child,

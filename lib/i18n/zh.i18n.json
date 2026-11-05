@@ -58,6 +58,7 @@
       "toolsPanel": "显示工具面板",
       "keys": "快捷键说明",
       "checkUpdate": "检查更新",
+      "activate": "激活…",
       "about": "关于"
     },
     "kbd": {
@@ -863,6 +864,7 @@
       "toolsPanel": "显示工具面板",
       "keys": "快捷键说明",
       "checkUpdate": "检查更新",
+      "activate": "激活…",
       "about": "关于"
     },
     "kbd": {
@@ -959,5 +961,21 @@
     "downloadProgress": "已下载 $received / $total",
     "noRelease": "尚未发布正式版本",
     "checkFailed": "检查更新失败（HTTP $code）"
+  },
+  "license": {
+    "banner": "未激活：试用已结束。功能仍可使用，点击此处输入激活码。",
+    "dialogTitle": "授权激活",
+    "deviceCode": "设备码",
+    "copyDeviceCode": "复制设备码",
+    "copied": "设备码已复制",
+    "trialEnds": "试用截止：$date",
+    "licenseExpires": "授权到期：$date",
+    "unlicensed": "当前未激活",
+    "activationCode": "激活码",
+    "activationHint": "请将设备码发给授权方，获取激活码后粘贴到此处。",
+    "activate": "激活",
+    "invalid": "激活码无效，请检查后重试",
+    "expired": "激活码已过期",
+    "success": "激活成功"
   }
 }

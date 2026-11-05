@@ -58,6 +58,7 @@
       "toolsPanel": "Show tools panel",
       "keys": "Keyboard shortcuts",
       "checkUpdate": "Check for updates",
+      "activate": "Activate…",
       "about": "About"
     },
     "kbd": {
@@ -863,6 +864,7 @@
       "toolsPanel": "Show tools pane",
       "keys": "Keyboard shortcuts",
       "checkUpdate": "Check for updates",
+      "activate": "Activate…",
       "about": "About"
     },
     "kbd": {
@@ -959,5 +961,21 @@
     "downloadProgress": "Downloaded $received / $total",
     "noRelease": "No published release yet",
     "checkFailed": "Update check failed (HTTP $code)"
+  },
+  "license": {
+    "banner": "Unlicensed: trial ended. The app still works — tap here to enter an activation code.",
+    "dialogTitle": "Activate license",
+    "deviceCode": "Device code",
+    "copyDeviceCode": "Copy device code",
+    "copied": "Device code copied",
+    "trialEnds": "Trial ends: $date",
+    "licenseExpires": "License expires: $date",
+    "unlicensed": "Not activated",
+    "activationCode": "Activation code",
+    "activationHint": "Send the device code to the issuer, then paste the activation code here.",
+    "activate": "Activate",
+    "invalid": "Invalid activation code. Please check and try again.",
+    "expired": "This activation code has expired",
+    "success": "Activated successfully"
   }
 }

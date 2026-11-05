@@ -1,6 +1,10 @@
 # Design screenshot tooling
 .design-tmp/
 
+# Offline license private key (never commit)
+tool/license_private_key.b64
+tool/license_private_key*.b64
+
 # Miscellaneous
 *.class
 *.log

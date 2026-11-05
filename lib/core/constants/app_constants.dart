@@ -13,6 +13,9 @@ abstract final class AppConstants {
   /// 启动静默检查的最小间隔。
   static const Duration updateCheckInterval = Duration(hours: 24);
 
+  /// 未激活时可免费使用的天数（含首日，第 [trialDays]+1 天起提示）。
+  static const int licenseTrialDays = 365;
+
   /// Windows 安装包文件名：`device_debug_tools-<version>-setup.exe`。
   static String windowsSetupAssetName(String version) =>
       'device_debug_tools-$version-setup.exe';

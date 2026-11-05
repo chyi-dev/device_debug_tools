@@ -50,6 +50,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$mqtt$zh mqtt = Translations$mqtt$zh.internal(_root);
 	late final Translations$socket$zh socket = Translations$socket$zh.internal(_root);
 	late final Translations$update$zh update = Translations$update$zh.internal(_root);
+	late final Translations$license$zh license = Translations$license$zh.internal(_root);
 }
 
 // Path: app
@@ -518,6 +519,57 @@ class Translations$update$zh {
 	String checkFailed({required Object code}) => '检查更新失败（HTTP ${code}）';
 }
 
+// Path: license
+class Translations$license$zh {
+	Translations$license$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '未激活：试用已结束。功能仍可使用，点击此处输入激活码。'
+	String get banner => '未激活：试用已结束。功能仍可使用，点击此处输入激活码。';
+
+	/// zh: '授权激活'
+	String get dialogTitle => '授权激活';
+
+	/// zh: '设备码'
+	String get deviceCode => '设备码';
+
+	/// zh: '复制设备码'
+	String get copyDeviceCode => '复制设备码';
+
+	/// zh: '设备码已复制'
+	String get copied => '设备码已复制';
+
+	/// zh: '试用截止：$date'
+	String trialEnds({required Object date}) => '试用截止：${date}';
+
+	/// zh: '授权到期：$date'
+	String licenseExpires({required Object date}) => '授权到期：${date}';
+
+	/// zh: '当前未激活'
+	String get unlicensed => '当前未激活';
+
+	/// zh: '激活码'
+	String get activationCode => '激活码';
+
+	/// zh: '请将设备码发给授权方，获取激活码后粘贴到此处。'
+	String get activationHint => '请将设备码发给授权方，获取激活码后粘贴到此处。';
+
+	/// zh: '激活'
+	String get activate => '激活';
+
+	/// zh: '激活码无效，请检查后重试'
+	String get invalid => '激活码无效，请检查后重试';
+
+	/// zh: '激活码已过期'
+	String get expired => '激活码已过期';
+
+	/// zh: '激活成功'
+	String get success => '激活成功';
+}
+
 // Path: serial.menu
 class Translations$serial$menu$zh {
 	Translations$serial$menu$zh.internal(this._root);
@@ -564,6 +616,9 @@ class Translations$serial$menu$zh {
 
 	/// zh: '检查更新'
 	String get checkUpdate => '检查更新';
+
+	/// zh: '激活…'
+	String get activate => '激活…';
 
 	/// zh: '关于'
 	String get about => '关于';
@@ -2638,6 +2693,9 @@ class Translations$socket$menu$zh {
 	/// zh: '检查更新'
 	String get checkUpdate => '检查更新';
 
+	/// zh: '激活…'
+	String get activate => '激活…';
+
 	/// zh: '关于'
 	String get about => '关于';
 }
@@ -3306,6 +3364,7 @@ extension on Translations {
 			'serial.menu.toolsPanel' => '显示工具面板',
 			'serial.menu.keys' => '快捷键说明',
 			'serial.menu.checkUpdate' => '检查更新',
+			'serial.menu.activate' => '激活…',
 			'serial.menu.about' => '关于',
 			'serial.kbd.ctrlS' => 'Ctrl+S',
 			'serial.kbd.f12' => 'F12',
@@ -3768,9 +3827,9 @@ extension on Translations {
 			'ble.dialog.scriptTitle' => '脚本',
 			'ble.dialog.name' => '名称',
 			'ble.dialog.data' => '数据',
-			'ble.dialog.key' => '快捷键',
 			_ => null,
 		} ?? switch (path) {
+			'ble.dialog.key' => '快捷键',
 			'ble.dialog.pattern' => '匹配',
 			'ble.dialog.code' => '代码',
 			'ble.dialog.delay' => '延时 ms',
@@ -3981,6 +4040,7 @@ extension on Translations {
 			'socket.menu.toolsPanel' => '显示工具面板',
 			'socket.menu.keys' => '快捷键说明',
 			'socket.menu.checkUpdate' => '检查更新',
+			'socket.menu.activate' => '激活…',
 			'socket.menu.about' => '关于',
 			'socket.kbd.ctrlS' => 'Ctrl+S',
 			'socket.kbd.f12' => 'F12',
@@ -4064,6 +4124,20 @@ extension on Translations {
 			'update.downloadProgress' => ({required Object received, required Object total}) => '已下载 ${received} / ${total}',
 			'update.noRelease' => '尚未发布正式版本',
 			'update.checkFailed' => ({required Object code}) => '检查更新失败（HTTP ${code}）',
+			'license.banner' => '未激活：试用已结束。功能仍可使用，点击此处输入激活码。',
+			'license.dialogTitle' => '授权激活',
+			'license.deviceCode' => '设备码',
+			'license.copyDeviceCode' => '复制设备码',
+			'license.copied' => '设备码已复制',
+			'license.trialEnds' => ({required Object date}) => '试用截止：${date}',
+			'license.licenseExpires' => ({required Object date}) => '授权到期：${date}',
+			'license.unlicensed' => '当前未激活',
+			'license.activationCode' => '激活码',
+			'license.activationHint' => '请将设备码发给授权方，获取激活码后粘贴到此处。',
+			'license.activate' => '激活',
+			'license.invalid' => '激活码无效，请检查后重试',
+			'license.expired' => '激活码已过期',
+			'license.success' => '激活成功',
 			_ => null,
 		};
 	}

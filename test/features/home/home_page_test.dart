@@ -30,6 +30,8 @@ import 'package:device_debug_tools/features/socket/data/socket_session_factory.d
 import 'package:device_debug_tools/features/socket/data/socket_workspace_store.dart';
 import 'package:device_debug_tools/features/socket/model/socket_models.dart';
 import 'package:device_debug_tools/features/socket/repository/socket_console_repository.dart';
+import 'package:device_debug_tools/features/license/cubit/license_cubit.dart';
+import 'package:device_debug_tools/features/license/repository/license_repository.dart';
 import 'package:device_debug_tools/features/update/cubit/update_cubit.dart';
 import 'package:device_debug_tools/features/update/repository/update_repository.dart';
 import 'package:device_debug_tools/i18n/i18n.dart';
@@ -83,11 +85,25 @@ void main() {
               RepositoryProvider<UpdateRepository>(
                 create: (_) => UpdateRepository(prefs: prefs),
               ),
-            ],
-            child: BlocProvider(
-              create: (context) => UpdateCubit(
-                repository: context.read<UpdateRepository>(),
+              RepositoryProvider<LicenseRepository>(
+                create: (_) => LicenseRepository(
+                  settings: Hive.box<dynamic>(StorageKeys.settingsBox),
+                ),
               ),
+            ],
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) => UpdateCubit(
+                    repository: context.read<UpdateRepository>(),
+                  ),
+                ),
+                BlocProvider(
+                  create: (context) => LicenseCubit(
+                    repository: context.read<LicenseRepository>(),
+                  )..start(),
+                ),
+              ],
               child: const HomePage(),
             ),
           ),
