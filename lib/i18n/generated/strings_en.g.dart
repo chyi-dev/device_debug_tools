@@ -44,6 +44,11 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$home$en home = _Translations$home$en._(_root);
 	@override late final _Translations$common$en common = _Translations$common$en._(_root);
 	@override late final _Translations$serial$en serial = _Translations$serial$en._(_root);
+	@override late final _Translations$ble$en ble = _Translations$ble$en._(_root);
+	@override late final _Translations$mqtt$en mqtt = _Translations$mqtt$en._(_root);
+	@override late final _Translations$socket$en socket = _Translations$socket$en._(_root);
+	@override late final _Translations$update$en update = _Translations$update$en._(_root);
+	@override late final _Translations$license$en license = _Translations$license$en._(_root);
 }
 
 // Path: app
@@ -76,6 +81,21 @@ class _Translations$home$en extends Translations$home$zh {
 	// Translations
 	@override String get welcome => 'Welcome to Device Debug Tools';
 	@override String get placeholder => 'Add feature modules under lib/features';
+	@override String get addConnection => '+ New';
+	@override String get kindSerial => 'Serial';
+	@override String get kindBle => 'Bluetooth LE';
+	@override String get kindMqtt => 'MQTT';
+	@override String get kindTcp => 'TCP';
+	@override String get kindUdp => 'UDP';
+	@override String get badgeSerial => 'SERIAL';
+	@override String get badgeBle => 'BLE';
+	@override String get badgeMqtt => 'MQTT';
+	@override String get badgeTcp => 'TCP';
+	@override String get badgeUdp => 'UDP';
+	@override String get emptyConnections => 'No connections yet. Use New to add a serial, BLE, MQTT or TCP/UDP tab.';
+	@override String get rename => 'Rename';
+	@override String get renameTitle => 'Rename tab';
+	@override String get renameName => 'Name';
 }
 
 // Path: common
@@ -97,6 +117,10 @@ class _Translations$common$en extends Translations$common$zh {
 	@override String get add => 'Add';
 	@override String get edit => 'Edit';
 	@override String get duplicate => 'Duplicate';
+	@override String get github => 'Project';
+	@override String get githubUrl => 'https://github.com/chyi-dev/device_debug_tools';
+	@override String get email => 'Email';
+	@override String get emailAddress => '757120553@qq.com';
 }
 
 // Path: serial
@@ -135,6 +159,161 @@ class _Translations$serial$en extends Translations$serial$zh {
 	@override late final _Translations$serial$notice$en notice = _Translations$serial$notice$en._(_root);
 }
 
+// Path: ble
+class _Translations$ble$en extends Translations$ble$zh {
+	_Translations$ble$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$ble$scan$en scan = _Translations$ble$scan$en._(_root);
+	@override String get connect => 'Connect';
+	@override String get disconnect => 'Disconnect';
+	@override String get connecting => 'Connecting…';
+	@override late final _Translations$ble$pin$en pin = _Translations$ble$pin$en._(_root);
+	@override String get writeType => 'Write type';
+	@override String get withResponse => 'With Response';
+	@override String get withoutResponse => 'Without Response';
+	@override String get mtu => 'MTU';
+	@override String get chunk => 'Chunk size';
+	@override late final _Translations$ble$log$en log = _Translations$ble$log$en._(_root);
+	@override String get send => 'Send';
+	@override String get clear => 'Clear';
+	@override String get clearRx => 'Clear received';
+	@override String get saveLog => 'Save received data…';
+	@override String get noWrite => 'No Write characteristic pinned';
+	@override String bytes({required Object count, required Object uuid}) => 'Sending ${count} bytes · Write ${uuid}';
+	@override String get ctrlEnter => 'Ctrl+Enter to send';
+	@override String get statusHint => 'Pin both characteristics before sending';
+	@override String get closed => 'BLE CLOSED';
+	@override String get compact => 'Compact';
+	@override String get toolsPanel => 'Tools';
+	@override String get compactTip => 'Collapse or expand the left pane';
+	@override String get toolsTip => 'Show or hide the tools pane';
+	@override late final _Translations$ble$quick$en quick = _Translations$ble$quick$en._(_root);
+	@override late final _Translations$ble$batch$en batch = _Translations$ble$batch$en._(_root);
+	@override late final _Translations$ble$reply$en reply = _Translations$ble$reply$en._(_root);
+	@override late final _Translations$ble$history$en history = _Translations$ble$history$en._(_root);
+	@override late final _Translations$ble$script$en script = _Translations$ble$script$en._(_root);
+	@override late final _Translations$ble$dialog$en dialog = _Translations$ble$dialog$en._(_root);
+	@override late final _Translations$ble$notice$en notice = _Translations$ble$notice$en._(_root);
+}
+
+// Path: mqtt
+class _Translations$mqtt$en extends Translations$mqtt$zh {
+	_Translations$mqtt$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'MQTT connection';
+	@override String get scheme => 'Scheme';
+	@override String get host => 'Broker';
+	@override String get port => 'Port';
+	@override String get path => 'Path';
+	@override String get connect => 'Connect';
+	@override String get connecting => 'Connecting…';
+	@override String get disconnect => 'Disconnect';
+	@override String get expand => 'Show connection settings';
+	@override String get collapse => 'Hide connection settings';
+	@override late final _Translations$mqtt$section$en section = _Translations$mqtt$section$en._(_root);
+	@override String get version => 'Version';
+	@override String get clientId => 'Client ID';
+	@override String get username => 'Username';
+	@override String get password => 'Password';
+	@override String get ca => 'CA certificate';
+	@override String get cert => 'Client certificate';
+	@override String get key => 'Private key';
+	@override String get pick => 'Choose…';
+	@override String get unset => 'Not selected';
+	@override String get keepAlive => 'Keep Alive';
+	@override String get sessionExpiry => 'Session Expiry';
+	@override String get cleanStart => 'Clean Start';
+	@override String get autoReconnect => 'Auto reconnect';
+	@override String get willTopic => 'Will topic';
+	@override String get willPayload => 'Will payload';
+	@override String get willQos => 'Will QoS';
+	@override String get willRetain => 'Will retain';
+	@override late final _Translations$mqtt$subs$en subs = _Translations$mqtt$subs$en._(_root);
+	@override late final _Translations$mqtt$pubs$en pubs = _Translations$mqtt$pubs$en._(_root);
+	@override late final _Translations$mqtt$log$en log = _Translations$mqtt$log$en._(_root);
+	@override late final _Translations$mqtt$compose$en compose = _Translations$mqtt$compose$en._(_root);
+	@override late final _Translations$mqtt$tab$en tab = _Translations$mqtt$tab$en._(_root);
+	@override late final _Translations$mqtt$quick$en quick = _Translations$mqtt$quick$en._(_root);
+	@override late final _Translations$mqtt$history$en history = _Translations$mqtt$history$en._(_root);
+	@override late final _Translations$mqtt$script$en script = _Translations$mqtt$script$en._(_root);
+	@override late final _Translations$mqtt$status$en status = _Translations$mqtt$status$en._(_root);
+	@override String get compact => 'Compact';
+	@override String get toolsPanel => 'Tools';
+	@override String get compactTip => 'Collapse or expand the left pane';
+	@override String get toolsTip => 'Show or hide the tools pane';
+	@override String get saveLog => 'Save message log…';
+	@override late final _Translations$mqtt$notice$en notice = _Translations$mqtt$notice$en._(_root);
+}
+
+// Path: socket
+class _Translations$socket$en extends Translations$socket$zh {
+	_Translations$socket$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$socket$menu$en menu = _Translations$socket$menu$en._(_root);
+	@override late final _Translations$socket$kbd$en kbd = _Translations$socket$kbd$en._(_root);
+	@override String get compact => 'Compact';
+	@override String get toolsPanel => 'Tools';
+	@override String get compactTip => 'Collapse or expand the left pane';
+	@override String get toolsTip => 'Show or hide the tools pane';
+	@override late final _Translations$socket$conn$en conn = _Translations$socket$conn$en._(_root);
+	@override late final _Translations$socket$log$en log = _Translations$socket$log$en._(_root);
+	@override late final _Translations$socket$dialog$en dialog = _Translations$socket$dialog$en._(_root);
+	@override late final _Translations$socket$notice$en notice = _Translations$socket$notice$en._(_root);
+}
+
+// Path: update
+class _Translations$update$en extends Translations$update$zh {
+	_Translations$update$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get check => 'Check for updates';
+	@override String get availableTitle => 'Update available';
+	@override String versionLine({required Object current, required Object latest}) => 'Current ${current} · Latest ${latest}';
+	@override String get releaseNotes => 'Release notes';
+	@override String get downloadInstall => 'Download and install';
+	@override String get openReleasePage => 'Open release page';
+	@override String upToDate({required Object version}) => 'You are on the latest version ${version}';
+	@override String get downloadingTitle => 'Downloading update';
+	@override String get downloading => 'Downloading installer…';
+	@override String downloadProgress({required Object received, required Object total}) => 'Downloaded ${received} / ${total}';
+	@override String get noRelease => 'No published release yet';
+	@override String checkFailed({required Object code}) => 'Update check failed (HTTP ${code})';
+}
+
+// Path: license
+class _Translations$license$en extends Translations$license$zh {
+	_Translations$license$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get banner => 'Unlicensed: trial ended. The app still works — tap here to enter an activation code.';
+	@override String get dialogTitle => 'Activate license';
+	@override String get deviceCode => 'Device code';
+	@override String get copyDeviceCode => 'Copy device code';
+	@override String get copied => 'Device code copied';
+	@override String trialEnds({required Object date}) => 'Trial ends: ${date}';
+	@override String licenseExpires({required Object date}) => 'License expires: ${date}';
+	@override String get unlicensed => 'Not activated';
+	@override String get activationCode => 'Activation code';
+	@override String get activationHint => 'Send the device code to the issuer, then paste the activation code here.';
+	@override String get activate => 'Activate';
+	@override String get invalid => 'Invalid activation code. Please check and try again.';
+	@override String get expired => 'This activation code has expired';
+	@override String get success => 'Activated successfully';
+}
+
 // Path: serial.menu
 class _Translations$serial$menu$en extends Translations$serial$menu$zh {
 	_Translations$serial$menu$en._(TranslationsEn root) : this._root = root, super.internal(root);
@@ -154,6 +333,8 @@ class _Translations$serial$menu$en extends Translations$serial$menu$zh {
 	@override String get compact => 'Compact (hide left panel)';
 	@override String get toolsPanel => 'Show tools panel';
 	@override String get keys => 'Keyboard shortcuts';
+	@override String get checkUpdate => 'Check for updates';
+	@override String get activate => 'Activate…';
 	@override String get about => 'About';
 }
 
@@ -552,6 +733,8 @@ class _Translations$serial$status$en extends Translations$serial$status$zh {
 
 	// Translations
 	@override String get reset => 'Reset counts';
+	@override String get copy => 'Copy';
+	@override String get copied => 'Copied';
 	@override String reply({required Object enabled, required Object total}) => 'Auto-reply ${enabled}/${total}';
 	@override String saving({required Object name, required Object count}) => 'Saving ${name} · ${count} lines';
 	@override String fileMeta({required Object name, required Object count}) => '${name} · ${count} bytes';
@@ -704,6 +887,525 @@ class _Translations$serial$notice$en extends Translations$serial$notice$zh {
 	@override String fileLoaded({required Object name}) => 'Loaded ${name}';
 }
 
+// Path: ble.scan
+class _Translations$ble$scan$en extends Translations$ble$scan$zh {
+	_Translations$ble$scan$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Devices';
+	@override String get ready => 'Ready';
+	@override String get filter => 'Name or address';
+	@override String get scan => 'Scan';
+	@override String get scanning => 'Scanning';
+	@override String get empty => 'No matching devices';
+	@override String get notScanned => 'Not scanned yet';
+	@override String get adapterOff => 'Bluetooth adapter unavailable';
+}
+
+// Path: ble.pin
+class _Translations$ble$pin$en extends Translations$ble$pin$zh {
+	_Translations$ble$pin$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Pinned channels';
+	@override String get notify => 'Notify';
+	@override String get write => 'Write';
+	@override String get unpinned => 'None';
+	@override String get pinNotify => 'Pin notify';
+	@override String get pinWrite => 'Pin write';
+	@override String get pinnedNotify => 'Notify pinned';
+	@override String get pinnedWrite => 'Write pinned';
+	@override String get needConnect => 'Connect before pinning characteristics';
+	@override String get note => 'After re-pinning, the send box and quick commands use the new characteristic.';
+}
+
+// Path: ble.log
+class _Translations$ble$log$en extends Translations$ble$log$zh {
+	_Translations$ble$log$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Data log';
+	@override String get search => 'Search received data';
+	@override String records({required Object count}) => '${count} items';
+	@override String get empty => 'Pin Notify and Write, then this is the same data log as serial.';
+}
+
+// Path: ble.quick
+class _Translations$ble$quick$en extends Translations$ble$quick$zh {
+	_Translations$ble$quick$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String target({required Object uuid}) => 'Send to the pinned Write ${uuid}';
+	@override String get targetNone => 'Send to the pinned Write (none)';
+}
+
+// Path: ble.batch
+class _Translations$ble$batch$en extends Translations$ble$batch$zh {
+	_Translations$ble$batch$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get bar => 'Writes to the pinned Write when running';
+}
+
+// Path: ble.reply
+class _Translations$ble$reply$en extends Translations$ble$reply$zh {
+	_Translations$ble$reply$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get explain => 'Auto-reply only runs after both Notify and Write are pinned.';
+}
+
+// Path: ble.history
+class _Translations$ble$history$en extends Translations$ble$history$zh {
+	_Translations$ble$history$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get empty => 'Only records data sent from the send box.';
+}
+
+// Path: ble.script
+class _Translations$ble$script$en extends Translations$ble$script$zh {
+	_Translations$ble$script$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get explain => 'Hooks read the currently pinned characteristics; re-pinning does not require script changes.';
+}
+
+// Path: ble.dialog
+class _Translations$ble$dialog$en extends Translations$ble$dialog$zh {
+	_Translations$ble$dialog$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get quickTitle => 'Quick command';
+	@override String get ruleTitle => 'Reply rule';
+	@override String get batchTitle => 'Batch job';
+	@override String get scriptTitle => 'Script';
+	@override String get name => 'Name';
+	@override String get data => 'Data';
+	@override String get key => 'Shortcut';
+	@override String get pattern => 'Pattern';
+	@override String get code => 'Code';
+	@override String get delay => 'Delay ms';
+	@override String get repeat => 'Repeat';
+	@override String get deleteQuick => 'Delete quick command';
+	@override String get deleteRule => 'Delete reply rule';
+	@override String get deleteBatch => 'Delete batch job';
+	@override String get deleteScript => 'Delete script';
+}
+
+// Path: ble.notice
+class _Translations$ble$notice$en extends Translations$ble$notice$zh {
+	_Translations$ble$notice$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get ready => 'Ready';
+	@override String get adapterOff => 'Bluetooth adapter unavailable. Settings can still be saved.';
+	@override String scanDone({required Object count}) => 'Scan finished, ${count} devices found';
+	@override String get scanEmpty => 'No matching devices';
+	@override String scanFailed({required Object detail}) => 'Scan failed: ${detail}';
+	@override String get noDevice => 'Select a device first';
+	@override String connected({required Object name, required Object mtu}) => '${name} CONNECTED, MTU ${mtu} · pin Notify and Write in the left pane';
+	@override String connectFailed({required Object detail}) => 'Connect failed: ${detail}';
+	@override String get disconnected => 'Disconnected';
+	@override String pinNotify({required Object uuid}) => 'Pinned Notify ${uuid}';
+	@override String get unpinNotify => 'Notify pin cleared';
+	@override String pinWrite({required Object uuid, required Object type}) => 'Pinned Write ${uuid} · ${type}';
+	@override String get unpinWrite => 'Write pin cleared';
+	@override String get noWrite => 'No Write characteristic pinned';
+	@override String get sentNoNotify => 'Sent. No Notify pin, replies will not appear in the log';
+	@override String get badHex => 'Invalid HEX';
+	@override String get emptySend => 'Nothing to send';
+	@override String get mtuInvalid => 'MTU must be a positive integer';
+	@override String get chunkInvalid => 'Chunk size must be a positive integer';
+	@override String get logSaved => 'Received data saved as text';
+	@override String get recvCleared => 'Receive pane cleared';
+	@override String batchRunning({required Object step, required Object total}) => 'Batch sending · ${step}/${total}';
+	@override String get batchEnded => 'Batch finished';
+	@override String ruleOn({required Object name}) => '${name} enabled';
+	@override String ruleOff({required Object name}) => '${name} disabled';
+	@override String get deleted => 'Deleted';
+	@override String get duplicated => 'Duplicated';
+	@override String get quickSaved => 'Quick command saved';
+	@override String get ruleSaved => 'Reply rule saved';
+	@override String get batchSaved => 'Batch job saved';
+	@override String get scriptSaved => 'Script saved';
+	@override String get closedSend => 'BLE is not connected, send blocked';
+}
+
+// Path: mqtt.section
+class _Translations$mqtt$section$en extends Translations$mqtt$section$zh {
+	_Translations$mqtt$section$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get session => 'Session';
+	@override String get tls => 'TLS';
+	@override String get will => 'Will';
+}
+
+// Path: mqtt.subs
+class _Translations$mqtt$subs$en extends Translations$mqtt$subs$zh {
+	_Translations$mqtt$subs$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Subscriptions';
+	@override String get note => 'Use the button on the right to subscribe or unsubscribe. Right-click to edit or delete.';
+	@override String get topic => 'Topic, + or # allowed';
+	@override String get qos => 'QoS';
+	@override String get dialogTitle => 'Subscribe';
+	@override String get editTitle => 'Edit subscription';
+	@override String get needTopic => 'Enter a topic';
+	@override String get subscribe => 'Subscribe';
+	@override String get unsubscribe => 'Unsubscribe';
+	@override String delete({required Object topic}) => 'Delete "${topic}"? It will be removed from the list.';
+	@override String get empty => 'No subscriptions yet. Use Add to create one.';
+}
+
+// Path: mqtt.pubs
+class _Translations$mqtt$pubs$en extends Translations$mqtt$pubs$zh {
+	_Translations$mqtt$pubs$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Publish topics';
+	@override String get name => 'Name';
+	@override String get topic => 'Topic';
+	@override String get add => 'Add';
+	@override String get fill => 'Fill';
+	@override String get delete => 'Delete';
+	@override String get newTitle => 'Add publish topic';
+	@override String get needName => 'Enter a name';
+	@override String get needTopic => 'Enter a topic';
+	@override String get empty => 'No publish topics yet. Add one, then Fill writes it into the compose box.';
+	@override String get deleteTitle => 'Delete publish topic';
+	@override String deleteBody({required Object name, required Object topic}) => 'Delete "${name}" ${topic}? The topic already in the compose box will not change.';
+}
+
+// Path: mqtt.log
+class _Translations$mqtt$log$en extends Translations$mqtt$log$zh {
+	_Translations$mqtt$log$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Message log';
+	@override String get search => 'Search topic / payload';
+	@override String records({required Object count}) => '${count} items';
+	@override String get empty => 'Subscribed messages will appear here after connecting.';
+}
+
+// Path: mqtt.compose
+class _Translations$mqtt$compose$en extends Translations$mqtt$compose$zh {
+	_Translations$mqtt$compose$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get to => 'Publish to';
+	@override String get payload => 'Payload';
+	@override String get publish => 'Publish';
+	@override String get clear => 'Clear';
+	@override String get retain => 'Retain';
+	@override String bytes({required Object count}) => 'Sending ${count} bytes';
+	@override String get ctrlEnter => 'Ctrl+Enter';
+}
+
+// Path: mqtt.tab
+class _Translations$mqtt$tab$en extends Translations$mqtt$tab$zh {
+	_Translations$mqtt$tab$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get subs => 'Subscribe';
+	@override String get quick => 'Quick publish';
+	@override String get history => 'History';
+	@override String get script => 'Script';
+}
+
+// Path: mqtt.quick
+class _Translations$mqtt$quick$en extends Translations$mqtt$quick$zh {
+	_Translations$mqtt$quick$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get bar => 'Use the compose box, or override it';
+	@override String get publish => 'Publish';
+	@override String get inherit => 'Use the compose Topic, QoS, and Retain';
+	@override String inheritLabel({required Object topic, required Object qos}) => 'Inherit · ${topic} · QoS ${qos}';
+	@override String get newTitle => 'New quick publish';
+	@override String get editTitle => 'Edit quick publish';
+	@override String get name => 'Name';
+	@override String get payload => 'Payload';
+	@override String get key => 'Shortcut';
+	@override String get noKey => 'None';
+	@override String get qosRetain => 'QoS / Retain';
+	@override String get needName => 'Enter a name';
+	@override String get needPayload => 'Payload is empty';
+	@override String get needTopic => 'Enter a topic when not using the compose box';
+	@override String get empty => 'No quick publishes yet. Use Add to save one.';
+	@override String delete({required Object name}) => 'Delete quick publish "${name}"? This cannot be undone.';
+}
+
+// Path: mqtt.history
+class _Translations$mqtt$history$en extends Translations$mqtt$history$zh {
+	_Translations$mqtt$history$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get note => 'Only messages sent with the Publish button are kept. Click the time to send again, or Fill to put it back in the compose box.';
+	@override String get clear => 'Clear';
+	@override String get fill => 'Fill';
+	@override String get empty => 'No publish history yet.';
+	@override String deleteAll({required Object count}) => 'Clear all ${count} history items? This cannot be undone.';
+}
+
+// Path: mqtt.script
+class _Translations$mqtt$script$en extends Translations$mqtt$script$zh {
+	_Translations$mqtt$script$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String note({required Object enabled, required Object total}) => '${enabled} / ${total} enabled';
+	@override String get add => 'New';
+	@override String get waiting => 'Waiting';
+	@override String get off => 'Off';
+	@override String outputs({required Object count}) => '${count} outputs';
+	@override String get broken => 'Error';
+	@override String get noHook => 'No hook';
+	@override String get hookMessage => 'on_message';
+	@override String get hookPublish => 'before_publish';
+	@override String get explain => 'Lua. on_message runs after a message is logged. before_publish runs for the compose box and quick publish; return the message to send, or nil to drop it.\nSelect a row to open the editor between the log and the compose box. The switch only controls automatic runs.';
+	@override String mine({required Object count}) => 'My scripts ${count}';
+	@override String get tutorial => 'Lessons';
+	@override String get lessonNew => 'New script from this lesson';
+	@override String get lessonTry => 'Try sample';
+	@override String get tutorialNote => 'Infinite loops are stopped, and os.execute is removed. A sample run only writes the script log.';
+	@override String tried({required Object hook, required Object sample}) => 'Sample · ${hook} ← ${sample}';
+	@override late final _Translations$mqtt$script$lessons$en lessons = _Translations$mqtt$script$lessons$en._(_root);
+	@override String get empty => 'No scripts yet. Press New to write one.';
+	@override String get autoOn => 'Running automatically';
+	@override String get autoOff => 'Off, manual run only';
+	@override String get editorHint => 'Lua · saves as you type · Tab indents two spaces';
+	@override String get run => 'Run';
+	@override String get fold => 'Hide';
+	@override String get rename => 'Rename';
+	@override String get renameTitle => 'Rename script';
+	@override String delete({required Object name}) => 'Delete "${name}"?';
+	@override String get logTitle => 'Run log';
+	@override String get clear => 'Clear';
+	@override String get logEmpty => 'No output yet. Enabled scripts write here when a message arrives or a publish is attempted.';
+	@override String changed({required Object from, required Object to}) => '${from} → ${to}';
+	@override String blocked({required Object from}) => '${from} → nil, dropped';
+	@override String dryRun({required Object from, required Object to}) => 'Trial ${from} → ${to} (not published)';
+	@override String dryBlocked({required Object from}) => 'Trial ${from} → nil, this publish would be dropped';
+	@override String manualRx({required Object label}) => 'Manual · last message ${label}';
+	@override String get noRx => 'Manual · no message received yet';
+	@override String get badTx => 'Compose topic or payload is empty, cannot trial before_publish';
+	@override String get noHookLog => 'No on_message or before_publish';
+	@override String get tooLong => 'Instruction limit exceeded, stopped';
+}
+
+// Path: mqtt.status
+class _Translations$mqtt$status$en extends Translations$mqtt$status$zh {
+	_Translations$mqtt$status$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String subs({required Object count}) => 'Subs ${count}';
+}
+
+// Path: mqtt.notice
+class _Translations$mqtt$notice$en extends Translations$mqtt$notice$zh {
+	_Translations$mqtt$notice$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get ready => 'Ready';
+	@override String connected({required Object host, required Object port, required Object id}) => 'Connected ${host}:${port}, Client ID ${id}';
+	@override String get disconnected => 'Disconnected';
+	@override String connectFailed({required Object detail}) => 'Connect failed: ${detail}';
+	@override String get closed => 'MQTT is not connected, action blocked';
+	@override String get closedPublish => 'MQTT is not connected, publish blocked';
+	@override String get closedSubscribe => 'MQTT is not connected, subscribe blocked';
+	@override String get needTopic => 'Enter a subscribe topic';
+	@override String get dupTopic => 'Already subscribed to this topic';
+	@override String subscribed({required Object topic, required Object qos}) => 'Subscribed ${topic} · QoS ${qos}';
+	@override String unsubscribed({required Object topic}) => 'Unsubscribed ${topic}';
+	@override String filled({required Object topic}) => 'Filled ${topic}';
+	@override String get needPubTopic => 'Enter a publish topic';
+	@override String get emptyPayload => 'Payload is empty';
+	@override String get needName => 'Enter a name and topic';
+	@override String get logSaved => 'Message log saved';
+	@override String get cleared => 'Log cleared';
+	@override String get quickSaved => 'Quick publish saved';
+	@override String get deleted => 'Deleted';
+	@override String get portInvalid => 'Port must be 1–65535';
+	@override String get keepAliveInvalid => 'Keep Alive must be a positive integer';
+}
+
+// Path: socket.menu
+class _Translations$socket$menu$en extends Translations$socket$menu$zh {
+	_Translations$socket$menu$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get file => 'File';
+	@override String get settings => 'Settings';
+	@override String get tools => 'Tools';
+	@override String get help => 'Help';
+	@override String get saveLog => 'Save received data…';
+	@override String get themeLight => 'Classic light';
+	@override String get themeDark => 'Classic dark';
+	@override String get compact => 'Compact mode (hide left pane)';
+	@override String get toolsPanel => 'Show tools pane';
+	@override String get keys => 'Keyboard shortcuts';
+	@override String get checkUpdate => 'Check for updates';
+	@override String get activate => 'Activate…';
+	@override String get about => 'About';
+}
+
+// Path: socket.kbd
+class _Translations$socket$kbd$en extends Translations$socket$kbd$zh {
+	_Translations$socket$kbd$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get ctrlS => 'Ctrl+S';
+	@override String get f12 => 'F12';
+}
+
+// Path: socket.conn
+class _Translations$socket$conn$en extends Translations$socket$conn$zh {
+	_Translations$socket$conn$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Connection';
+	@override String get role => 'Mode';
+	@override String get roleClient => 'Client';
+	@override String get roleServer => 'Server';
+	@override String get host => 'Host';
+	@override String get port => 'Port';
+	@override String get remoteTitle => 'Send target (UDP)';
+	@override String get remoteHost => 'Remote host';
+	@override String get remotePort => 'Remote port';
+	@override String get open => 'Open';
+	@override String get close => 'Close';
+	@override String get peers => 'Clients';
+	@override String peerAll({required Object count}) => 'All (${count})';
+	@override String get emptyPeers => 'Waiting for clients…';
+}
+
+// Path: socket.log
+class _Translations$socket$log$en extends Translations$socket$log$zh {
+	_Translations$socket$log$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Data log';
+	@override String get search => 'Search received data';
+	@override String get waiting => 'Waiting for data…';
+	@override String get closed => 'Not connected. Set host and port on the left, then Open.';
+	@override String matches({required Object count}) => '${count} matches';
+	@override String records({required Object count}) => '${count} records';
+	@override String get rxHidden => 'RX hidden';
+	@override String peerLabel({required Object peer}) => '${peer}';
+	@override String opened({required Object endpoint}) => '${endpoint} opened';
+	@override String closedEndpoint({required Object endpoint}) => '${endpoint} closed';
+}
+
+// Path: socket.dialog
+class _Translations$socket$dialog$en extends Translations$socket$dialog$zh {
+	_Translations$socket$dialog$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get aboutTitle => 'About network console';
+	@override String get aboutBody => 'TCP/UDP console shares the tools pane and Lua script engine with the serial console.';
+	@override String get aboutDetail => 'TCP server can send to all or one client; UDP requires a send target.';
+}
+
+// Path: socket.notice
+class _Translations$socket$notice$en extends Translations$socket$notice$zh {
+	_Translations$socket$notice$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get ready => 'Ready';
+	@override String get opened => 'Connection opened';
+	@override String get closed => 'Connection closed';
+	@override String get closedSend => 'Not connected, send blocked';
+	@override String get closedRule => 'Not connected, rules will not run';
+	@override String get closedBatch => 'Not connected, batch not started';
+	@override String openFailed({required Object detail}) => 'Open failed: ${detail}';
+	@override String get noRemote => 'Configure the UDP send target first';
+	@override String get noClient => 'No TCP clients connected';
+	@override String get hostInvalid => 'Host cannot be empty';
+	@override String get portInvalid => 'Port must be 1–65535';
+	@override String get timeoutInvalid => 'Packet timeout must be a non-negative integer';
+	@override String get periodInvalid => 'Loop period must be at least 10 ms';
+	@override String get repeatInvalid => 'Repeat count must be a positive integer';
+	@override String get saveStarted => 'Saving RX; file is written when you turn save off';
+	@override String saveWritten({required Object name, required Object count}) => 'Wrote ${name} (${count} lines)';
+	@override String get logSaved => 'Received data saved as text';
+	@override String get recvCleared => 'Log cleared';
+	@override String loopStarted({required Object period}) => 'Loop sending, period ${period} ms';
+	@override String get loopStopped => 'Loop stopped';
+	@override String batchRunning({required Object step, required Object total}) => 'Batch sending · step ${step}/${total}';
+	@override String get batchEnded => 'Batch finished';
+	@override String ruleOn({required Object name}) => '${name} enabled';
+	@override String ruleOff({required Object name}) => '${name} disabled';
+	@override String get deleted => 'Deleted';
+	@override String get duplicated => 'Duplicated';
+	@override String get quickSaved => 'Quick command saved';
+	@override String get folderSaved => 'Folder saved';
+	@override String get ruleSaved => 'Reply rule saved';
+	@override String get batchSaved => 'Batch job saved';
+	@override String get scriptSaved => 'Script renamed';
+	@override String lessonCreated({required Object name, required Object title}) => 'Created ${name} from “${title}”';
+	@override String get lessonTried => 'Sample run written to script log';
+	@override String fileLoaded({required Object name}) => 'Loaded ${name}';
+	@override String peerJoined({required Object address}) => 'Client joined: ${address}';
+	@override String peerLeft({required Object address}) => 'Client left: ${address}';
+	@override String get roleChanged => 'TCP mode changed; open the connection again';
+}
+
 // Path: serial.script.lessons
 class _Translations$serial$script$lessons$en extends Translations$serial$script$lessons$zh {
 	_Translations$serial$script$lessons$en._(TranslationsEn root) : this._root = root, super.internal(root);
@@ -733,6 +1435,18 @@ class _Translations$serial$reply$lessons$en extends Translations$serial$reply$le
 	@override late final _Translations$serial$reply$lessons$reword$en reword = _Translations$serial$reply$lessons$reword$en._(_root);
 	@override late final _Translations$serial$reply$lessons$groups$en groups = _Translations$serial$reply$lessons$groups$en._(_root);
 	@override late final _Translations$serial$reply$lessons$reascii$en reascii = _Translations$serial$reply$lessons$reascii$en._(_root);
+}
+
+// Path: mqtt.script.lessons
+class _Translations$mqtt$script$lessons$en extends Translations$mqtt$script$lessons$zh {
+	_Translations$mqtt$script$lessons$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$mqtt$script$lessons$hooks$en hooks = _Translations$mqtt$script$lessons$hooks$en._(_root);
+	@override late final _Translations$mqtt$script$lessons$print$en print = _Translations$mqtt$script$lessons$print$en._(_root);
+	@override late final _Translations$mqtt$script$lessons$rewrite$en rewrite = _Translations$mqtt$script$lessons$rewrite$en._(_root);
 }
 
 // Path: serial.script.lessons.hooks
@@ -905,6 +1619,39 @@ class _Translations$serial$reply$lessons$reascii$en extends Translations$serial$
 	@override String get rxNote => 'The characters are OK,42. (.+) puts both characters into the same \$1.';
 }
 
+// Path: mqtt.script.lessons.hooks
+class _Translations$mqtt$script$lessons$hooks$en extends Translations$mqtt$script$lessons$hooks$zh {
+	_Translations$mqtt$script$lessons$hooks$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'When a script runs';
+	@override String get text => 'on_message(msg) runs after a message is logged. before_publish(msg) runs before the compose box and quick publish send. msg has topic, payload, qos, and retain.';
+}
+
+// Path: mqtt.script.lessons.print
+class _Translations$mqtt$script$lessons$print$en extends Translations$mqtt$script$lessons$print$zh {
+	_Translations$mqtt$script$lessons$print$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Print the topic and payload';
+	@override String get text => 'log writes to the run log. print is the same function.';
+}
+
+// Path: mqtt.script.lessons.rewrite
+class _Translations$mqtt$script$lessons$rewrite$en extends Translations$mqtt$script$lessons$rewrite$zh {
+	_Translations$mqtt$script$lessons$rewrite$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Rewrite or drop a publish';
+	@override String get text => 'Return the edited msg to publish it. Return nil when payload is drop. Other payloads are prefixed with cmd:.';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -918,6 +1665,21 @@ extension on TranslationsEn {
 			'nav.serial' => 'Serial',
 			'home.welcome' => 'Welcome to Device Debug Tools',
 			'home.placeholder' => 'Add feature modules under lib/features',
+			'home.addConnection' => '+ New',
+			'home.kindSerial' => 'Serial',
+			'home.kindBle' => 'Bluetooth LE',
+			'home.kindMqtt' => 'MQTT',
+			'home.kindTcp' => 'TCP',
+			'home.kindUdp' => 'UDP',
+			'home.badgeSerial' => 'SERIAL',
+			'home.badgeBle' => 'BLE',
+			'home.badgeMqtt' => 'MQTT',
+			'home.badgeTcp' => 'TCP',
+			'home.badgeUdp' => 'UDP',
+			'home.emptyConnections' => 'No connections yet. Use New to add a serial, BLE, MQTT or TCP/UDP tab.',
+			'home.rename' => 'Rename',
+			'home.renameTitle' => 'Rename tab',
+			'home.renameName' => 'Name',
 			'common.confirm' => 'Confirm',
 			'common.cancel' => 'Cancel',
 			'common.retry' => 'Retry',
@@ -930,6 +1692,10 @@ extension on TranslationsEn {
 			'common.add' => 'Add',
 			'common.edit' => 'Edit',
 			'common.duplicate' => 'Duplicate',
+			'common.github' => 'Project',
+			'common.githubUrl' => 'https://github.com/chyi-dev/device_debug_tools',
+			'common.email' => 'Email',
+			'common.emailAddress' => '757120553@qq.com',
 			'serial.menu.file' => 'File',
 			'serial.menu.settings' => 'Settings',
 			'serial.menu.tools' => 'Tools',
@@ -942,6 +1708,8 @@ extension on TranslationsEn {
 			'serial.menu.compact' => 'Compact (hide left panel)',
 			'serial.menu.toolsPanel' => 'Show tools panel',
 			'serial.menu.keys' => 'Keyboard shortcuts',
+			'serial.menu.checkUpdate' => 'Check for updates',
+			'serial.menu.activate' => 'Activate…',
 			'serial.menu.about' => 'About',
 			'serial.kbd.ctrlS' => 'Ctrl+S',
 			'serial.kbd.f12' => 'F12',
@@ -1233,6 +2001,8 @@ extension on TranslationsEn {
 			'serial.calc.empty' => 'Enter some data',
 			'serial.calc.explain' => 'CRC16 is MODBUS (low byte first). CRC32 is IEEE (big-endian). Append writes the checksum into the send box.',
 			'serial.status.reset' => 'Reset counts',
+			'serial.status.copy' => 'Copy',
+			'serial.status.copied' => 'Copied',
 			'serial.status.reply' => ({required Object enabled, required Object total}) => 'Auto-reply ${enabled}/${total}',
 			'serial.status.saving' => ({required Object name, required Object count}) => 'Saving ${name} · ${count} lines',
 			'serial.status.fileMeta' => ({required Object name, required Object count}) => '${name} · ${count} bytes',
@@ -1347,6 +2117,372 @@ extension on TranslationsEn {
 			'serial.notice.importedConfig' => ({required Object list}) => 'Imported ${list}',
 			'serial.notice.importInvalid' => 'This is not a configuration file exported by this tool',
 			'serial.notice.fileLoaded' => ({required Object name}) => 'Loaded ${name}',
+			'ble.scan.title' => 'Devices',
+			'ble.scan.ready' => 'Ready',
+			'ble.scan.filter' => 'Name or address',
+			'ble.scan.scan' => 'Scan',
+			'ble.scan.scanning' => 'Scanning',
+			'ble.scan.empty' => 'No matching devices',
+			'ble.scan.notScanned' => 'Not scanned yet',
+			'ble.scan.adapterOff' => 'Bluetooth adapter unavailable',
+			'ble.connect' => 'Connect',
+			'ble.disconnect' => 'Disconnect',
+			'ble.connecting' => 'Connecting…',
+			'ble.pin.title' => 'Pinned channels',
+			'ble.pin.notify' => 'Notify',
+			'ble.pin.write' => 'Write',
+			'ble.pin.unpinned' => 'None',
+			'ble.pin.pinNotify' => 'Pin notify',
+			'ble.pin.pinWrite' => 'Pin write',
+			'ble.pin.pinnedNotify' => 'Notify pinned',
+			'ble.pin.pinnedWrite' => 'Write pinned',
+			'ble.pin.needConnect' => 'Connect before pinning characteristics',
+			'ble.pin.note' => 'After re-pinning, the send box and quick commands use the new characteristic.',
+			'ble.writeType' => 'Write type',
+			'ble.withResponse' => 'With Response',
+			'ble.withoutResponse' => 'Without Response',
+			'ble.mtu' => 'MTU',
+			'ble.chunk' => 'Chunk size',
+			'ble.log.title' => 'Data log',
+			'ble.log.search' => 'Search received data',
+			'ble.log.records' => ({required Object count}) => '${count} items',
+			'ble.log.empty' => 'Pin Notify and Write, then this is the same data log as serial.',
+			'ble.send' => 'Send',
+			'ble.clear' => 'Clear',
+			'ble.clearRx' => 'Clear received',
+			'ble.saveLog' => 'Save received data…',
+			'ble.noWrite' => 'No Write characteristic pinned',
+			'ble.bytes' => ({required Object count, required Object uuid}) => 'Sending ${count} bytes · Write ${uuid}',
+			'ble.ctrlEnter' => 'Ctrl+Enter to send',
+			'ble.statusHint' => 'Pin both characteristics before sending',
+			'ble.closed' => 'BLE CLOSED',
+			'ble.compact' => 'Compact',
+			'ble.toolsPanel' => 'Tools',
+			'ble.compactTip' => 'Collapse or expand the left pane',
+			'ble.toolsTip' => 'Show or hide the tools pane',
+			'ble.quick.target' => ({required Object uuid}) => 'Send to the pinned Write ${uuid}',
+			'ble.quick.targetNone' => 'Send to the pinned Write (none)',
+			'ble.batch.bar' => 'Writes to the pinned Write when running',
+			'ble.reply.explain' => 'Auto-reply only runs after both Notify and Write are pinned.',
+			'ble.history.empty' => 'Only records data sent from the send box.',
+			'ble.script.explain' => 'Hooks read the currently pinned characteristics; re-pinning does not require script changes.',
+			'ble.dialog.quickTitle' => 'Quick command',
+			'ble.dialog.ruleTitle' => 'Reply rule',
+			'ble.dialog.batchTitle' => 'Batch job',
+			'ble.dialog.scriptTitle' => 'Script',
+			'ble.dialog.name' => 'Name',
+			'ble.dialog.data' => 'Data',
+			_ => null,
+		} ?? switch (path) {
+			'ble.dialog.key' => 'Shortcut',
+			'ble.dialog.pattern' => 'Pattern',
+			'ble.dialog.code' => 'Code',
+			'ble.dialog.delay' => 'Delay ms',
+			'ble.dialog.repeat' => 'Repeat',
+			'ble.dialog.deleteQuick' => 'Delete quick command',
+			'ble.dialog.deleteRule' => 'Delete reply rule',
+			'ble.dialog.deleteBatch' => 'Delete batch job',
+			'ble.dialog.deleteScript' => 'Delete script',
+			'ble.notice.ready' => 'Ready',
+			'ble.notice.adapterOff' => 'Bluetooth adapter unavailable. Settings can still be saved.',
+			'ble.notice.scanDone' => ({required Object count}) => 'Scan finished, ${count} devices found',
+			'ble.notice.scanEmpty' => 'No matching devices',
+			'ble.notice.scanFailed' => ({required Object detail}) => 'Scan failed: ${detail}',
+			'ble.notice.noDevice' => 'Select a device first',
+			'ble.notice.connected' => ({required Object name, required Object mtu}) => '${name} CONNECTED, MTU ${mtu} · pin Notify and Write in the left pane',
+			'ble.notice.connectFailed' => ({required Object detail}) => 'Connect failed: ${detail}',
+			'ble.notice.disconnected' => 'Disconnected',
+			'ble.notice.pinNotify' => ({required Object uuid}) => 'Pinned Notify ${uuid}',
+			'ble.notice.unpinNotify' => 'Notify pin cleared',
+			'ble.notice.pinWrite' => ({required Object uuid, required Object type}) => 'Pinned Write ${uuid} · ${type}',
+			'ble.notice.unpinWrite' => 'Write pin cleared',
+			'ble.notice.noWrite' => 'No Write characteristic pinned',
+			'ble.notice.sentNoNotify' => 'Sent. No Notify pin, replies will not appear in the log',
+			'ble.notice.badHex' => 'Invalid HEX',
+			'ble.notice.emptySend' => 'Nothing to send',
+			'ble.notice.mtuInvalid' => 'MTU must be a positive integer',
+			'ble.notice.chunkInvalid' => 'Chunk size must be a positive integer',
+			'ble.notice.logSaved' => 'Received data saved as text',
+			'ble.notice.recvCleared' => 'Receive pane cleared',
+			'ble.notice.batchRunning' => ({required Object step, required Object total}) => 'Batch sending · ${step}/${total}',
+			'ble.notice.batchEnded' => 'Batch finished',
+			'ble.notice.ruleOn' => ({required Object name}) => '${name} enabled',
+			'ble.notice.ruleOff' => ({required Object name}) => '${name} disabled',
+			'ble.notice.deleted' => 'Deleted',
+			'ble.notice.duplicated' => 'Duplicated',
+			'ble.notice.quickSaved' => 'Quick command saved',
+			'ble.notice.ruleSaved' => 'Reply rule saved',
+			'ble.notice.batchSaved' => 'Batch job saved',
+			'ble.notice.scriptSaved' => 'Script saved',
+			'ble.notice.closedSend' => 'BLE is not connected, send blocked',
+			'mqtt.title' => 'MQTT connection',
+			'mqtt.scheme' => 'Scheme',
+			'mqtt.host' => 'Broker',
+			'mqtt.port' => 'Port',
+			'mqtt.path' => 'Path',
+			'mqtt.connect' => 'Connect',
+			'mqtt.connecting' => 'Connecting…',
+			'mqtt.disconnect' => 'Disconnect',
+			'mqtt.expand' => 'Show connection settings',
+			'mqtt.collapse' => 'Hide connection settings',
+			'mqtt.section.session' => 'Session',
+			'mqtt.section.tls' => 'TLS',
+			'mqtt.section.will' => 'Will',
+			'mqtt.version' => 'Version',
+			'mqtt.clientId' => 'Client ID',
+			'mqtt.username' => 'Username',
+			'mqtt.password' => 'Password',
+			'mqtt.ca' => 'CA certificate',
+			'mqtt.cert' => 'Client certificate',
+			'mqtt.key' => 'Private key',
+			'mqtt.pick' => 'Choose…',
+			'mqtt.unset' => 'Not selected',
+			'mqtt.keepAlive' => 'Keep Alive',
+			'mqtt.sessionExpiry' => 'Session Expiry',
+			'mqtt.cleanStart' => 'Clean Start',
+			'mqtt.autoReconnect' => 'Auto reconnect',
+			'mqtt.willTopic' => 'Will topic',
+			'mqtt.willPayload' => 'Will payload',
+			'mqtt.willQos' => 'Will QoS',
+			'mqtt.willRetain' => 'Will retain',
+			'mqtt.subs.title' => 'Subscriptions',
+			'mqtt.subs.note' => 'Use the button on the right to subscribe or unsubscribe. Right-click to edit or delete.',
+			'mqtt.subs.topic' => 'Topic, + or # allowed',
+			'mqtt.subs.qos' => 'QoS',
+			'mqtt.subs.dialogTitle' => 'Subscribe',
+			'mqtt.subs.editTitle' => 'Edit subscription',
+			'mqtt.subs.needTopic' => 'Enter a topic',
+			'mqtt.subs.subscribe' => 'Subscribe',
+			'mqtt.subs.unsubscribe' => 'Unsubscribe',
+			'mqtt.subs.delete' => ({required Object topic}) => 'Delete "${topic}"? It will be removed from the list.',
+			'mqtt.subs.empty' => 'No subscriptions yet. Use Add to create one.',
+			'mqtt.pubs.title' => 'Publish topics',
+			'mqtt.pubs.name' => 'Name',
+			'mqtt.pubs.topic' => 'Topic',
+			'mqtt.pubs.add' => 'Add',
+			'mqtt.pubs.fill' => 'Fill',
+			'mqtt.pubs.delete' => 'Delete',
+			'mqtt.pubs.newTitle' => 'Add publish topic',
+			'mqtt.pubs.needName' => 'Enter a name',
+			'mqtt.pubs.needTopic' => 'Enter a topic',
+			'mqtt.pubs.empty' => 'No publish topics yet. Add one, then Fill writes it into the compose box.',
+			'mqtt.pubs.deleteTitle' => 'Delete publish topic',
+			'mqtt.pubs.deleteBody' => ({required Object name, required Object topic}) => 'Delete "${name}" ${topic}? The topic already in the compose box will not change.',
+			'mqtt.log.title' => 'Message log',
+			'mqtt.log.search' => 'Search topic / payload',
+			'mqtt.log.records' => ({required Object count}) => '${count} items',
+			'mqtt.log.empty' => 'Subscribed messages will appear here after connecting.',
+			'mqtt.compose.to' => 'Publish to',
+			'mqtt.compose.payload' => 'Payload',
+			'mqtt.compose.publish' => 'Publish',
+			'mqtt.compose.clear' => 'Clear',
+			'mqtt.compose.retain' => 'Retain',
+			'mqtt.compose.bytes' => ({required Object count}) => 'Sending ${count} bytes',
+			'mqtt.compose.ctrlEnter' => 'Ctrl+Enter',
+			'mqtt.tab.subs' => 'Subscribe',
+			'mqtt.tab.quick' => 'Quick publish',
+			'mqtt.tab.history' => 'History',
+			'mqtt.tab.script' => 'Script',
+			'mqtt.quick.bar' => 'Use the compose box, or override it',
+			'mqtt.quick.publish' => 'Publish',
+			'mqtt.quick.inherit' => 'Use the compose Topic, QoS, and Retain',
+			'mqtt.quick.inheritLabel' => ({required Object topic, required Object qos}) => 'Inherit · ${topic} · QoS ${qos}',
+			'mqtt.quick.newTitle' => 'New quick publish',
+			'mqtt.quick.editTitle' => 'Edit quick publish',
+			'mqtt.quick.name' => 'Name',
+			'mqtt.quick.payload' => 'Payload',
+			'mqtt.quick.key' => 'Shortcut',
+			'mqtt.quick.noKey' => 'None',
+			'mqtt.quick.qosRetain' => 'QoS / Retain',
+			'mqtt.quick.needName' => 'Enter a name',
+			'mqtt.quick.needPayload' => 'Payload is empty',
+			'mqtt.quick.needTopic' => 'Enter a topic when not using the compose box',
+			'mqtt.quick.empty' => 'No quick publishes yet. Use Add to save one.',
+			'mqtt.quick.delete' => ({required Object name}) => 'Delete quick publish "${name}"? This cannot be undone.',
+			'mqtt.history.note' => 'Only messages sent with the Publish button are kept. Click the time to send again, or Fill to put it back in the compose box.',
+			'mqtt.history.clear' => 'Clear',
+			'mqtt.history.fill' => 'Fill',
+			'mqtt.history.empty' => 'No publish history yet.',
+			'mqtt.history.deleteAll' => ({required Object count}) => 'Clear all ${count} history items? This cannot be undone.',
+			'mqtt.script.note' => ({required Object enabled, required Object total}) => '${enabled} / ${total} enabled',
+			'mqtt.script.add' => 'New',
+			'mqtt.script.waiting' => 'Waiting',
+			'mqtt.script.off' => 'Off',
+			'mqtt.script.outputs' => ({required Object count}) => '${count} outputs',
+			'mqtt.script.broken' => 'Error',
+			'mqtt.script.noHook' => 'No hook',
+			'mqtt.script.hookMessage' => 'on_message',
+			'mqtt.script.hookPublish' => 'before_publish',
+			'mqtt.script.explain' => 'Lua. on_message runs after a message is logged. before_publish runs for the compose box and quick publish; return the message to send, or nil to drop it.\nSelect a row to open the editor between the log and the compose box. The switch only controls automatic runs.',
+			'mqtt.script.mine' => ({required Object count}) => 'My scripts ${count}',
+			'mqtt.script.tutorial' => 'Lessons',
+			'mqtt.script.lessonNew' => 'New script from this lesson',
+			'mqtt.script.lessonTry' => 'Try sample',
+			'mqtt.script.tutorialNote' => 'Infinite loops are stopped, and os.execute is removed. A sample run only writes the script log.',
+			'mqtt.script.tried' => ({required Object hook, required Object sample}) => 'Sample · ${hook} ← ${sample}',
+			'mqtt.script.lessons.hooks.title' => 'When a script runs',
+			'mqtt.script.lessons.hooks.text' => 'on_message(msg) runs after a message is logged. before_publish(msg) runs before the compose box and quick publish send. msg has topic, payload, qos, and retain.',
+			'mqtt.script.lessons.print.title' => 'Print the topic and payload',
+			'mqtt.script.lessons.print.text' => 'log writes to the run log. print is the same function.',
+			'mqtt.script.lessons.rewrite.title' => 'Rewrite or drop a publish',
+			'mqtt.script.lessons.rewrite.text' => 'Return the edited msg to publish it. Return nil when payload is drop. Other payloads are prefixed with cmd:.',
+			'mqtt.script.empty' => 'No scripts yet. Press New to write one.',
+			'mqtt.script.autoOn' => 'Running automatically',
+			'mqtt.script.autoOff' => 'Off, manual run only',
+			'mqtt.script.editorHint' => 'Lua · saves as you type · Tab indents two spaces',
+			'mqtt.script.run' => 'Run',
+			'mqtt.script.fold' => 'Hide',
+			'mqtt.script.rename' => 'Rename',
+			'mqtt.script.renameTitle' => 'Rename script',
+			'mqtt.script.delete' => ({required Object name}) => 'Delete "${name}"?',
+			'mqtt.script.logTitle' => 'Run log',
+			'mqtt.script.clear' => 'Clear',
+			'mqtt.script.logEmpty' => 'No output yet. Enabled scripts write here when a message arrives or a publish is attempted.',
+			'mqtt.script.changed' => ({required Object from, required Object to}) => '${from} → ${to}',
+			'mqtt.script.blocked' => ({required Object from}) => '${from} → nil, dropped',
+			'mqtt.script.dryRun' => ({required Object from, required Object to}) => 'Trial ${from} → ${to} (not published)',
+			'mqtt.script.dryBlocked' => ({required Object from}) => 'Trial ${from} → nil, this publish would be dropped',
+			'mqtt.script.manualRx' => ({required Object label}) => 'Manual · last message ${label}',
+			'mqtt.script.noRx' => 'Manual · no message received yet',
+			'mqtt.script.badTx' => 'Compose topic or payload is empty, cannot trial before_publish',
+			'mqtt.script.noHookLog' => 'No on_message or before_publish',
+			'mqtt.script.tooLong' => 'Instruction limit exceeded, stopped',
+			'mqtt.status.subs' => ({required Object count}) => 'Subs ${count}',
+			'mqtt.compact' => 'Compact',
+			'mqtt.toolsPanel' => 'Tools',
+			'mqtt.compactTip' => 'Collapse or expand the left pane',
+			'mqtt.toolsTip' => 'Show or hide the tools pane',
+			'mqtt.saveLog' => 'Save message log…',
+			'mqtt.notice.ready' => 'Ready',
+			'mqtt.notice.connected' => ({required Object host, required Object port, required Object id}) => 'Connected ${host}:${port}, Client ID ${id}',
+			'mqtt.notice.disconnected' => 'Disconnected',
+			'mqtt.notice.connectFailed' => ({required Object detail}) => 'Connect failed: ${detail}',
+			'mqtt.notice.closed' => 'MQTT is not connected, action blocked',
+			'mqtt.notice.closedPublish' => 'MQTT is not connected, publish blocked',
+			'mqtt.notice.closedSubscribe' => 'MQTT is not connected, subscribe blocked',
+			'mqtt.notice.needTopic' => 'Enter a subscribe topic',
+			'mqtt.notice.dupTopic' => 'Already subscribed to this topic',
+			'mqtt.notice.subscribed' => ({required Object topic, required Object qos}) => 'Subscribed ${topic} · QoS ${qos}',
+			'mqtt.notice.unsubscribed' => ({required Object topic}) => 'Unsubscribed ${topic}',
+			'mqtt.notice.filled' => ({required Object topic}) => 'Filled ${topic}',
+			'mqtt.notice.needPubTopic' => 'Enter a publish topic',
+			'mqtt.notice.emptyPayload' => 'Payload is empty',
+			'mqtt.notice.needName' => 'Enter a name and topic',
+			'mqtt.notice.logSaved' => 'Message log saved',
+			'mqtt.notice.cleared' => 'Log cleared',
+			'mqtt.notice.quickSaved' => 'Quick publish saved',
+			'mqtt.notice.deleted' => 'Deleted',
+			'mqtt.notice.portInvalid' => 'Port must be 1–65535',
+			'mqtt.notice.keepAliveInvalid' => 'Keep Alive must be a positive integer',
+			'socket.menu.file' => 'File',
+			'socket.menu.settings' => 'Settings',
+			'socket.menu.tools' => 'Tools',
+			'socket.menu.help' => 'Help',
+			'socket.menu.saveLog' => 'Save received data…',
+			'socket.menu.themeLight' => 'Classic light',
+			'socket.menu.themeDark' => 'Classic dark',
+			'socket.menu.compact' => 'Compact mode (hide left pane)',
+			'socket.menu.toolsPanel' => 'Show tools pane',
+			'socket.menu.keys' => 'Keyboard shortcuts',
+			'socket.menu.checkUpdate' => 'Check for updates',
+			'socket.menu.activate' => 'Activate…',
+			'socket.menu.about' => 'About',
+			'socket.kbd.ctrlS' => 'Ctrl+S',
+			'socket.kbd.f12' => 'F12',
+			'socket.compact' => 'Compact',
+			'socket.toolsPanel' => 'Tools',
+			'socket.compactTip' => 'Collapse or expand the left pane',
+			'socket.toolsTip' => 'Show or hide the tools pane',
+			'socket.conn.title' => 'Connection',
+			'socket.conn.role' => 'Mode',
+			'socket.conn.roleClient' => 'Client',
+			'socket.conn.roleServer' => 'Server',
+			'socket.conn.host' => 'Host',
+			'socket.conn.port' => 'Port',
+			'socket.conn.remoteTitle' => 'Send target (UDP)',
+			'socket.conn.remoteHost' => 'Remote host',
+			'socket.conn.remotePort' => 'Remote port',
+			'socket.conn.open' => 'Open',
+			'socket.conn.close' => 'Close',
+			'socket.conn.peers' => 'Clients',
+			'socket.conn.peerAll' => ({required Object count}) => 'All (${count})',
+			'socket.conn.emptyPeers' => 'Waiting for clients…',
+			'socket.log.title' => 'Data log',
+			'socket.log.search' => 'Search received data',
+			'socket.log.waiting' => 'Waiting for data…',
+			'socket.log.closed' => 'Not connected. Set host and port on the left, then Open.',
+			'socket.log.matches' => ({required Object count}) => '${count} matches',
+			'socket.log.records' => ({required Object count}) => '${count} records',
+			'socket.log.rxHidden' => 'RX hidden',
+			'socket.log.peerLabel' => ({required Object peer}) => '${peer}',
+			'socket.log.opened' => ({required Object endpoint}) => '${endpoint} opened',
+			'socket.log.closedEndpoint' => ({required Object endpoint}) => '${endpoint} closed',
+			'socket.dialog.aboutTitle' => 'About network console',
+			'socket.dialog.aboutBody' => 'TCP/UDP console shares the tools pane and Lua script engine with the serial console.',
+			'socket.dialog.aboutDetail' => 'TCP server can send to all or one client; UDP requires a send target.',
+			'socket.notice.ready' => 'Ready',
+			'socket.notice.opened' => 'Connection opened',
+			'socket.notice.closed' => 'Connection closed',
+			'socket.notice.closedSend' => 'Not connected, send blocked',
+			'socket.notice.closedRule' => 'Not connected, rules will not run',
+			'socket.notice.closedBatch' => 'Not connected, batch not started',
+			'socket.notice.openFailed' => ({required Object detail}) => 'Open failed: ${detail}',
+			'socket.notice.noRemote' => 'Configure the UDP send target first',
+			'socket.notice.noClient' => 'No TCP clients connected',
+			'socket.notice.hostInvalid' => 'Host cannot be empty',
+			'socket.notice.portInvalid' => 'Port must be 1–65535',
+			'socket.notice.timeoutInvalid' => 'Packet timeout must be a non-negative integer',
+			'socket.notice.periodInvalid' => 'Loop period must be at least 10 ms',
+			'socket.notice.repeatInvalid' => 'Repeat count must be a positive integer',
+			'socket.notice.saveStarted' => 'Saving RX; file is written when you turn save off',
+			'socket.notice.saveWritten' => ({required Object name, required Object count}) => 'Wrote ${name} (${count} lines)',
+			'socket.notice.logSaved' => 'Received data saved as text',
+			'socket.notice.recvCleared' => 'Log cleared',
+			'socket.notice.loopStarted' => ({required Object period}) => 'Loop sending, period ${period} ms',
+			'socket.notice.loopStopped' => 'Loop stopped',
+			'socket.notice.batchRunning' => ({required Object step, required Object total}) => 'Batch sending · step ${step}/${total}',
+			'socket.notice.batchEnded' => 'Batch finished',
+			'socket.notice.ruleOn' => ({required Object name}) => '${name} enabled',
+			'socket.notice.ruleOff' => ({required Object name}) => '${name} disabled',
+			'socket.notice.deleted' => 'Deleted',
+			'socket.notice.duplicated' => 'Duplicated',
+			'socket.notice.quickSaved' => 'Quick command saved',
+			'socket.notice.folderSaved' => 'Folder saved',
+			'socket.notice.ruleSaved' => 'Reply rule saved',
+			'socket.notice.batchSaved' => 'Batch job saved',
+			'socket.notice.scriptSaved' => 'Script renamed',
+			'socket.notice.lessonCreated' => ({required Object name, required Object title}) => 'Created ${name} from “${title}”',
+			'socket.notice.lessonTried' => 'Sample run written to script log',
+			'socket.notice.fileLoaded' => ({required Object name}) => 'Loaded ${name}',
+			'socket.notice.peerJoined' => ({required Object address}) => 'Client joined: ${address}',
+			'socket.notice.peerLeft' => ({required Object address}) => 'Client left: ${address}',
+			'socket.notice.roleChanged' => 'TCP mode changed; open the connection again',
+			'update.check' => 'Check for updates',
+			'update.availableTitle' => 'Update available',
+			'update.versionLine' => ({required Object current, required Object latest}) => 'Current ${current} · Latest ${latest}',
+			'update.releaseNotes' => 'Release notes',
+			'update.downloadInstall' => 'Download and install',
+			'update.openReleasePage' => 'Open release page',
+			'update.upToDate' => ({required Object version}) => 'You are on the latest version ${version}',
+			'update.downloadingTitle' => 'Downloading update',
+			'update.downloading' => 'Downloading installer…',
+			'update.downloadProgress' => ({required Object received, required Object total}) => 'Downloaded ${received} / ${total}',
+			'update.noRelease' => 'No published release yet',
+			'update.checkFailed' => ({required Object code}) => 'Update check failed (HTTP ${code})',
+			'license.banner' => 'Unlicensed: trial ended. The app still works — tap here to enter an activation code.',
+			'license.dialogTitle' => 'Activate license',
+			'license.deviceCode' => 'Device code',
+			'license.copyDeviceCode' => 'Copy device code',
+			'license.copied' => 'Device code copied',
+			'license.trialEnds' => ({required Object date}) => 'Trial ends: ${date}',
+			'license.licenseExpires' => ({required Object date}) => 'License expires: ${date}',
+			'license.unlicensed' => 'Not activated',
+			'license.activationCode' => 'Activation code',
+			'license.activationHint' => 'Send the device code to the issuer, then paste the activation code here.',
+			'license.activate' => 'Activate',
+			'license.invalid' => 'Invalid activation code. Please check and try again.',
+			'license.expired' => 'This activation code has expired',
+			'license.success' => 'Activated successfully',
 			_ => null,
 		};
 	}

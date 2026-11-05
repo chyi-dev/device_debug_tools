@@ -46,6 +46,11 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$home$zh home = Translations$home$zh.internal(_root);
 	late final Translations$common$zh common = Translations$common$zh.internal(_root);
 	late final Translations$serial$zh serial = Translations$serial$zh.internal(_root);
+	late final Translations$ble$zh ble = Translations$ble$zh.internal(_root);
+	late final Translations$mqtt$zh mqtt = Translations$mqtt$zh.internal(_root);
+	late final Translations$socket$zh socket = Translations$socket$zh.internal(_root);
+	late final Translations$update$zh update = Translations$update$zh.internal(_root);
+	late final Translations$license$zh license = Translations$license$zh.internal(_root);
 }
 
 // Path: app
@@ -88,6 +93,51 @@ class Translations$home$zh {
 
 	/// zh: '在 lib/features 下添加功能模块'
 	String get placeholder => '在 lib/features 下添加功能模块';
+
+	/// zh: '＋ 新增'
+	String get addConnection => '＋ 新增';
+
+	/// zh: '串口'
+	String get kindSerial => '串口';
+
+	/// zh: '蓝牙 BLE'
+	String get kindBle => '蓝牙 BLE';
+
+	/// zh: 'MQTT'
+	String get kindMqtt => 'MQTT';
+
+	/// zh: 'TCP'
+	String get kindTcp => 'TCP';
+
+	/// zh: 'UDP'
+	String get kindUdp => 'UDP';
+
+	/// zh: 'SERIAL'
+	String get badgeSerial => 'SERIAL';
+
+	/// zh: 'BLE'
+	String get badgeBle => 'BLE';
+
+	/// zh: 'MQTT'
+	String get badgeMqtt => 'MQTT';
+
+	/// zh: 'TCP'
+	String get badgeTcp => 'TCP';
+
+	/// zh: 'UDP'
+	String get badgeUdp => 'UDP';
+
+	/// zh: '还没有连接。点「新增」创建串口、蓝牙、MQTT 或 TCP/UDP 页签。'
+	String get emptyConnections => '还没有连接。点「新增」创建串口、蓝牙、MQTT 或 TCP/UDP 页签。';
+
+	/// zh: '重命名'
+	String get rename => '重命名';
+
+	/// zh: '重命名页签'
+	String get renameTitle => '重命名页签';
+
+	/// zh: '名称'
+	String get renameName => '名称';
 }
 
 // Path: common
@@ -133,6 +183,18 @@ class Translations$common$zh {
 
 	/// zh: '复制'
 	String get duplicate => '复制';
+
+	/// zh: '项目地址'
+	String get github => '项目地址';
+
+	/// zh: 'https://github.com/chyi-dev/device_debug_tools'
+	String get githubUrl => 'https://github.com/chyi-dev/device_debug_tools';
+
+	/// zh: '邮箱'
+	String get email => '邮箱';
+
+	/// zh: '757120553@qq.com'
+	String get emailAddress => '757120553@qq.com';
 }
 
 // Path: serial
@@ -180,6 +242,334 @@ class Translations$serial$zh {
 	late final Translations$serial$notice$zh notice = Translations$serial$notice$zh.internal(_root);
 }
 
+// Path: ble
+class Translations$ble$zh {
+	Translations$ble$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$ble$scan$zh scan = Translations$ble$scan$zh.internal(_root);
+
+	/// zh: '连接'
+	String get connect => '连接';
+
+	/// zh: '断开'
+	String get disconnect => '断开';
+
+	/// zh: '连接中…'
+	String get connecting => '连接中…';
+
+	late final Translations$ble$pin$zh pin = Translations$ble$pin$zh.internal(_root);
+
+	/// zh: '写入方式'
+	String get writeType => '写入方式';
+
+	/// zh: 'With Response'
+	String get withResponse => 'With Response';
+
+	/// zh: 'Without Response'
+	String get withoutResponse => 'Without Response';
+
+	/// zh: 'MTU'
+	String get mtu => 'MTU';
+
+	/// zh: '分片字节'
+	String get chunk => '分片字节';
+
+	late final Translations$ble$log$zh log = Translations$ble$log$zh.internal(_root);
+
+	/// zh: '发送'
+	String get send => '发送';
+
+	/// zh: '清除'
+	String get clear => '清除';
+
+	/// zh: '清除接收'
+	String get clearRx => '清除接收';
+
+	/// zh: '保存接收数据…'
+	String get saveLog => '保存接收数据…';
+
+	/// zh: '还没有钉住 Write 特征'
+	String get noWrite => '还没有钉住 Write 特征';
+
+	/// zh: '实发 $count 字节 · Write $uuid'
+	String bytes({required Object count, required Object uuid}) => '实发 ${count} 字节 · Write ${uuid}';
+
+	/// zh: 'Ctrl+Enter 发送'
+	String get ctrlEnter => 'Ctrl+Enter 发送';
+
+	/// zh: '先钉两只特征再收发'
+	String get statusHint => '先钉两只特征再收发';
+
+	/// zh: 'BLE CLOSED'
+	String get closed => 'BLE CLOSED';
+
+	/// zh: '精简模式'
+	String get compact => '精简模式';
+
+	/// zh: '工具面板'
+	String get toolsPanel => '工具面板';
+
+	/// zh: '收起或展开左侧设置栏'
+	String get compactTip => '收起或展开左侧设置栏';
+
+	/// zh: '显示或隐藏工具面板'
+	String get toolsTip => '显示或隐藏工具面板';
+
+	late final Translations$ble$quick$zh quick = Translations$ble$quick$zh.internal(_root);
+	late final Translations$ble$batch$zh batch = Translations$ble$batch$zh.internal(_root);
+	late final Translations$ble$reply$zh reply = Translations$ble$reply$zh.internal(_root);
+	late final Translations$ble$history$zh history = Translations$ble$history$zh.internal(_root);
+	late final Translations$ble$script$zh script = Translations$ble$script$zh.internal(_root);
+	late final Translations$ble$dialog$zh dialog = Translations$ble$dialog$zh.internal(_root);
+	late final Translations$ble$notice$zh notice = Translations$ble$notice$zh.internal(_root);
+}
+
+// Path: mqtt
+class Translations$mqtt$zh {
+	Translations$mqtt$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: 'MQTT 连接'
+	String get title => 'MQTT 连接';
+
+	/// zh: '协议'
+	String get scheme => '协议';
+
+	/// zh: 'Broker'
+	String get host => 'Broker';
+
+	/// zh: '端口'
+	String get port => '端口';
+
+	/// zh: '路径'
+	String get path => '路径';
+
+	/// zh: '连接'
+	String get connect => '连接';
+
+	/// zh: '连接中…'
+	String get connecting => '连接中…';
+
+	/// zh: '断开'
+	String get disconnect => '断开';
+
+	/// zh: '展开连接设置'
+	String get expand => '展开连接设置';
+
+	/// zh: '收起连接设置'
+	String get collapse => '收起连接设置';
+
+	late final Translations$mqtt$section$zh section = Translations$mqtt$section$zh.internal(_root);
+
+	/// zh: '版本'
+	String get version => '版本';
+
+	/// zh: 'Client ID'
+	String get clientId => 'Client ID';
+
+	/// zh: '用户名'
+	String get username => '用户名';
+
+	/// zh: '密码'
+	String get password => '密码';
+
+	/// zh: 'CA 证书'
+	String get ca => 'CA 证书';
+
+	/// zh: '客户端证书'
+	String get cert => '客户端证书';
+
+	/// zh: '私钥'
+	String get key => '私钥';
+
+	/// zh: '选择…'
+	String get pick => '选择…';
+
+	/// zh: '未选择'
+	String get unset => '未选择';
+
+	/// zh: 'Keep Alive'
+	String get keepAlive => 'Keep Alive';
+
+	/// zh: 'Session Expiry'
+	String get sessionExpiry => 'Session Expiry';
+
+	/// zh: 'Clean Start'
+	String get cleanStart => 'Clean Start';
+
+	/// zh: '断线自动重连'
+	String get autoReconnect => '断线自动重连';
+
+	/// zh: '遗嘱 Topic'
+	String get willTopic => '遗嘱 Topic';
+
+	/// zh: '遗嘱 Payload'
+	String get willPayload => '遗嘱 Payload';
+
+	/// zh: '遗嘱 QoS'
+	String get willQos => '遗嘱 QoS';
+
+	/// zh: '遗嘱 Retain'
+	String get willRetain => '遗嘱 Retain';
+
+	late final Translations$mqtt$subs$zh subs = Translations$mqtt$subs$zh.internal(_root);
+	late final Translations$mqtt$pubs$zh pubs = Translations$mqtt$pubs$zh.internal(_root);
+	late final Translations$mqtt$log$zh log = Translations$mqtt$log$zh.internal(_root);
+	late final Translations$mqtt$compose$zh compose = Translations$mqtt$compose$zh.internal(_root);
+	late final Translations$mqtt$tab$zh tab = Translations$mqtt$tab$zh.internal(_root);
+	late final Translations$mqtt$quick$zh quick = Translations$mqtt$quick$zh.internal(_root);
+	late final Translations$mqtt$history$zh history = Translations$mqtt$history$zh.internal(_root);
+	late final Translations$mqtt$script$zh script = Translations$mqtt$script$zh.internal(_root);
+	late final Translations$mqtt$status$zh status = Translations$mqtt$status$zh.internal(_root);
+
+	/// zh: '精简模式'
+	String get compact => '精简模式';
+
+	/// zh: '工具面板'
+	String get toolsPanel => '工具面板';
+
+	/// zh: '收起或展开左侧设置栏'
+	String get compactTip => '收起或展开左侧设置栏';
+
+	/// zh: '显示或隐藏工具面板'
+	String get toolsTip => '显示或隐藏工具面板';
+
+	/// zh: '保存报文日志…'
+	String get saveLog => '保存报文日志…';
+
+	late final Translations$mqtt$notice$zh notice = Translations$mqtt$notice$zh.internal(_root);
+}
+
+// Path: socket
+class Translations$socket$zh {
+	Translations$socket$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$socket$menu$zh menu = Translations$socket$menu$zh.internal(_root);
+	late final Translations$socket$kbd$zh kbd = Translations$socket$kbd$zh.internal(_root);
+
+	/// zh: '精简模式'
+	String get compact => '精简模式';
+
+	/// zh: '工具面板'
+	String get toolsPanel => '工具面板';
+
+	/// zh: '收起或展开左侧设置栏'
+	String get compactTip => '收起或展开左侧设置栏';
+
+	/// zh: '显示或隐藏工具面板'
+	String get toolsTip => '显示或隐藏工具面板';
+
+	late final Translations$socket$conn$zh conn = Translations$socket$conn$zh.internal(_root);
+	late final Translations$socket$log$zh log = Translations$socket$log$zh.internal(_root);
+	late final Translations$socket$dialog$zh dialog = Translations$socket$dialog$zh.internal(_root);
+	late final Translations$socket$notice$zh notice = Translations$socket$notice$zh.internal(_root);
+}
+
+// Path: update
+class Translations$update$zh {
+	Translations$update$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '检查更新'
+	String get check => '检查更新';
+
+	/// zh: '发现新版本'
+	String get availableTitle => '发现新版本';
+
+	/// zh: '当前 $current · 最新 $latest'
+	String versionLine({required Object current, required Object latest}) => '当前 ${current} · 最新 ${latest}';
+
+	/// zh: '更新说明'
+	String get releaseNotes => '更新说明';
+
+	/// zh: '下载并安装'
+	String get downloadInstall => '下载并安装';
+
+	/// zh: '打开发布页'
+	String get openReleasePage => '打开发布页';
+
+	/// zh: '已是最新版本 $version'
+	String upToDate({required Object version}) => '已是最新版本 ${version}';
+
+	/// zh: '正在下载更新'
+	String get downloadingTitle => '正在下载更新';
+
+	/// zh: '正在下载安装包…'
+	String get downloading => '正在下载安装包…';
+
+	/// zh: '已下载 $received / $total'
+	String downloadProgress({required Object received, required Object total}) => '已下载 ${received} / ${total}';
+
+	/// zh: '尚未发布正式版本'
+	String get noRelease => '尚未发布正式版本';
+
+	/// zh: '检查更新失败（HTTP $code）'
+	String checkFailed({required Object code}) => '检查更新失败（HTTP ${code}）';
+}
+
+// Path: license
+class Translations$license$zh {
+	Translations$license$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '未激活：试用已结束。功能仍可使用，点击此处输入激活码。'
+	String get banner => '未激活：试用已结束。功能仍可使用，点击此处输入激活码。';
+
+	/// zh: '授权激活'
+	String get dialogTitle => '授权激活';
+
+	/// zh: '设备码'
+	String get deviceCode => '设备码';
+
+	/// zh: '复制设备码'
+	String get copyDeviceCode => '复制设备码';
+
+	/// zh: '设备码已复制'
+	String get copied => '设备码已复制';
+
+	/// zh: '试用截止：$date'
+	String trialEnds({required Object date}) => '试用截止：${date}';
+
+	/// zh: '授权到期：$date'
+	String licenseExpires({required Object date}) => '授权到期：${date}';
+
+	/// zh: '当前未激活'
+	String get unlicensed => '当前未激活';
+
+	/// zh: '激活码'
+	String get activationCode => '激活码';
+
+	/// zh: '请将设备码发给授权方，获取激活码后粘贴到此处。'
+	String get activationHint => '请将设备码发给授权方，获取激活码后粘贴到此处。';
+
+	/// zh: '激活'
+	String get activate => '激活';
+
+	/// zh: '激活码无效，请检查后重试'
+	String get invalid => '激活码无效，请检查后重试';
+
+	/// zh: '激活码已过期'
+	String get expired => '激活码已过期';
+
+	/// zh: '激活成功'
+	String get success => '激活成功';
+}
+
 // Path: serial.menu
 class Translations$serial$menu$zh {
 	Translations$serial$menu$zh.internal(this._root);
@@ -223,6 +613,12 @@ class Translations$serial$menu$zh {
 
 	/// zh: '快捷键说明'
 	String get keys => '快捷键说明';
+
+	/// zh: '检查更新'
+	String get checkUpdate => '检查更新';
+
+	/// zh: '激活…'
+	String get activate => '激活…';
 
 	/// zh: '关于'
 	String get about => '关于';
@@ -1092,6 +1488,12 @@ class Translations$serial$status$zh {
 	/// zh: '复位计数'
 	String get reset => '复位计数';
 
+	/// zh: '复制'
+	String get copy => '复制';
+
+	/// zh: '已复制'
+	String get copied => '已复制';
+
 	/// zh: '自动应答 $enabled/$total'
 	String reply({required Object enabled, required Object total}) => '自动应答 ${enabled}/${total}';
 
@@ -1471,6 +1873,1076 @@ class Translations$serial$notice$zh {
 	String fileLoaded({required Object name}) => '已载入 ${name}';
 }
 
+// Path: ble.scan
+class Translations$ble$scan$zh {
+	Translations$ble$scan$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '设备'
+	String get title => '设备';
+
+	/// zh: '就绪'
+	String get ready => '就绪';
+
+	/// zh: '名称或地址'
+	String get filter => '名称或地址';
+
+	/// zh: '扫描'
+	String get scan => '扫描';
+
+	/// zh: '扫描中'
+	String get scanning => '扫描中';
+
+	/// zh: '没有匹配的设备'
+	String get empty => '没有匹配的设备';
+
+	/// zh: '尚未扫描'
+	String get notScanned => '尚未扫描';
+
+	/// zh: '蓝牙适配器不可用'
+	String get adapterOff => '蓝牙适配器不可用';
+}
+
+// Path: ble.pin
+class Translations$ble$pin$zh {
+	Translations$ble$pin$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '钉选通道'
+	String get title => '钉选通道';
+
+	/// zh: 'Notify'
+	String get notify => 'Notify';
+
+	/// zh: 'Write'
+	String get write => 'Write';
+
+	/// zh: '未钉'
+	String get unpinned => '未钉';
+
+	/// zh: '钉住通知'
+	String get pinNotify => '钉住通知';
+
+	/// zh: '钉住写入'
+	String get pinWrite => '钉住写入';
+
+	/// zh: '已钉通知'
+	String get pinnedNotify => '已钉通知';
+
+	/// zh: '已钉写入'
+	String get pinnedWrite => '已钉写入';
+
+	/// zh: '连接后才能钉特征'
+	String get needConnect => '连接后才能钉特征';
+
+	/// zh: '换钉之后，发送框和快捷指令都改走新特征。'
+	String get note => '换钉之后，发送框和快捷指令都改走新特征。';
+}
+
+// Path: ble.log
+class Translations$ble$log$zh {
+	Translations$ble$log$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '数据日志'
+	String get title => '数据日志';
+
+	/// zh: '搜索接收内容'
+	String get search => '搜索接收内容';
+
+	/// zh: '$count 条'
+	String records({required Object count}) => '${count} 条';
+
+	/// zh: '钉住 Notify 和 Write 之后，这里就是原来的数据日志。'
+	String get empty => '钉住 Notify 和 Write 之后，这里就是原来的数据日志。';
+}
+
+// Path: ble.quick
+class Translations$ble$quick$zh {
+	Translations$ble$quick$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '发到当前钉住的 Write $uuid'
+	String target({required Object uuid}) => '发到当前钉住的 Write ${uuid}';
+
+	/// zh: '发到当前钉住的 Write（未钉）'
+	String get targetNone => '发到当前钉住的 Write（未钉）';
+}
+
+// Path: ble.batch
+class Translations$ble$batch$zh {
+	Translations$ble$batch$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '运行时写到钉住的 Write'
+	String get bar => '运行时写到钉住的 Write';
+}
+
+// Path: ble.reply
+class Translations$ble$reply$zh {
+	Translations$ble$reply$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: 'Notify 和 Write 都钉上之后，上线帧才会自动回。'
+	String get explain => 'Notify 和 Write 都钉上之后，上线帧才会自动回。';
+}
+
+// Path: ble.history
+class Translations$ble$history$zh {
+	Translations$ble$history$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '只记录发送框发出的数据。'
+	String get empty => '只记录发送框发出的数据。';
+}
+
+// Path: ble.script
+class Translations$ble$script$zh {
+	Translations$ble$script$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '钩子读的是当前钉住的特征，换钉不用改脚本。'
+	String get explain => '钩子读的是当前钉住的特征，换钉不用改脚本。';
+}
+
+// Path: ble.dialog
+class Translations$ble$dialog$zh {
+	Translations$ble$dialog$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '快捷指令'
+	String get quickTitle => '快捷指令';
+
+	/// zh: '应答规则'
+	String get ruleTitle => '应答规则';
+
+	/// zh: '批量任务'
+	String get batchTitle => '批量任务';
+
+	/// zh: '脚本'
+	String get scriptTitle => '脚本';
+
+	/// zh: '名称'
+	String get name => '名称';
+
+	/// zh: '数据'
+	String get data => '数据';
+
+	/// zh: '快捷键'
+	String get key => '快捷键';
+
+	/// zh: '匹配'
+	String get pattern => '匹配';
+
+	/// zh: '代码'
+	String get code => '代码';
+
+	/// zh: '延时 ms'
+	String get delay => '延时 ms';
+
+	/// zh: '重复'
+	String get repeat => '重复';
+
+	/// zh: '删除快捷指令'
+	String get deleteQuick => '删除快捷指令';
+
+	/// zh: '删除应答规则'
+	String get deleteRule => '删除应答规则';
+
+	/// zh: '删除批量任务'
+	String get deleteBatch => '删除批量任务';
+
+	/// zh: '删除脚本'
+	String get deleteScript => '删除脚本';
+}
+
+// Path: ble.notice
+class Translations$ble$notice$zh {
+	Translations$ble$notice$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '就绪'
+	String get ready => '就绪';
+
+	/// zh: '蓝牙适配器不可用，配置可保存。'
+	String get adapterOff => '蓝牙适配器不可用，配置可保存。';
+
+	/// zh: '扫描完成，发现 $count 个设备'
+	String scanDone({required Object count}) => '扫描完成，发现 ${count} 个设备';
+
+	/// zh: '没有匹配的设备'
+	String get scanEmpty => '没有匹配的设备';
+
+	/// zh: '扫描失败：$detail'
+	String scanFailed({required Object detail}) => '扫描失败：${detail}';
+
+	/// zh: '请先选一台设备'
+	String get noDevice => '请先选一台设备';
+
+	/// zh: '$name CONNECTED, MTU $mtu · 在左栏钉住 Notify 和 Write'
+	String connected({required Object name, required Object mtu}) => '${name} CONNECTED, MTU ${mtu} · 在左栏钉住 Notify 和 Write';
+
+	/// zh: '连接失败：$detail'
+	String connectFailed({required Object detail}) => '连接失败：${detail}';
+
+	/// zh: '已断开'
+	String get disconnected => '已断开';
+
+	/// zh: '钉住 Notify $uuid'
+	String pinNotify({required Object uuid}) => '钉住 Notify ${uuid}';
+
+	/// zh: '取消 Notify 钉选'
+	String get unpinNotify => '取消 Notify 钉选';
+
+	/// zh: '钉住 Write $uuid · $type'
+	String pinWrite({required Object uuid, required Object type}) => '钉住 Write ${uuid} · ${type}';
+
+	/// zh: '取消 Write 钉选'
+	String get unpinWrite => '取消 Write 钉选';
+
+	/// zh: '还没有钉住 Write 特征'
+	String get noWrite => '还没有钉住 Write 特征';
+
+	/// zh: '已发出，还没有钉住 Notify，回包进不了日志'
+	String get sentNoNotify => '已发出，还没有钉住 Notify，回包进不了日志';
+
+	/// zh: 'HEX 格式不正确'
+	String get badHex => 'HEX 格式不正确';
+
+	/// zh: '发送内容为空'
+	String get emptySend => '发送内容为空';
+
+	/// zh: 'MTU 需为正整数'
+	String get mtuInvalid => 'MTU 需为正整数';
+
+	/// zh: '分片字节需为正整数'
+	String get chunkInvalid => '分片字节需为正整数';
+
+	/// zh: '接收数据已保存为文本'
+	String get logSaved => '接收数据已保存为文本';
+
+	/// zh: '接收区已清除'
+	String get recvCleared => '接收区已清除';
+
+	/// zh: '批量发送中 · 第 $step/$total 条'
+	String batchRunning({required Object step, required Object total}) => '批量发送中 · 第 ${step}/${total} 条';
+
+	/// zh: '批量发送结束'
+	String get batchEnded => '批量发送结束';
+
+	/// zh: '$name 已启用'
+	String ruleOn({required Object name}) => '${name} 已启用';
+
+	/// zh: '$name 已停用'
+	String ruleOff({required Object name}) => '${name} 已停用';
+
+	/// zh: '已删除'
+	String get deleted => '已删除';
+
+	/// zh: '已复制'
+	String get duplicated => '已复制';
+
+	/// zh: '快捷指令已保存'
+	String get quickSaved => '快捷指令已保存';
+
+	/// zh: '应答规则已保存'
+	String get ruleSaved => '应答规则已保存';
+
+	/// zh: '批量任务已保存'
+	String get batchSaved => '批量任务已保存';
+
+	/// zh: '脚本已保存'
+	String get scriptSaved => '脚本已保存';
+
+	/// zh: 'BLE 未连接，发送已拦截'
+	String get closedSend => 'BLE 未连接，发送已拦截';
+}
+
+// Path: mqtt.section
+class Translations$mqtt$section$zh {
+	Translations$mqtt$section$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '会话'
+	String get session => '会话';
+
+	/// zh: 'TLS'
+	String get tls => 'TLS';
+
+	/// zh: '遗嘱'
+	String get will => '遗嘱';
+}
+
+// Path: mqtt.subs
+class Translations$mqtt$subs$zh {
+	Translations$mqtt$subs$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '订阅列表'
+	String get title => '订阅列表';
+
+	/// zh: '右侧切换订阅和退订。右键编辑或删除。'
+	String get note => '右侧切换订阅和退订。右键编辑或删除。';
+
+	/// zh: 'Topic，可用 + 或 #'
+	String get topic => 'Topic，可用 + 或 #';
+
+	/// zh: 'QoS'
+	String get qos => 'QoS';
+
+	/// zh: '订阅'
+	String get dialogTitle => '订阅';
+
+	/// zh: '编辑订阅'
+	String get editTitle => '编辑订阅';
+
+	/// zh: '请填写 Topic'
+	String get needTopic => '请填写 Topic';
+
+	/// zh: '订阅'
+	String get subscribe => '订阅';
+
+	/// zh: '退订'
+	String get unsubscribe => '退订';
+
+	/// zh: '删除「$topic」？这条会从列表移除。'
+	String delete({required Object topic}) => '删除「${topic}」？这条会从列表移除。';
+
+	/// zh: '还没有订阅。点「新增」添加一条。'
+	String get empty => '还没有订阅。点「新增」添加一条。';
+}
+
+// Path: mqtt.pubs
+class Translations$mqtt$pubs$zh {
+	Translations$mqtt$pubs$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '发布主题'
+	String get title => '发布主题';
+
+	/// zh: '名称'
+	String get name => '名称';
+
+	/// zh: 'Topic'
+	String get topic => 'Topic';
+
+	/// zh: '添加'
+	String get add => '添加';
+
+	/// zh: '填入'
+	String get fill => '填入';
+
+	/// zh: '删除'
+	String get delete => '删除';
+
+	/// zh: '添加发布主题'
+	String get newTitle => '添加发布主题';
+
+	/// zh: '请填写名称'
+	String get needName => '请填写名称';
+
+	/// zh: '请填写 Topic'
+	String get needTopic => '请填写 Topic';
+
+	/// zh: '还没有发布主题。点「新增」保存一条，再点「填入」写到发布框。'
+	String get empty => '还没有发布主题。点「新增」保存一条，再点「填入」写到发布框。';
+
+	/// zh: '删除发布主题'
+	String get deleteTitle => '删除发布主题';
+
+	/// zh: '删除「$name」$topic？发布框里已填的 Topic 不会改。'
+	String deleteBody({required Object name, required Object topic}) => '删除「${name}」${topic}？发布框里已填的 Topic 不会改。';
+}
+
+// Path: mqtt.log
+class Translations$mqtt$log$zh {
+	Translations$mqtt$log$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '报文日志'
+	String get title => '报文日志';
+
+	/// zh: '搜索 Topic / Payload'
+	String get search => '搜索 Topic / Payload';
+
+	/// zh: '$count 条'
+	String records({required Object count}) => '${count} 条';
+
+	/// zh: '连接后，订阅到的报文会出现在这里。'
+	String get empty => '连接后，订阅到的报文会出现在这里。';
+}
+
+// Path: mqtt.compose
+class Translations$mqtt$compose$zh {
+	Translations$mqtt$compose$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '发布到'
+	String get to => '发布到';
+
+	/// zh: 'Payload'
+	String get payload => 'Payload';
+
+	/// zh: '发布'
+	String get publish => '发布';
+
+	/// zh: '清除'
+	String get clear => '清除';
+
+	/// zh: 'Retain'
+	String get retain => 'Retain';
+
+	/// zh: '实发 $count 字节'
+	String bytes({required Object count}) => '实发 ${count} 字节';
+
+	/// zh: 'Ctrl+Enter'
+	String get ctrlEnter => 'Ctrl+Enter';
+}
+
+// Path: mqtt.tab
+class Translations$mqtt$tab$zh {
+	Translations$mqtt$tab$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '订阅'
+	String get subs => '订阅';
+
+	/// zh: '快捷发布'
+	String get quick => '快捷发布';
+
+	/// zh: '历史发送'
+	String get history => '历史发送';
+
+	/// zh: '脚本'
+	String get script => '脚本';
+}
+
+// Path: mqtt.quick
+class Translations$mqtt$quick$zh {
+	Translations$mqtt$quick$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '可沿用或覆盖发布框'
+	String get bar => '可沿用或覆盖发布框';
+
+	/// zh: '发布'
+	String get publish => '发布';
+
+	/// zh: '沿用发布框的 Topic、QoS、Retain'
+	String get inherit => '沿用发布框的 Topic、QoS、Retain';
+
+	/// zh: '继承 · $topic · QoS $qos'
+	String inheritLabel({required Object topic, required Object qos}) => '继承 · ${topic} · QoS ${qos}';
+
+	/// zh: '新增快捷发布'
+	String get newTitle => '新增快捷发布';
+
+	/// zh: '编辑快捷发布'
+	String get editTitle => '编辑快捷发布';
+
+	/// zh: '名称'
+	String get name => '名称';
+
+	/// zh: 'Payload'
+	String get payload => 'Payload';
+
+	/// zh: '快捷键'
+	String get key => '快捷键';
+
+	/// zh: '不绑定'
+	String get noKey => '不绑定';
+
+	/// zh: 'QoS / Retain'
+	String get qosRetain => 'QoS / Retain';
+
+	/// zh: '请填写名称'
+	String get needName => '请填写名称';
+
+	/// zh: 'Payload 为空'
+	String get needPayload => 'Payload 为空';
+
+	/// zh: '不沿用时必须填写 Topic'
+	String get needTopic => '不沿用时必须填写 Topic';
+
+	/// zh: '还没有快捷发布。点「新增」保存一条。'
+	String get empty => '还没有快捷发布。点「新增」保存一条。';
+
+	/// zh: '删除快捷发布「$name」后无法恢复。'
+	String delete({required Object name}) => '删除快捷发布「${name}」后无法恢复。';
+}
+
+// Path: mqtt.history
+class Translations$mqtt$history$zh {
+	Translations$mqtt$history$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '只记录用「发布」按钮发出的报文。点时间重发，点「填入」放回发布框。'
+	String get note => '只记录用「发布」按钮发出的报文。点时间重发，点「填入」放回发布框。';
+
+	/// zh: '清空'
+	String get clear => '清空';
+
+	/// zh: '填入'
+	String get fill => '填入';
+
+	/// zh: '还没有发布记录。'
+	String get empty => '还没有发布记录。';
+
+	/// zh: '清空 $count 条历史发布？清空后无法恢复。'
+	String deleteAll({required Object count}) => '清空 ${count} 条历史发布？清空后无法恢复。';
+}
+
+// Path: mqtt.script
+class Translations$mqtt$script$zh {
+	Translations$mqtt$script$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '已启用 $enabled / $total'
+	String note({required Object enabled, required Object total}) => '已启用 ${enabled} / ${total}';
+
+	/// zh: '新建'
+	String get add => '新建';
+
+	/// zh: '等待触发'
+	String get waiting => '等待触发';
+
+	/// zh: '已停用'
+	String get off => '已停用';
+
+	/// zh: '已输出 $count 次'
+	String outputs({required Object count}) => '已输出 ${count} 次';
+
+	/// zh: '有错误'
+	String get broken => '有错误';
+
+	/// zh: '无钩子'
+	String get noHook => '无钩子';
+
+	/// zh: 'on_message'
+	String get hookMessage => 'on_message';
+
+	/// zh: 'before_publish'
+	String get hookPublish => 'before_publish';
+
+	/// zh: 'Lua 脚本。on_message 在报文写入日志后运行；before_publish 经过发布框和快捷发布，返回改写后的消息再发出，返回 nil 则不发。 点一行在日志和发布框之间打开编辑器。开关只控制自动运行，「运行」用最近一封和发布框试算，不会发布。'
+	String get explain => 'Lua 脚本。on_message 在报文写入日志后运行；before_publish 经过发布框和快捷发布，返回改写后的消息再发出，返回 nil 则不发。\n点一行在日志和发布框之间打开编辑器。开关只控制自动运行，「运行」用最近一封和发布框试算，不会发布。';
+
+	/// zh: '我的脚本 $count'
+	String mine({required Object count}) => '我的脚本 ${count}';
+
+	/// zh: '教程'
+	String get tutorial => '教程';
+
+	/// zh: '用这课新建脚本'
+	String get lessonNew => '用这课新建脚本';
+
+	/// zh: '样例试跑'
+	String get lessonTry => '样例试跑';
+
+	/// zh: '死循环会被中止，os.execute 等危险函数已移除。样例试跑只写运行日志，不会发布。'
+	String get tutorialNote => '死循环会被中止，os.execute 等危险函数已移除。样例试跑只写运行日志，不会发布。';
+
+	/// zh: '样例试跑 · $hook ← $sample'
+	String tried({required Object hook, required Object sample}) => '样例试跑 · ${hook} ← ${sample}';
+
+	late final Translations$mqtt$script$lessons$zh lessons = Translations$mqtt$script$lessons$zh.internal(_root);
+
+	/// zh: '还没有脚本。点「新建」写一个。'
+	String get empty => '还没有脚本。点「新建」写一个。';
+
+	/// zh: '自动运行中'
+	String get autoOn => '自动运行中';
+
+	/// zh: '已停用，仅手动运行'
+	String get autoOff => '已停用，仅手动运行';
+
+	/// zh: 'Lua · 输入即保存 · Tab 缩进两格'
+	String get editorHint => 'Lua · 输入即保存 · Tab 缩进两格';
+
+	/// zh: '运行'
+	String get run => '运行';
+
+	/// zh: '收起'
+	String get fold => '收起';
+
+	/// zh: '重命名'
+	String get rename => '重命名';
+
+	/// zh: '重命名脚本'
+	String get renameTitle => '重命名脚本';
+
+	/// zh: '删除「$name」？'
+	String delete({required Object name}) => '删除「${name}」？';
+
+	/// zh: '运行日志'
+	String get logTitle => '运行日志';
+
+	/// zh: '清空'
+	String get clear => '清空';
+
+	/// zh: '还没有输出。启用脚本后，收到或发布时会写在这里。'
+	String get logEmpty => '还没有输出。启用脚本后，收到或发布时会写在这里。';
+
+	/// zh: '$from → $to'
+	String changed({required Object from, required Object to}) => '${from} → ${to}';
+
+	/// zh: '$from → nil，已拦截，未发布'
+	String blocked({required Object from}) => '${from} → nil，已拦截，未发布';
+
+	/// zh: '试算 $from → $to（未发布）'
+	String dryRun({required Object from, required Object to}) => '试算 ${from} → ${to}（未发布）';
+
+	/// zh: '试算 $from → nil，这一次会被拦截（未发布）'
+	String dryBlocked({required Object from}) => '试算 ${from} → nil，这一次会被拦截（未发布）';
+
+	/// zh: '手动运行 · 最近一封 $label'
+	String manualRx({required Object label}) => '手动运行 · 最近一封 ${label}';
+
+	/// zh: '手动运行 · 还没有收到报文'
+	String get noRx => '手动运行 · 还没有收到报文';
+
+	/// zh: '发布框的 Topic 或 Payload 为空，无法试算 before_publish'
+	String get badTx => '发布框的 Topic 或 Payload 为空，无法试算 before_publish';
+
+	/// zh: '没有定义 on_message 或 before_publish'
+	String get noHookLog => '没有定义 on_message 或 before_publish';
+
+	/// zh: '执行超过指令上限，可能是死循环，已中止'
+	String get tooLong => '执行超过指令上限，可能是死循环，已中止';
+}
+
+// Path: mqtt.status
+class Translations$mqtt$status$zh {
+	Translations$mqtt$status$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '订阅 $count'
+	String subs({required Object count}) => '订阅 ${count}';
+}
+
+// Path: mqtt.notice
+class Translations$mqtt$notice$zh {
+	Translations$mqtt$notice$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '就绪'
+	String get ready => '就绪';
+
+	/// zh: '已连接 $host:$port，Client ID $id'
+	String connected({required Object host, required Object port, required Object id}) => '已连接 ${host}:${port}，Client ID ${id}';
+
+	/// zh: '已断开'
+	String get disconnected => '已断开';
+
+	/// zh: '连接失败：$detail'
+	String connectFailed({required Object detail}) => '连接失败：${detail}';
+
+	/// zh: 'MQTT 未连接，操作已拦截'
+	String get closed => 'MQTT 未连接，操作已拦截';
+
+	/// zh: 'MQTT 未连接，发布已拦截'
+	String get closedPublish => 'MQTT 未连接，发布已拦截';
+
+	/// zh: 'MQTT 未连接，订阅已拦截'
+	String get closedSubscribe => 'MQTT 未连接，订阅已拦截';
+
+	/// zh: '请填写订阅 Topic'
+	String get needTopic => '请填写订阅 Topic';
+
+	/// zh: '已经订阅过该主题'
+	String get dupTopic => '已经订阅过该主题';
+
+	/// zh: '已订阅 $topic · QoS $qos'
+	String subscribed({required Object topic, required Object qos}) => '已订阅 ${topic} · QoS ${qos}';
+
+	/// zh: '已退订 $topic'
+	String unsubscribed({required Object topic}) => '已退订 ${topic}';
+
+	/// zh: '已填入 $topic'
+	String filled({required Object topic}) => '已填入 ${topic}';
+
+	/// zh: '请填写发布 Topic'
+	String get needPubTopic => '请填写发布 Topic';
+
+	/// zh: 'Payload 为空'
+	String get emptyPayload => 'Payload 为空';
+
+	/// zh: '请填写名称和 Topic'
+	String get needName => '请填写名称和 Topic';
+
+	/// zh: '报文日志已保存'
+	String get logSaved => '报文日志已保存';
+
+	/// zh: '日志已清除'
+	String get cleared => '日志已清除';
+
+	/// zh: '快捷发布已保存'
+	String get quickSaved => '快捷发布已保存';
+
+	/// zh: '已删除'
+	String get deleted => '已删除';
+
+	/// zh: '端口需为 1–65535'
+	String get portInvalid => '端口需为 1–65535';
+
+	/// zh: 'Keep Alive 需为正整数'
+	String get keepAliveInvalid => 'Keep Alive 需为正整数';
+}
+
+// Path: socket.menu
+class Translations$socket$menu$zh {
+	Translations$socket$menu$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '文件'
+	String get file => '文件';
+
+	/// zh: '设置'
+	String get settings => '设置';
+
+	/// zh: '工具'
+	String get tools => '工具';
+
+	/// zh: '帮助'
+	String get help => '帮助';
+
+	/// zh: '保存接收数据…'
+	String get saveLog => '保存接收数据…';
+
+	/// zh: '白底经典'
+	String get themeLight => '白底经典';
+
+	/// zh: '黑底经典'
+	String get themeDark => '黑底经典';
+
+	/// zh: '精简模式（收起左栏）'
+	String get compact => '精简模式（收起左栏）';
+
+	/// zh: '显示工具面板'
+	String get toolsPanel => '显示工具面板';
+
+	/// zh: '快捷键说明'
+	String get keys => '快捷键说明';
+
+	/// zh: '检查更新'
+	String get checkUpdate => '检查更新';
+
+	/// zh: '激活…'
+	String get activate => '激活…';
+
+	/// zh: '关于'
+	String get about => '关于';
+}
+
+// Path: socket.kbd
+class Translations$socket$kbd$zh {
+	Translations$socket$kbd$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: 'Ctrl+S'
+	String get ctrlS => 'Ctrl+S';
+
+	/// zh: 'F12'
+	String get f12 => 'F12';
+}
+
+// Path: socket.conn
+class Translations$socket$conn$zh {
+	Translations$socket$conn$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '连接设置'
+	String get title => '连接设置';
+
+	/// zh: '模式'
+	String get role => '模式';
+
+	/// zh: '客户端'
+	String get roleClient => '客户端';
+
+	/// zh: '服务端'
+	String get roleServer => '服务端';
+
+	/// zh: '地址'
+	String get host => '地址';
+
+	/// zh: '端口'
+	String get port => '端口';
+
+	/// zh: '发送目标（UDP）'
+	String get remoteTitle => '发送目标（UDP）';
+
+	/// zh: '远端地址'
+	String get remoteHost => '远端地址';
+
+	/// zh: '远端端口'
+	String get remotePort => '远端端口';
+
+	/// zh: '打开'
+	String get open => '打开';
+
+	/// zh: '关闭'
+	String get close => '关闭';
+
+	/// zh: '客户端'
+	String get peers => '客户端';
+
+	/// zh: '全部（$count）'
+	String peerAll({required Object count}) => '全部（${count}）';
+
+	/// zh: '等待客户端接入…'
+	String get emptyPeers => '等待客户端接入…';
+}
+
+// Path: socket.log
+class Translations$socket$log$zh {
+	Translations$socket$log$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '数据日志'
+	String get title => '数据日志';
+
+	/// zh: '搜索接收内容'
+	String get search => '搜索接收内容';
+
+	/// zh: '等待数据…'
+	String get waiting => '等待数据…';
+
+	/// zh: '连接未打开。左侧填写地址与端口后点「打开」。'
+	String get closed => '连接未打开。左侧填写地址与端口后点「打开」。';
+
+	/// zh: '$count 处匹配'
+	String matches({required Object count}) => '${count} 处匹配';
+
+	/// zh: '$count 条记录'
+	String records({required Object count}) => '${count} 条记录';
+
+	/// zh: '接收不显示'
+	String get rxHidden => '接收不显示';
+
+	/// zh: '$peer'
+	String peerLabel({required Object peer}) => '${peer}';
+
+	/// zh: '$endpoint 已打开'
+	String opened({required Object endpoint}) => '${endpoint} 已打开';
+
+	/// zh: '$endpoint 已关闭'
+	String closedEndpoint({required Object endpoint}) => '${endpoint} 已关闭';
+}
+
+// Path: socket.dialog
+class Translations$socket$dialog$zh {
+	Translations$socket$dialog$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '关于网络调试'
+	String get aboutTitle => '关于网络调试';
+
+	/// zh: 'TCP / UDP 调试台与串口调试台共用工具面板与脚本引擎。'
+	String get aboutBody => 'TCP / UDP 调试台与串口调试台共用工具面板与脚本引擎。';
+
+	/// zh: 'TCP 服务端可向全部或单个客户端发送；UDP 需配置发送目标。'
+	String get aboutDetail => 'TCP 服务端可向全部或单个客户端发送；UDP 需配置发送目标。';
+}
+
+// Path: socket.notice
+class Translations$socket$notice$zh {
+	Translations$socket$notice$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '就绪'
+	String get ready => '就绪';
+
+	/// zh: '连接已打开'
+	String get opened => '连接已打开';
+
+	/// zh: '连接已关闭'
+	String get closed => '连接已关闭';
+
+	/// zh: '连接未打开，发送已拦截'
+	String get closedSend => '连接未打开，发送已拦截';
+
+	/// zh: '连接未打开，规则不会执行'
+	String get closedRule => '连接未打开，规则不会执行';
+
+	/// zh: '连接未打开，批量任务未启动'
+	String get closedBatch => '连接未打开，批量任务未启动';
+
+	/// zh: '打开连接失败：$detail'
+	String openFailed({required Object detail}) => '打开连接失败：${detail}';
+
+	/// zh: '请先配置 UDP 发送目标'
+	String get noRemote => '请先配置 UDP 发送目标';
+
+	/// zh: 'TCP 服务端尚无客户端'
+	String get noClient => 'TCP 服务端尚无客户端';
+
+	/// zh: '地址不能为空'
+	String get hostInvalid => '地址不能为空';
+
+	/// zh: '端口需为 1–65535'
+	String get portInvalid => '端口需为 1–65535';
+
+	/// zh: '分包超时需为非负整数'
+	String get timeoutInvalid => '分包超时需为非负整数';
+
+	/// zh: '循环周期至少 10 ms'
+	String get periodInvalid => '循环周期至少 10 ms';
+
+	/// zh: '重复次数需为正整数'
+	String get repeatInvalid => '重复次数需为正整数';
+
+	/// zh: '开始保存接收数据，取消勾选时写出文件'
+	String get saveStarted => '开始保存接收数据，取消勾选时写出文件';
+
+	/// zh: '已写出 $name（$count 条）'
+	String saveWritten({required Object name, required Object count}) => '已写出 ${name}（${count} 条）';
+
+	/// zh: '接收数据已保存为文本'
+	String get logSaved => '接收数据已保存为文本';
+
+	/// zh: '接收区已清除'
+	String get recvCleared => '接收区已清除';
+
+	/// zh: '循环发送中，周期 $period ms'
+	String loopStarted({required Object period}) => '循环发送中，周期 ${period} ms';
+
+	/// zh: '循环发送已停止'
+	String get loopStopped => '循环发送已停止';
+
+	/// zh: '批量发送中 · 第 $step/$total 条'
+	String batchRunning({required Object step, required Object total}) => '批量发送中 · 第 ${step}/${total} 条';
+
+	/// zh: '批量发送结束'
+	String get batchEnded => '批量发送结束';
+
+	/// zh: '$name 已启用'
+	String ruleOn({required Object name}) => '${name} 已启用';
+
+	/// zh: '$name 已停用'
+	String ruleOff({required Object name}) => '${name} 已停用';
+
+	/// zh: '已删除'
+	String get deleted => '已删除';
+
+	/// zh: '已复制'
+	String get duplicated => '已复制';
+
+	/// zh: '快捷指令已保存'
+	String get quickSaved => '快捷指令已保存';
+
+	/// zh: '文件夹已保存'
+	String get folderSaved => '文件夹已保存';
+
+	/// zh: '应答规则已保存'
+	String get ruleSaved => '应答规则已保存';
+
+	/// zh: '批量任务已保存'
+	String get batchSaved => '批量任务已保存';
+
+	/// zh: '脚本已重命名'
+	String get scriptSaved => '脚本已重命名';
+
+	/// zh: '已用「$title」新建 $name'
+	String lessonCreated({required Object title, required Object name}) => '已用「${title}」新建 ${name}';
+
+	/// zh: '样例试跑结果已写入运行日志'
+	String get lessonTried => '样例试跑结果已写入运行日志';
+
+	/// zh: '已载入 $name'
+	String fileLoaded({required Object name}) => '已载入 ${name}';
+
+	/// zh: '客户端接入：$address'
+	String peerJoined({required Object address}) => '客户端接入：${address}';
+
+	/// zh: '客户端断开：$address'
+	String peerLeft({required Object address}) => '客户端断开：${address}';
+
+	/// zh: 'TCP 模式已切换，请重新打开连接'
+	String get roleChanged => 'TCP 模式已切换，请重新打开连接';
+}
+
 // Path: serial.script.lessons
 class Translations$serial$script$lessons$zh {
 	Translations$serial$script$lessons$zh.internal(this._root);
@@ -1500,6 +2972,18 @@ class Translations$serial$reply$lessons$zh {
 	late final Translations$serial$reply$lessons$reword$zh reword = Translations$serial$reply$lessons$reword$zh.internal(_root);
 	late final Translations$serial$reply$lessons$groups$zh groups = Translations$serial$reply$lessons$groups$zh.internal(_root);
 	late final Translations$serial$reply$lessons$reascii$zh reascii = Translations$serial$reply$lessons$reascii$zh.internal(_root);
+}
+
+// Path: mqtt.script.lessons
+class Translations$mqtt$script$lessons$zh {
+	Translations$mqtt$script$lessons$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$mqtt$script$lessons$hooks$zh hooks = Translations$mqtt$script$lessons$hooks$zh.internal(_root);
+	late final Translations$mqtt$script$lessons$print$zh print = Translations$mqtt$script$lessons$print$zh.internal(_root);
+	late final Translations$mqtt$script$lessons$rewrite$zh rewrite = Translations$mqtt$script$lessons$rewrite$zh.internal(_root);
 }
 
 // Path: serial.script.lessons.hooks
@@ -1778,6 +3262,51 @@ class Translations$serial$reply$lessons$reascii$zh {
 	String get rxNote => '收到字符 OK,42。(.+) 把 42 两个字符抓进同一个 \$1。';
 }
 
+// Path: mqtt.script.lessons.hooks
+class Translations$mqtt$script$lessons$hooks$zh {
+	Translations$mqtt$script$lessons$hooks$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '脚本什么时候运行'
+	String get title => '脚本什么时候运行';
+
+	/// zh: 'on_message(msg) 在收到报文并写入日志后调用。before_publish(msg) 在发布框和快捷发布发出前调用，返回的表才会发出。msg 含 topic、payload、qos、retain。开关只控制自动运行。'
+	String get text => 'on_message(msg) 在收到报文并写入日志后调用。before_publish(msg) 在发布框和快捷发布发出前调用，返回的表才会发出。msg 含 topic、payload、qos、retain。开关只控制自动运行。';
+}
+
+// Path: mqtt.script.lessons.print
+class Translations$mqtt$script$lessons$print$zh {
+	Translations$mqtt$script$lessons$print$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '把主题和内容打出来'
+	String get title => '把主题和内容打出来';
+
+	/// zh: 'log 把内容写到运行日志，多个参数用空格连起来。print 和 log 是同一个函数。'
+	String get text => 'log 把内容写到运行日志，多个参数用空格连起来。print 和 log 是同一个函数。';
+}
+
+// Path: mqtt.script.lessons.rewrite
+class Translations$mqtt$script$lessons$rewrite$zh {
+	Translations$mqtt$script$lessons$rewrite$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '发布前改写或拦截'
+	String get title => '发布前改写或拦截';
+
+	/// zh: 'before_publish 返回改过的 msg 就会按新内容发布。payload 等于 drop 时返回 nil，这一次不发。其他内容在 payload 前加上 cmd:。'
+	String get text => 'before_publish 返回改过的 msg 就会按新内容发布。payload 等于 drop 时返回 nil，这一次不发。其他内容在 payload 前加上 cmd:。';
+}
+
 /// The flat map containing all translations for locale <zh>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -1791,6 +3320,21 @@ extension on Translations {
 			'nav.serial' => '串口',
 			'home.welcome' => '欢迎使用设备调试工具',
 			'home.placeholder' => '在 lib/features 下添加功能模块',
+			'home.addConnection' => '＋ 新增',
+			'home.kindSerial' => '串口',
+			'home.kindBle' => '蓝牙 BLE',
+			'home.kindMqtt' => 'MQTT',
+			'home.kindTcp' => 'TCP',
+			'home.kindUdp' => 'UDP',
+			'home.badgeSerial' => 'SERIAL',
+			'home.badgeBle' => 'BLE',
+			'home.badgeMqtt' => 'MQTT',
+			'home.badgeTcp' => 'TCP',
+			'home.badgeUdp' => 'UDP',
+			'home.emptyConnections' => '还没有连接。点「新增」创建串口、蓝牙、MQTT 或 TCP/UDP 页签。',
+			'home.rename' => '重命名',
+			'home.renameTitle' => '重命名页签',
+			'home.renameName' => '名称',
 			'common.confirm' => '确认',
 			'common.cancel' => '取消',
 			'common.retry' => '重试',
@@ -1803,6 +3347,10 @@ extension on Translations {
 			'common.add' => '新增',
 			'common.edit' => '编辑',
 			'common.duplicate' => '复制',
+			'common.github' => '项目地址',
+			'common.githubUrl' => 'https://github.com/chyi-dev/device_debug_tools',
+			'common.email' => '邮箱',
+			'common.emailAddress' => '757120553@qq.com',
 			'serial.menu.file' => '文件',
 			'serial.menu.settings' => '设置',
 			'serial.menu.tools' => '工具',
@@ -1815,6 +3363,8 @@ extension on Translations {
 			'serial.menu.compact' => '精简模式（收起左栏）',
 			'serial.menu.toolsPanel' => '显示工具面板',
 			'serial.menu.keys' => '快捷键说明',
+			'serial.menu.checkUpdate' => '检查更新',
+			'serial.menu.activate' => '激活…',
 			'serial.menu.about' => '关于',
 			'serial.kbd.ctrlS' => 'Ctrl+S',
 			'serial.kbd.f12' => 'F12',
@@ -2106,6 +3656,8 @@ extension on Translations {
 			'serial.calc.empty' => '请输入内容',
 			'serial.calc.explain' => 'CRC16 为 MODBUS（低字节在前），CRC32 为标准 IEEE（大端）。「追加」会把校验值接到发送框末尾。',
 			'serial.status.reset' => '复位计数',
+			'serial.status.copy' => '复制',
+			'serial.status.copied' => '已复制',
 			'serial.status.reply' => ({required Object enabled, required Object total}) => '自动应答 ${enabled}/${total}',
 			'serial.status.saving' => ({required Object name, required Object count}) => '正在保存 ${name} · ${count} 条',
 			'serial.status.fileMeta' => ({required Object name, required Object count}) => '${name} · ${count} 字节',
@@ -2220,6 +3772,372 @@ extension on Translations {
 			'serial.notice.importedConfig' => ({required Object list}) => '已导入 ${list}',
 			'serial.notice.importInvalid' => '不是本工具导出的配置文件',
 			'serial.notice.fileLoaded' => ({required Object name}) => '已载入 ${name}',
+			'ble.scan.title' => '设备',
+			'ble.scan.ready' => '就绪',
+			'ble.scan.filter' => '名称或地址',
+			'ble.scan.scan' => '扫描',
+			'ble.scan.scanning' => '扫描中',
+			'ble.scan.empty' => '没有匹配的设备',
+			'ble.scan.notScanned' => '尚未扫描',
+			'ble.scan.adapterOff' => '蓝牙适配器不可用',
+			'ble.connect' => '连接',
+			'ble.disconnect' => '断开',
+			'ble.connecting' => '连接中…',
+			'ble.pin.title' => '钉选通道',
+			'ble.pin.notify' => 'Notify',
+			'ble.pin.write' => 'Write',
+			'ble.pin.unpinned' => '未钉',
+			'ble.pin.pinNotify' => '钉住通知',
+			'ble.pin.pinWrite' => '钉住写入',
+			'ble.pin.pinnedNotify' => '已钉通知',
+			'ble.pin.pinnedWrite' => '已钉写入',
+			'ble.pin.needConnect' => '连接后才能钉特征',
+			'ble.pin.note' => '换钉之后，发送框和快捷指令都改走新特征。',
+			'ble.writeType' => '写入方式',
+			'ble.withResponse' => 'With Response',
+			'ble.withoutResponse' => 'Without Response',
+			'ble.mtu' => 'MTU',
+			'ble.chunk' => '分片字节',
+			'ble.log.title' => '数据日志',
+			'ble.log.search' => '搜索接收内容',
+			'ble.log.records' => ({required Object count}) => '${count} 条',
+			'ble.log.empty' => '钉住 Notify 和 Write 之后，这里就是原来的数据日志。',
+			'ble.send' => '发送',
+			'ble.clear' => '清除',
+			'ble.clearRx' => '清除接收',
+			'ble.saveLog' => '保存接收数据…',
+			'ble.noWrite' => '还没有钉住 Write 特征',
+			'ble.bytes' => ({required Object count, required Object uuid}) => '实发 ${count} 字节 · Write ${uuid}',
+			'ble.ctrlEnter' => 'Ctrl+Enter 发送',
+			'ble.statusHint' => '先钉两只特征再收发',
+			'ble.closed' => 'BLE CLOSED',
+			'ble.compact' => '精简模式',
+			'ble.toolsPanel' => '工具面板',
+			'ble.compactTip' => '收起或展开左侧设置栏',
+			'ble.toolsTip' => '显示或隐藏工具面板',
+			'ble.quick.target' => ({required Object uuid}) => '发到当前钉住的 Write ${uuid}',
+			'ble.quick.targetNone' => '发到当前钉住的 Write（未钉）',
+			'ble.batch.bar' => '运行时写到钉住的 Write',
+			'ble.reply.explain' => 'Notify 和 Write 都钉上之后，上线帧才会自动回。',
+			'ble.history.empty' => '只记录发送框发出的数据。',
+			'ble.script.explain' => '钩子读的是当前钉住的特征，换钉不用改脚本。',
+			'ble.dialog.quickTitle' => '快捷指令',
+			'ble.dialog.ruleTitle' => '应答规则',
+			'ble.dialog.batchTitle' => '批量任务',
+			'ble.dialog.scriptTitle' => '脚本',
+			'ble.dialog.name' => '名称',
+			'ble.dialog.data' => '数据',
+			_ => null,
+		} ?? switch (path) {
+			'ble.dialog.key' => '快捷键',
+			'ble.dialog.pattern' => '匹配',
+			'ble.dialog.code' => '代码',
+			'ble.dialog.delay' => '延时 ms',
+			'ble.dialog.repeat' => '重复',
+			'ble.dialog.deleteQuick' => '删除快捷指令',
+			'ble.dialog.deleteRule' => '删除应答规则',
+			'ble.dialog.deleteBatch' => '删除批量任务',
+			'ble.dialog.deleteScript' => '删除脚本',
+			'ble.notice.ready' => '就绪',
+			'ble.notice.adapterOff' => '蓝牙适配器不可用，配置可保存。',
+			'ble.notice.scanDone' => ({required Object count}) => '扫描完成，发现 ${count} 个设备',
+			'ble.notice.scanEmpty' => '没有匹配的设备',
+			'ble.notice.scanFailed' => ({required Object detail}) => '扫描失败：${detail}',
+			'ble.notice.noDevice' => '请先选一台设备',
+			'ble.notice.connected' => ({required Object name, required Object mtu}) => '${name} CONNECTED, MTU ${mtu} · 在左栏钉住 Notify 和 Write',
+			'ble.notice.connectFailed' => ({required Object detail}) => '连接失败：${detail}',
+			'ble.notice.disconnected' => '已断开',
+			'ble.notice.pinNotify' => ({required Object uuid}) => '钉住 Notify ${uuid}',
+			'ble.notice.unpinNotify' => '取消 Notify 钉选',
+			'ble.notice.pinWrite' => ({required Object uuid, required Object type}) => '钉住 Write ${uuid} · ${type}',
+			'ble.notice.unpinWrite' => '取消 Write 钉选',
+			'ble.notice.noWrite' => '还没有钉住 Write 特征',
+			'ble.notice.sentNoNotify' => '已发出，还没有钉住 Notify，回包进不了日志',
+			'ble.notice.badHex' => 'HEX 格式不正确',
+			'ble.notice.emptySend' => '发送内容为空',
+			'ble.notice.mtuInvalid' => 'MTU 需为正整数',
+			'ble.notice.chunkInvalid' => '分片字节需为正整数',
+			'ble.notice.logSaved' => '接收数据已保存为文本',
+			'ble.notice.recvCleared' => '接收区已清除',
+			'ble.notice.batchRunning' => ({required Object step, required Object total}) => '批量发送中 · 第 ${step}/${total} 条',
+			'ble.notice.batchEnded' => '批量发送结束',
+			'ble.notice.ruleOn' => ({required Object name}) => '${name} 已启用',
+			'ble.notice.ruleOff' => ({required Object name}) => '${name} 已停用',
+			'ble.notice.deleted' => '已删除',
+			'ble.notice.duplicated' => '已复制',
+			'ble.notice.quickSaved' => '快捷指令已保存',
+			'ble.notice.ruleSaved' => '应答规则已保存',
+			'ble.notice.batchSaved' => '批量任务已保存',
+			'ble.notice.scriptSaved' => '脚本已保存',
+			'ble.notice.closedSend' => 'BLE 未连接，发送已拦截',
+			'mqtt.title' => 'MQTT 连接',
+			'mqtt.scheme' => '协议',
+			'mqtt.host' => 'Broker',
+			'mqtt.port' => '端口',
+			'mqtt.path' => '路径',
+			'mqtt.connect' => '连接',
+			'mqtt.connecting' => '连接中…',
+			'mqtt.disconnect' => '断开',
+			'mqtt.expand' => '展开连接设置',
+			'mqtt.collapse' => '收起连接设置',
+			'mqtt.section.session' => '会话',
+			'mqtt.section.tls' => 'TLS',
+			'mqtt.section.will' => '遗嘱',
+			'mqtt.version' => '版本',
+			'mqtt.clientId' => 'Client ID',
+			'mqtt.username' => '用户名',
+			'mqtt.password' => '密码',
+			'mqtt.ca' => 'CA 证书',
+			'mqtt.cert' => '客户端证书',
+			'mqtt.key' => '私钥',
+			'mqtt.pick' => '选择…',
+			'mqtt.unset' => '未选择',
+			'mqtt.keepAlive' => 'Keep Alive',
+			'mqtt.sessionExpiry' => 'Session Expiry',
+			'mqtt.cleanStart' => 'Clean Start',
+			'mqtt.autoReconnect' => '断线自动重连',
+			'mqtt.willTopic' => '遗嘱 Topic',
+			'mqtt.willPayload' => '遗嘱 Payload',
+			'mqtt.willQos' => '遗嘱 QoS',
+			'mqtt.willRetain' => '遗嘱 Retain',
+			'mqtt.subs.title' => '订阅列表',
+			'mqtt.subs.note' => '右侧切换订阅和退订。右键编辑或删除。',
+			'mqtt.subs.topic' => 'Topic，可用 + 或 #',
+			'mqtt.subs.qos' => 'QoS',
+			'mqtt.subs.dialogTitle' => '订阅',
+			'mqtt.subs.editTitle' => '编辑订阅',
+			'mqtt.subs.needTopic' => '请填写 Topic',
+			'mqtt.subs.subscribe' => '订阅',
+			'mqtt.subs.unsubscribe' => '退订',
+			'mqtt.subs.delete' => ({required Object topic}) => '删除「${topic}」？这条会从列表移除。',
+			'mqtt.subs.empty' => '还没有订阅。点「新增」添加一条。',
+			'mqtt.pubs.title' => '发布主题',
+			'mqtt.pubs.name' => '名称',
+			'mqtt.pubs.topic' => 'Topic',
+			'mqtt.pubs.add' => '添加',
+			'mqtt.pubs.fill' => '填入',
+			'mqtt.pubs.delete' => '删除',
+			'mqtt.pubs.newTitle' => '添加发布主题',
+			'mqtt.pubs.needName' => '请填写名称',
+			'mqtt.pubs.needTopic' => '请填写 Topic',
+			'mqtt.pubs.empty' => '还没有发布主题。点「新增」保存一条，再点「填入」写到发布框。',
+			'mqtt.pubs.deleteTitle' => '删除发布主题',
+			'mqtt.pubs.deleteBody' => ({required Object name, required Object topic}) => '删除「${name}」${topic}？发布框里已填的 Topic 不会改。',
+			'mqtt.log.title' => '报文日志',
+			'mqtt.log.search' => '搜索 Topic / Payload',
+			'mqtt.log.records' => ({required Object count}) => '${count} 条',
+			'mqtt.log.empty' => '连接后，订阅到的报文会出现在这里。',
+			'mqtt.compose.to' => '发布到',
+			'mqtt.compose.payload' => 'Payload',
+			'mqtt.compose.publish' => '发布',
+			'mqtt.compose.clear' => '清除',
+			'mqtt.compose.retain' => 'Retain',
+			'mqtt.compose.bytes' => ({required Object count}) => '实发 ${count} 字节',
+			'mqtt.compose.ctrlEnter' => 'Ctrl+Enter',
+			'mqtt.tab.subs' => '订阅',
+			'mqtt.tab.quick' => '快捷发布',
+			'mqtt.tab.history' => '历史发送',
+			'mqtt.tab.script' => '脚本',
+			'mqtt.quick.bar' => '可沿用或覆盖发布框',
+			'mqtt.quick.publish' => '发布',
+			'mqtt.quick.inherit' => '沿用发布框的 Topic、QoS、Retain',
+			'mqtt.quick.inheritLabel' => ({required Object topic, required Object qos}) => '继承 · ${topic} · QoS ${qos}',
+			'mqtt.quick.newTitle' => '新增快捷发布',
+			'mqtt.quick.editTitle' => '编辑快捷发布',
+			'mqtt.quick.name' => '名称',
+			'mqtt.quick.payload' => 'Payload',
+			'mqtt.quick.key' => '快捷键',
+			'mqtt.quick.noKey' => '不绑定',
+			'mqtt.quick.qosRetain' => 'QoS / Retain',
+			'mqtt.quick.needName' => '请填写名称',
+			'mqtt.quick.needPayload' => 'Payload 为空',
+			'mqtt.quick.needTopic' => '不沿用时必须填写 Topic',
+			'mqtt.quick.empty' => '还没有快捷发布。点「新增」保存一条。',
+			'mqtt.quick.delete' => ({required Object name}) => '删除快捷发布「${name}」后无法恢复。',
+			'mqtt.history.note' => '只记录用「发布」按钮发出的报文。点时间重发，点「填入」放回发布框。',
+			'mqtt.history.clear' => '清空',
+			'mqtt.history.fill' => '填入',
+			'mqtt.history.empty' => '还没有发布记录。',
+			'mqtt.history.deleteAll' => ({required Object count}) => '清空 ${count} 条历史发布？清空后无法恢复。',
+			'mqtt.script.note' => ({required Object enabled, required Object total}) => '已启用 ${enabled} / ${total}',
+			'mqtt.script.add' => '新建',
+			'mqtt.script.waiting' => '等待触发',
+			'mqtt.script.off' => '已停用',
+			'mqtt.script.outputs' => ({required Object count}) => '已输出 ${count} 次',
+			'mqtt.script.broken' => '有错误',
+			'mqtt.script.noHook' => '无钩子',
+			'mqtt.script.hookMessage' => 'on_message',
+			'mqtt.script.hookPublish' => 'before_publish',
+			'mqtt.script.explain' => 'Lua 脚本。on_message 在报文写入日志后运行；before_publish 经过发布框和快捷发布，返回改写后的消息再发出，返回 nil 则不发。\n点一行在日志和发布框之间打开编辑器。开关只控制自动运行，「运行」用最近一封和发布框试算，不会发布。',
+			'mqtt.script.mine' => ({required Object count}) => '我的脚本 ${count}',
+			'mqtt.script.tutorial' => '教程',
+			'mqtt.script.lessonNew' => '用这课新建脚本',
+			'mqtt.script.lessonTry' => '样例试跑',
+			'mqtt.script.tutorialNote' => '死循环会被中止，os.execute 等危险函数已移除。样例试跑只写运行日志，不会发布。',
+			'mqtt.script.tried' => ({required Object hook, required Object sample}) => '样例试跑 · ${hook} ← ${sample}',
+			'mqtt.script.lessons.hooks.title' => '脚本什么时候运行',
+			'mqtt.script.lessons.hooks.text' => 'on_message(msg) 在收到报文并写入日志后调用。before_publish(msg) 在发布框和快捷发布发出前调用，返回的表才会发出。msg 含 topic、payload、qos、retain。开关只控制自动运行。',
+			'mqtt.script.lessons.print.title' => '把主题和内容打出来',
+			'mqtt.script.lessons.print.text' => 'log 把内容写到运行日志，多个参数用空格连起来。print 和 log 是同一个函数。',
+			'mqtt.script.lessons.rewrite.title' => '发布前改写或拦截',
+			'mqtt.script.lessons.rewrite.text' => 'before_publish 返回改过的 msg 就会按新内容发布。payload 等于 drop 时返回 nil，这一次不发。其他内容在 payload 前加上 cmd:。',
+			'mqtt.script.empty' => '还没有脚本。点「新建」写一个。',
+			'mqtt.script.autoOn' => '自动运行中',
+			'mqtt.script.autoOff' => '已停用，仅手动运行',
+			'mqtt.script.editorHint' => 'Lua · 输入即保存 · Tab 缩进两格',
+			'mqtt.script.run' => '运行',
+			'mqtt.script.fold' => '收起',
+			'mqtt.script.rename' => '重命名',
+			'mqtt.script.renameTitle' => '重命名脚本',
+			'mqtt.script.delete' => ({required Object name}) => '删除「${name}」？',
+			'mqtt.script.logTitle' => '运行日志',
+			'mqtt.script.clear' => '清空',
+			'mqtt.script.logEmpty' => '还没有输出。启用脚本后，收到或发布时会写在这里。',
+			'mqtt.script.changed' => ({required Object from, required Object to}) => '${from} → ${to}',
+			'mqtt.script.blocked' => ({required Object from}) => '${from} → nil，已拦截，未发布',
+			'mqtt.script.dryRun' => ({required Object from, required Object to}) => '试算 ${from} → ${to}（未发布）',
+			'mqtt.script.dryBlocked' => ({required Object from}) => '试算 ${from} → nil，这一次会被拦截（未发布）',
+			'mqtt.script.manualRx' => ({required Object label}) => '手动运行 · 最近一封 ${label}',
+			'mqtt.script.noRx' => '手动运行 · 还没有收到报文',
+			'mqtt.script.badTx' => '发布框的 Topic 或 Payload 为空，无法试算 before_publish',
+			'mqtt.script.noHookLog' => '没有定义 on_message 或 before_publish',
+			'mqtt.script.tooLong' => '执行超过指令上限，可能是死循环，已中止',
+			'mqtt.status.subs' => ({required Object count}) => '订阅 ${count}',
+			'mqtt.compact' => '精简模式',
+			'mqtt.toolsPanel' => '工具面板',
+			'mqtt.compactTip' => '收起或展开左侧设置栏',
+			'mqtt.toolsTip' => '显示或隐藏工具面板',
+			'mqtt.saveLog' => '保存报文日志…',
+			'mqtt.notice.ready' => '就绪',
+			'mqtt.notice.connected' => ({required Object host, required Object port, required Object id}) => '已连接 ${host}:${port}，Client ID ${id}',
+			'mqtt.notice.disconnected' => '已断开',
+			'mqtt.notice.connectFailed' => ({required Object detail}) => '连接失败：${detail}',
+			'mqtt.notice.closed' => 'MQTT 未连接，操作已拦截',
+			'mqtt.notice.closedPublish' => 'MQTT 未连接，发布已拦截',
+			'mqtt.notice.closedSubscribe' => 'MQTT 未连接，订阅已拦截',
+			'mqtt.notice.needTopic' => '请填写订阅 Topic',
+			'mqtt.notice.dupTopic' => '已经订阅过该主题',
+			'mqtt.notice.subscribed' => ({required Object topic, required Object qos}) => '已订阅 ${topic} · QoS ${qos}',
+			'mqtt.notice.unsubscribed' => ({required Object topic}) => '已退订 ${topic}',
+			'mqtt.notice.filled' => ({required Object topic}) => '已填入 ${topic}',
+			'mqtt.notice.needPubTopic' => '请填写发布 Topic',
+			'mqtt.notice.emptyPayload' => 'Payload 为空',
+			'mqtt.notice.needName' => '请填写名称和 Topic',
+			'mqtt.notice.logSaved' => '报文日志已保存',
+			'mqtt.notice.cleared' => '日志已清除',
+			'mqtt.notice.quickSaved' => '快捷发布已保存',
+			'mqtt.notice.deleted' => '已删除',
+			'mqtt.notice.portInvalid' => '端口需为 1–65535',
+			'mqtt.notice.keepAliveInvalid' => 'Keep Alive 需为正整数',
+			'socket.menu.file' => '文件',
+			'socket.menu.settings' => '设置',
+			'socket.menu.tools' => '工具',
+			'socket.menu.help' => '帮助',
+			'socket.menu.saveLog' => '保存接收数据…',
+			'socket.menu.themeLight' => '白底经典',
+			'socket.menu.themeDark' => '黑底经典',
+			'socket.menu.compact' => '精简模式（收起左栏）',
+			'socket.menu.toolsPanel' => '显示工具面板',
+			'socket.menu.keys' => '快捷键说明',
+			'socket.menu.checkUpdate' => '检查更新',
+			'socket.menu.activate' => '激活…',
+			'socket.menu.about' => '关于',
+			'socket.kbd.ctrlS' => 'Ctrl+S',
+			'socket.kbd.f12' => 'F12',
+			'socket.compact' => '精简模式',
+			'socket.toolsPanel' => '工具面板',
+			'socket.compactTip' => '收起或展开左侧设置栏',
+			'socket.toolsTip' => '显示或隐藏工具面板',
+			'socket.conn.title' => '连接设置',
+			'socket.conn.role' => '模式',
+			'socket.conn.roleClient' => '客户端',
+			'socket.conn.roleServer' => '服务端',
+			'socket.conn.host' => '地址',
+			'socket.conn.port' => '端口',
+			'socket.conn.remoteTitle' => '发送目标（UDP）',
+			'socket.conn.remoteHost' => '远端地址',
+			'socket.conn.remotePort' => '远端端口',
+			'socket.conn.open' => '打开',
+			'socket.conn.close' => '关闭',
+			'socket.conn.peers' => '客户端',
+			'socket.conn.peerAll' => ({required Object count}) => '全部（${count}）',
+			'socket.conn.emptyPeers' => '等待客户端接入…',
+			'socket.log.title' => '数据日志',
+			'socket.log.search' => '搜索接收内容',
+			'socket.log.waiting' => '等待数据…',
+			'socket.log.closed' => '连接未打开。左侧填写地址与端口后点「打开」。',
+			'socket.log.matches' => ({required Object count}) => '${count} 处匹配',
+			'socket.log.records' => ({required Object count}) => '${count} 条记录',
+			'socket.log.rxHidden' => '接收不显示',
+			'socket.log.peerLabel' => ({required Object peer}) => '${peer}',
+			'socket.log.opened' => ({required Object endpoint}) => '${endpoint} 已打开',
+			'socket.log.closedEndpoint' => ({required Object endpoint}) => '${endpoint} 已关闭',
+			'socket.dialog.aboutTitle' => '关于网络调试',
+			'socket.dialog.aboutBody' => 'TCP / UDP 调试台与串口调试台共用工具面板与脚本引擎。',
+			'socket.dialog.aboutDetail' => 'TCP 服务端可向全部或单个客户端发送；UDP 需配置发送目标。',
+			'socket.notice.ready' => '就绪',
+			'socket.notice.opened' => '连接已打开',
+			'socket.notice.closed' => '连接已关闭',
+			'socket.notice.closedSend' => '连接未打开，发送已拦截',
+			'socket.notice.closedRule' => '连接未打开，规则不会执行',
+			'socket.notice.closedBatch' => '连接未打开，批量任务未启动',
+			'socket.notice.openFailed' => ({required Object detail}) => '打开连接失败：${detail}',
+			'socket.notice.noRemote' => '请先配置 UDP 发送目标',
+			'socket.notice.noClient' => 'TCP 服务端尚无客户端',
+			'socket.notice.hostInvalid' => '地址不能为空',
+			'socket.notice.portInvalid' => '端口需为 1–65535',
+			'socket.notice.timeoutInvalid' => '分包超时需为非负整数',
+			'socket.notice.periodInvalid' => '循环周期至少 10 ms',
+			'socket.notice.repeatInvalid' => '重复次数需为正整数',
+			'socket.notice.saveStarted' => '开始保存接收数据，取消勾选时写出文件',
+			'socket.notice.saveWritten' => ({required Object name, required Object count}) => '已写出 ${name}（${count} 条）',
+			'socket.notice.logSaved' => '接收数据已保存为文本',
+			'socket.notice.recvCleared' => '接收区已清除',
+			'socket.notice.loopStarted' => ({required Object period}) => '循环发送中，周期 ${period} ms',
+			'socket.notice.loopStopped' => '循环发送已停止',
+			'socket.notice.batchRunning' => ({required Object step, required Object total}) => '批量发送中 · 第 ${step}/${total} 条',
+			'socket.notice.batchEnded' => '批量发送结束',
+			'socket.notice.ruleOn' => ({required Object name}) => '${name} 已启用',
+			'socket.notice.ruleOff' => ({required Object name}) => '${name} 已停用',
+			'socket.notice.deleted' => '已删除',
+			'socket.notice.duplicated' => '已复制',
+			'socket.notice.quickSaved' => '快捷指令已保存',
+			'socket.notice.folderSaved' => '文件夹已保存',
+			'socket.notice.ruleSaved' => '应答规则已保存',
+			'socket.notice.batchSaved' => '批量任务已保存',
+			'socket.notice.scriptSaved' => '脚本已重命名',
+			'socket.notice.lessonCreated' => ({required Object title, required Object name}) => '已用「${title}」新建 ${name}',
+			'socket.notice.lessonTried' => '样例试跑结果已写入运行日志',
+			'socket.notice.fileLoaded' => ({required Object name}) => '已载入 ${name}',
+			'socket.notice.peerJoined' => ({required Object address}) => '客户端接入：${address}',
+			'socket.notice.peerLeft' => ({required Object address}) => '客户端断开：${address}',
+			'socket.notice.roleChanged' => 'TCP 模式已切换，请重新打开连接',
+			'update.check' => '检查更新',
+			'update.availableTitle' => '发现新版本',
+			'update.versionLine' => ({required Object current, required Object latest}) => '当前 ${current} · 最新 ${latest}',
+			'update.releaseNotes' => '更新说明',
+			'update.downloadInstall' => '下载并安装',
+			'update.openReleasePage' => '打开发布页',
+			'update.upToDate' => ({required Object version}) => '已是最新版本 ${version}',
+			'update.downloadingTitle' => '正在下载更新',
+			'update.downloading' => '正在下载安装包…',
+			'update.downloadProgress' => ({required Object received, required Object total}) => '已下载 ${received} / ${total}',
+			'update.noRelease' => '尚未发布正式版本',
+			'update.checkFailed' => ({required Object code}) => '检查更新失败（HTTP ${code}）',
+			'license.banner' => '未激活：试用已结束。功能仍可使用，点击此处输入激活码。',
+			'license.dialogTitle' => '授权激活',
+			'license.deviceCode' => '设备码',
+			'license.copyDeviceCode' => '复制设备码',
+			'license.copied' => '设备码已复制',
+			'license.trialEnds' => ({required Object date}) => '试用截止：${date}',
+			'license.licenseExpires' => ({required Object date}) => '授权到期：${date}',
+			'license.unlicensed' => '当前未激活',
+			'license.activationCode' => '激活码',
+			'license.activationHint' => '请将设备码发给授权方，获取激活码后粘贴到此处。',
+			'license.activate' => '激活',
+			'license.invalid' => '激活码无效，请检查后重试',
+			'license.expired' => '激活码已过期',
+			'license.success' => '激活成功',
 			_ => null,
 		};
 	}

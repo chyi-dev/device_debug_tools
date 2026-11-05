@@ -58,7 +58,7 @@ class _PortGroup extends StatelessWidget {
           title: port.title,
           child: Column(
             children: [
-              _FieldRow(
+              SerialFieldRow(
                 label: port.name,
                 child: Row(
                   children: [
@@ -84,7 +84,7 @@ class _PortGroup extends StatelessWidget {
                   ],
                 ),
               ),
-              _FieldRow(
+              SerialFieldRow(
                 label: port.baud,
                 child: SerialDropdown<int>(
                   value: state.baud,
@@ -95,7 +95,7 @@ class _PortGroup extends StatelessWidget {
                   onChanged: cubit.setBaud,
                 ),
               ),
-              _FieldRow(
+              SerialFieldRow(
                 label: port.parity,
                 child: SerialDropdown<Parity>(
                   value: state.parity,
@@ -106,7 +106,7 @@ class _PortGroup extends StatelessWidget {
                   onChanged: cubit.setParity,
                 ),
               ),
-              _FieldRow(
+              SerialFieldRow(
                 label: port.dataBits,
                 child: SerialDropdown<int>(
                   value: state.dataBits,
@@ -117,7 +117,7 @@ class _PortGroup extends StatelessWidget {
                   onChanged: cubit.setDataBits,
                 ),
               ),
-              _FieldRow(
+              SerialFieldRow(
                 label: port.stopBits,
                 child: SerialDropdown<StopBits>(
                   value: state.stopBits,
@@ -128,7 +128,7 @@ class _PortGroup extends StatelessWidget {
                   onChanged: cubit.setStopBits,
                 ),
               ),
-              _FieldRow(
+              SerialFieldRow(
                 label: port.flow,
                 child: SerialDropdown<FlowControl>(
                   value: state.flow,
@@ -475,36 +475,6 @@ class _TxGroup extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _FieldRow extends StatelessWidget {
-  const _FieldRow({required this.label, required this.child});
-
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = SerialPalette.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: SerialMetrics.formGap),
-      child: Row(
-        children: [
-          SizedBox(
-            width: SerialMetrics.labelCol,
-            child: Text(
-              label,
-              style: AppTextStyles.caption(
-                Theme.of(context).colorScheme,
-              ).copyWith(color: palette.muted, fontSize: 13),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: child),
-        ],
-      ),
     );
   }
 }

@@ -24,8 +24,12 @@ void main() {
   });
 
   tearDown(() async {
-    await Hive.close();
-    await tempDir.delete(recursive: true);
+    if (Hive.isBoxOpen(StorageKeys.settingsBox)) {
+      await Hive.close();
+    }
+    if (tempDir.existsSync()) {
+      await tempDir.delete(recursive: true);
+    }
   });
 
   testWidgets('应用启动后渲染首页', (tester) async {
@@ -34,10 +38,13 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(buildAppRoot(userPrefsStorage: prefs));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await _settleIo(tester);
 
     expect(find.text('串口设置'), findsOneWidget);
     expect(find.text('数据日志'), findsOneWidget);
+    expect(find.text('＋ 新增'), findsOneWidget);
+    await _releaseApp(tester);
   });
 
   testWidgets('AppCubit 切换语言后界面刷新并持久化', (tester) async {
@@ -46,16 +53,19 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(buildAppRoot(userPrefsStorage: prefs));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await _settleIo(tester);
 
     final context = tester.element(find.text('文件'));
-    await tester.runAsync(
-      () => context.read<AppCubit>().setLocale(AppLocale.en),
-    );
-    await tester.pumpAndSettle();
+    await tester.runAsync(() => LocaleSettings.setLocale(AppLocale.en));
+    final pending = context.read<AppCubit>().setLocale(AppLocale.en);
+    await _settleIo(tester);
+    await pending;
+    await tester.pump();
 
     expect(find.text('File'), findsOneWidget);
     expect(prefs.readLocale(), 'en');
+    await _releaseApp(tester);
   });
 
   testWidgets('文件菜单打开导出配置清单，全不勾时拦下', (tester) async {
@@ -64,12 +74,15 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(buildAppRoot(userPrefsStorage: prefs));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await _settleIo(tester);
 
     await tester.tap(find.text('文件'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.tap(find.text('导出配置…'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('导出配置'), findsOneWidget);
     final boxes = find.descendant(
@@ -84,6 +97,7 @@ void main() {
     await tester.tap(find.text('导出'));
     await tester.pump();
     expect(find.text('至少勾选一类'), findsOneWidget);
+    await _releaseApp(tester);
   });
 
   test('UserPrefsStorage 主题默认跟随系统并可持久化', () async {
@@ -91,4 +105,33 @@ void main() {
     await prefs.saveThemeMode(ThemeMode.dark);
     expect(prefs.readThemeMode(), ThemeMode.dark);
   });
+}
+
+/// 让启动时的 Hive 写入在假异步里跑完，避免后续真实异步写卡在同一把锁上。
+Future<void> _settleIo(WidgetTester tester) async {
+  for (var i = 0; i < 8; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump();
+  }
+}
+
+/// 关掉界面，并在假异步和真实文件事件之间来回让出，直到 Hive 写锁释放。
+Future<void> _releaseApp(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  for (var i = 0; i < 8; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump();
+  }
+  final closing = Hive.close();
+  for (var i = 0; i < 8; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump();
+  }
+  await tester.runAsync(() => closing);
 }

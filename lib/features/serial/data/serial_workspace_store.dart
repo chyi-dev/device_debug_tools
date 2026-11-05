@@ -8,12 +8,14 @@ import '../../../core/storage/storage_keys.dart';
 import '../model/serial_models.dart';
 
 class SerialWorkspaceStore {
-  SerialWorkspaceStore(this._box);
+  SerialWorkspaceStore(this._box, {String? storageKey})
+    : _key = storageKey ?? StorageKeys.serialWorkspace;
 
   final Box<dynamic> _box;
+  final String _key;
 
   SerialWorkspace? read() {
-    final raw = _box.get(StorageKeys.serialWorkspace);
+    final raw = _box.get(_key);
     if (raw is! String || raw.isEmpty) return null;
     try {
       return SerialWorkspace.fromJson(jsonDecode(raw));
@@ -29,9 +31,6 @@ class SerialWorkspaceStore {
   }
 
   Future<void> write(SerialWorkspace workspace) {
-    return _box.put(
-      StorageKeys.serialWorkspace,
-      jsonEncode(workspace.toJson()),
-    );
+    return _box.put(_key, jsonEncode(workspace.toJson()));
   }
 }

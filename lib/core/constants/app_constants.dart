@@ -3,4 +3,20 @@ abstract final class AppConstants {
   static const int maxLogRetentionDays = 7;
   static const int maxLogFileBytes = 10 * 1024 * 1024; // 10MB
   static const String appDataFolder = 'device_debug_tools';
+
+  /// 更新检查用的公开 GitHub 仓库（owner/repo）。
+  static const String githubOwner = 'chyi-dev';
+  static const String githubRepo = 'device_debug_tools';
+  static const String githubRepoUrl =
+      'https://github.com/chyi-dev/device_debug_tools';
+
+  /// 启动静默检查的最小间隔。
+  static const Duration updateCheckInterval = Duration(hours: 24);
+
+  /// 未激活时可免费使用的天数（含首日，第 [trialDays]+1 天起提示）。
+  static const int licenseTrialDays = 365;
+
+  /// Windows 安装包文件名：`device_debug_tools-<version>-setup.exe`。
+  static String windowsSetupAssetName(String version) =>
+      'device_debug_tools-$version-setup.exe';
 }

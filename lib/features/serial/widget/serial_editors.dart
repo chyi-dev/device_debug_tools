@@ -5,6 +5,7 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
+import '../../home/widget/about_contact.dart';
 import '../cubit/serial_console_cubit.dart';
 import '../data/serial_bytes.dart';
 import '../model/reply_lessons.dart';
@@ -211,6 +212,8 @@ Future<void> showSerialAbout(BuildContext context) {
                 cs,
               ).copyWith(color: palette.muted, height: 1.6),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            const AboutContact(),
           ],
         ),
         actions: [

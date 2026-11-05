@@ -5,14 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../cubit/serial_console_cubit.dart';
 import '../cubit/serial_console_state.dart';
 import '../model/serial_models.dart';
-import '../repository/serial_console_repository.dart';
 import '../serial_metrics.dart';
+import '../widget/serial_chrome.dart';
 import '../widget/serial_config_dialog.dart';
 import '../widget/serial_editors.dart';
 import '../widget/serial_l10n.dart';
@@ -24,22 +23,18 @@ import '../widget/serial_side_panel.dart';
 import '../widget/serial_status_bar.dart';
 import '../widget/serial_tools_panel.dart';
 
-class SerialConsolePage extends StatelessWidget {
-  const SerialConsolePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SerialConsoleCubit(
-        repository: context.read<SerialConsoleRepository>(),
-      )..start(),
-      child: const SerialConsoleView(),
-    );
-  }
-}
-
 class SerialConsoleView extends StatefulWidget {
-  const SerialConsoleView({super.key});
+  const SerialConsoleView({
+    super.key,
+    this.belowMenu,
+    this.shortcutsEnabled = true,
+  });
+
+  /// 放在菜单栏下方，例如首页连接页签。
+  final Widget? belowMenu;
+
+  /// 只有当前页签响应全局快捷键。
+  final bool shortcutsEnabled;
 
   @override
   State<SerialConsoleView> createState() => _SerialConsoleViewState();
@@ -55,7 +50,20 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
   @override
   void initState() {
     super.initState();
-    HardwareKeyboard.instance.addHandler(_onKey);
+    if (widget.shortcutsEnabled) {
+      HardwareKeyboard.instance.addHandler(_onKey);
+    }
+  }
+
+  @override
+  void didUpdateWidget(SerialConsoleView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.shortcutsEnabled == widget.shortcutsEnabled) return;
+    if (widget.shortcutsEnabled) {
+      HardwareKeyboard.instance.addHandler(_onKey);
+    } else {
+      HardwareKeyboard.instance.removeHandler(_onKey);
+    }
   }
 
   @override
@@ -127,7 +135,7 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
   void _showToast(SerialNotice notice) {
     _toastTimer?.cancel();
     setState(() => _toast = notice);
-    _toastTimer = Timer(const Duration(milliseconds: 1900), () {
+    _toastTimer = Timer(SerialMetrics.toastHold, () {
       if (mounted) setState(() => _toast = null);
     });
   }
@@ -135,9 +143,9 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
-    return Scaffold(
-      backgroundColor: palette.win,
-      body: BlocListener<SerialConsoleCubit, SerialConsoleState>(
+    return Material(
+      color: palette.win,
+      child: BlocListener<SerialConsoleCubit, SerialConsoleState>(
         listenWhen: (previous, current) =>
             previous.toast?.id != current.toast?.id,
         listener: (context, state) {
@@ -169,6 +177,7 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                       onKeys: () => showShortcutHelp(context),
                       onAbout: () => showSerialAbout(context),
                     ),
+                    if (widget.belowMenu != null) widget.belowMenu!,
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.sm),
@@ -240,50 +249,16 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                     const SerialStatusBar(),
                   ],
                 ),
-                if (_toast != null)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 44,
-                    child: IgnorePointer(
-                      child: Center(child: _Toast(notice: _toast!)),
-                    ),
-                  ),
+                SerialNoticeOverlay(
+                  visible: _toast != null,
+                  text: _toast == null
+                      ? ''
+                      : serialNoticeText(Translations.of(context), _toast!),
+                  warn: _toast?.warn ?? false,
+                ),
               ],
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _Toast extends StatelessWidget {
-  const _Toast({required this.notice});
-
-  final SerialNotice notice;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Translations.of(context);
-    final palette = SerialPalette.of(context);
-    final bg = notice.warn ? palette.off : palette.text;
-    final fg = notice.warn ? Colors.white : palette.win;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm + 1,
-        ),
-        child: Text(
-          serialNoticeText(t, notice),
-          style: AppTextStyles.body(
-            Theme.of(context).colorScheme,
-          ).copyWith(color: fg),
         ),
       ),
     );

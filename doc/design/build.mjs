@@ -32,12 +32,6 @@ build('multi-console', [
   ['<!-- @multi-engine -->', 'multi-engine.js'],
 ]);
 
-build('index', [
-  ['<!-- @multi-workbench -->', 'multi-workbench.js'],
-], 'multi-pro-a', [
-  ['<!-- @multi-css -->', 'multi-workbench.css'],
-], join(root, 'option-a'));
-
 build('multi-console-b', [
   ['<!-- @multi-workbench -->', 'multi-workbench.js'],
 ], 'multi-pro-b', [

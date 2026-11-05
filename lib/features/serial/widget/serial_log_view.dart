@@ -9,6 +9,7 @@ import '../data/serial_bytes.dart';
 import '../data/serial_stamp.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
+import 'serial_chrome.dart';
 import 'serial_l10n.dart';
 
 class SerialLogView extends StatefulWidget {
@@ -100,40 +101,10 @@ class _SerialLogViewState extends State<SerialLogView> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: SerialMetrics.searchWidth,
-                  child: TextField(
-                    focusNode: widget.searchFocus,
-                    onChanged: widget.onSearch,
-                    style: AppTextStyles.body(
-                      cs,
-                    ).copyWith(color: palette.text, fontSize: 13, height: 1),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: t.serial.log.search,
-                      hintStyle: AppTextStyles.body(
-                        cs,
-                      ).copyWith(color: palette.muted, fontSize: 13, height: 1),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.sm,
-                      ),
-                      filled: true,
-                      fillColor: palette.field,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          SerialMetrics.controlRadius,
-                        ),
-                        borderSide: BorderSide(color: palette.line),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          SerialMetrics.controlRadius,
-                        ),
-                        borderSide: BorderSide(color: palette.line),
-                      ),
-                    ),
-                  ),
+                SerialSearchField(
+                  focusNode: widget.searchFocus,
+                  hint: t.serial.log.search,
+                  onChanged: widget.onSearch,
                 ),
               ],
             ),
