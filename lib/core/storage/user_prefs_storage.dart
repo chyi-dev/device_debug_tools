@@ -32,4 +32,25 @@ class UserPrefsStorage {
   Future<void> saveEnableFileLog(bool value) async {
     await _box.put(StorageKeys.enableFileLog, value);
   }
+
+  DateTime? readUpdateLastCheckAt() {
+    final ms = _box.get(StorageKeys.updateLastCheckMs) as int?;
+    if (ms == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<void> saveUpdateLastCheckAt(DateTime at) async {
+    await _box.put(StorageKeys.updateLastCheckMs, at.millisecondsSinceEpoch);
+  }
+
+  String? readUpdateDismissedVersion() =>
+      _box.get(StorageKeys.updateDismissedVersion) as String?;
+
+  Future<void> saveUpdateDismissedVersion(String version) async {
+    await _box.put(StorageKeys.updateDismissedVersion, version);
+  }
+
+  Future<void> clearUpdateDismissedVersion() async {
+    await _box.delete(StorageKeys.updateDismissedVersion);
+  }
 }

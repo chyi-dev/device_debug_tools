@@ -49,6 +49,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$ble$zh ble = Translations$ble$zh.internal(_root);
 	late final Translations$mqtt$zh mqtt = Translations$mqtt$zh.internal(_root);
 	late final Translations$socket$zh socket = Translations$socket$zh.internal(_root);
+	late final Translations$update$zh update = Translations$update$zh.internal(_root);
 }
 
 // Path: app
@@ -181,6 +182,18 @@ class Translations$common$zh {
 
 	/// zh: '复制'
 	String get duplicate => '复制';
+
+	/// zh: '项目地址'
+	String get github => '项目地址';
+
+	/// zh: 'https://github.com/chyi-dev/device_debug_tools'
+	String get githubUrl => 'https://github.com/chyi-dev/device_debug_tools';
+
+	/// zh: '邮箱'
+	String get email => '邮箱';
+
+	/// zh: '757120553@qq.com'
+	String get emailAddress => '757120553@qq.com';
 }
 
 // Path: serial
@@ -460,6 +473,51 @@ class Translations$socket$zh {
 	late final Translations$socket$notice$zh notice = Translations$socket$notice$zh.internal(_root);
 }
 
+// Path: update
+class Translations$update$zh {
+	Translations$update$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: '检查更新'
+	String get check => '检查更新';
+
+	/// zh: '发现新版本'
+	String get availableTitle => '发现新版本';
+
+	/// zh: '当前 $current · 最新 $latest'
+	String versionLine({required Object current, required Object latest}) => '当前 ${current} · 最新 ${latest}';
+
+	/// zh: '更新说明'
+	String get releaseNotes => '更新说明';
+
+	/// zh: '下载并安装'
+	String get downloadInstall => '下载并安装';
+
+	/// zh: '打开发布页'
+	String get openReleasePage => '打开发布页';
+
+	/// zh: '已是最新版本 $version'
+	String upToDate({required Object version}) => '已是最新版本 ${version}';
+
+	/// zh: '正在下载更新'
+	String get downloadingTitle => '正在下载更新';
+
+	/// zh: '正在下载安装包…'
+	String get downloading => '正在下载安装包…';
+
+	/// zh: '已下载 $received / $total'
+	String downloadProgress({required Object received, required Object total}) => '已下载 ${received} / ${total}';
+
+	/// zh: '尚未发布正式版本'
+	String get noRelease => '尚未发布正式版本';
+
+	/// zh: '检查更新失败（HTTP $code）'
+	String checkFailed({required Object code}) => '检查更新失败（HTTP ${code}）';
+}
+
 // Path: serial.menu
 class Translations$serial$menu$zh {
 	Translations$serial$menu$zh.internal(this._root);
@@ -503,6 +561,9 @@ class Translations$serial$menu$zh {
 
 	/// zh: '快捷键说明'
 	String get keys => '快捷键说明';
+
+	/// zh: '检查更新'
+	String get checkUpdate => '检查更新';
 
 	/// zh: '关于'
 	String get about => '关于';
@@ -2574,6 +2635,9 @@ class Translations$socket$menu$zh {
 	/// zh: '快捷键说明'
 	String get keys => '快捷键说明';
 
+	/// zh: '检查更新'
+	String get checkUpdate => '检查更新';
+
 	/// zh: '关于'
 	String get about => '关于';
 }
@@ -3225,6 +3289,10 @@ extension on Translations {
 			'common.add' => '新增',
 			'common.edit' => '编辑',
 			'common.duplicate' => '复制',
+			'common.github' => '项目地址',
+			'common.githubUrl' => 'https://github.com/chyi-dev/device_debug_tools',
+			'common.email' => '邮箱',
+			'common.emailAddress' => '757120553@qq.com',
 			'serial.menu.file' => '文件',
 			'serial.menu.settings' => '设置',
 			'serial.menu.tools' => '工具',
@@ -3237,6 +3305,7 @@ extension on Translations {
 			'serial.menu.compact' => '精简模式（收起左栏）',
 			'serial.menu.toolsPanel' => '显示工具面板',
 			'serial.menu.keys' => '快捷键说明',
+			'serial.menu.checkUpdate' => '检查更新',
 			'serial.menu.about' => '关于',
 			'serial.kbd.ctrlS' => 'Ctrl+S',
 			'serial.kbd.f12' => 'F12',
@@ -3700,13 +3769,13 @@ extension on Translations {
 			'ble.dialog.name' => '名称',
 			'ble.dialog.data' => '数据',
 			'ble.dialog.key' => '快捷键',
+			_ => null,
+		} ?? switch (path) {
 			'ble.dialog.pattern' => '匹配',
 			'ble.dialog.code' => '代码',
 			'ble.dialog.delay' => '延时 ms',
 			'ble.dialog.repeat' => '重复',
 			'ble.dialog.deleteQuick' => '删除快捷指令',
-			_ => null,
-		} ?? switch (path) {
 			'ble.dialog.deleteRule' => '删除应答规则',
 			'ble.dialog.deleteBatch' => '删除批量任务',
 			'ble.dialog.deleteScript' => '删除脚本',
@@ -3911,6 +3980,7 @@ extension on Translations {
 			'socket.menu.compact' => '精简模式（收起左栏）',
 			'socket.menu.toolsPanel' => '显示工具面板',
 			'socket.menu.keys' => '快捷键说明',
+			'socket.menu.checkUpdate' => '检查更新',
 			'socket.menu.about' => '关于',
 			'socket.kbd.ctrlS' => 'Ctrl+S',
 			'socket.kbd.f12' => 'F12',
@@ -3982,6 +4052,18 @@ extension on Translations {
 			'socket.notice.peerJoined' => ({required Object address}) => '客户端接入：${address}',
 			'socket.notice.peerLeft' => ({required Object address}) => '客户端断开：${address}',
 			'socket.notice.roleChanged' => 'TCP 模式已切换，请重新打开连接',
+			'update.check' => '检查更新',
+			'update.availableTitle' => '发现新版本',
+			'update.versionLine' => ({required Object current, required Object latest}) => '当前 ${current} · 最新 ${latest}',
+			'update.releaseNotes' => '更新说明',
+			'update.downloadInstall' => '下载并安装',
+			'update.openReleasePage' => '打开发布页',
+			'update.upToDate' => ({required Object version}) => '已是最新版本 ${version}',
+			'update.downloadingTitle' => '正在下载更新',
+			'update.downloading' => '正在下载安装包…',
+			'update.downloadProgress' => ({required Object received, required Object total}) => '已下载 ${received} / ${total}',
+			'update.noRelease' => '尚未发布正式版本',
+			'update.checkFailed' => ({required Object code}) => '检查更新失败（HTTP ${code}）',
 			_ => null,
 		};
 	}

@@ -47,6 +47,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$ble$en ble = _Translations$ble$en._(_root);
 	@override late final _Translations$mqtt$en mqtt = _Translations$mqtt$en._(_root);
 	@override late final _Translations$socket$en socket = _Translations$socket$en._(_root);
+	@override late final _Translations$update$en update = _Translations$update$en._(_root);
 }
 
 // Path: app
@@ -115,6 +116,10 @@ class _Translations$common$en extends Translations$common$zh {
 	@override String get add => 'Add';
 	@override String get edit => 'Edit';
 	@override String get duplicate => 'Duplicate';
+	@override String get github => 'Project';
+	@override String get githubUrl => 'https://github.com/chyi-dev/device_debug_tools';
+	@override String get email => 'Email';
+	@override String get emailAddress => '757120553@qq.com';
 }
 
 // Path: serial
@@ -264,6 +269,27 @@ class _Translations$socket$en extends Translations$socket$zh {
 	@override late final _Translations$socket$notice$en notice = _Translations$socket$notice$en._(_root);
 }
 
+// Path: update
+class _Translations$update$en extends Translations$update$zh {
+	_Translations$update$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get check => 'Check for updates';
+	@override String get availableTitle => 'Update available';
+	@override String versionLine({required Object current, required Object latest}) => 'Current ${current} · Latest ${latest}';
+	@override String get releaseNotes => 'Release notes';
+	@override String get downloadInstall => 'Download and install';
+	@override String get openReleasePage => 'Open release page';
+	@override String upToDate({required Object version}) => 'You are on the latest version ${version}';
+	@override String get downloadingTitle => 'Downloading update';
+	@override String get downloading => 'Downloading installer…';
+	@override String downloadProgress({required Object received, required Object total}) => 'Downloaded ${received} / ${total}';
+	@override String get noRelease => 'No published release yet';
+	@override String checkFailed({required Object code}) => 'Update check failed (HTTP ${code})';
+}
+
 // Path: serial.menu
 class _Translations$serial$menu$en extends Translations$serial$menu$zh {
 	_Translations$serial$menu$en._(TranslationsEn root) : this._root = root, super.internal(root);
@@ -283,6 +309,7 @@ class _Translations$serial$menu$en extends Translations$serial$menu$zh {
 	@override String get compact => 'Compact (hide left panel)';
 	@override String get toolsPanel => 'Show tools panel';
 	@override String get keys => 'Keyboard shortcuts';
+	@override String get checkUpdate => 'Check for updates';
 	@override String get about => 'About';
 }
 
@@ -1238,6 +1265,7 @@ class _Translations$socket$menu$en extends Translations$socket$menu$zh {
 	@override String get compact => 'Compact mode (hide left pane)';
 	@override String get toolsPanel => 'Show tools pane';
 	@override String get keys => 'Keyboard shortcuts';
+	@override String get checkUpdate => 'Check for updates';
 	@override String get about => 'About';
 }
 
@@ -1638,6 +1666,10 @@ extension on TranslationsEn {
 			'common.add' => 'Add',
 			'common.edit' => 'Edit',
 			'common.duplicate' => 'Duplicate',
+			'common.github' => 'Project',
+			'common.githubUrl' => 'https://github.com/chyi-dev/device_debug_tools',
+			'common.email' => 'Email',
+			'common.emailAddress' => '757120553@qq.com',
 			'serial.menu.file' => 'File',
 			'serial.menu.settings' => 'Settings',
 			'serial.menu.tools' => 'Tools',
@@ -1650,6 +1682,7 @@ extension on TranslationsEn {
 			'serial.menu.compact' => 'Compact (hide left panel)',
 			'serial.menu.toolsPanel' => 'Show tools panel',
 			'serial.menu.keys' => 'Keyboard shortcuts',
+			'serial.menu.checkUpdate' => 'Check for updates',
 			'serial.menu.about' => 'About',
 			'serial.kbd.ctrlS' => 'Ctrl+S',
 			'serial.kbd.f12' => 'F12',
@@ -2113,13 +2146,13 @@ extension on TranslationsEn {
 			'ble.dialog.name' => 'Name',
 			'ble.dialog.data' => 'Data',
 			'ble.dialog.key' => 'Shortcut',
+			_ => null,
+		} ?? switch (path) {
 			'ble.dialog.pattern' => 'Pattern',
 			'ble.dialog.code' => 'Code',
 			'ble.dialog.delay' => 'Delay ms',
 			'ble.dialog.repeat' => 'Repeat',
 			'ble.dialog.deleteQuick' => 'Delete quick command',
-			_ => null,
-		} ?? switch (path) {
 			'ble.dialog.deleteRule' => 'Delete reply rule',
 			'ble.dialog.deleteBatch' => 'Delete batch job',
 			'ble.dialog.deleteScript' => 'Delete script',
@@ -2324,6 +2357,7 @@ extension on TranslationsEn {
 			'socket.menu.compact' => 'Compact mode (hide left pane)',
 			'socket.menu.toolsPanel' => 'Show tools pane',
 			'socket.menu.keys' => 'Keyboard shortcuts',
+			'socket.menu.checkUpdate' => 'Check for updates',
 			'socket.menu.about' => 'About',
 			'socket.kbd.ctrlS' => 'Ctrl+S',
 			'socket.kbd.f12' => 'F12',
@@ -2395,6 +2429,18 @@ extension on TranslationsEn {
 			'socket.notice.peerJoined' => ({required Object address}) => 'Client joined: ${address}',
 			'socket.notice.peerLeft' => ({required Object address}) => 'Client left: ${address}',
 			'socket.notice.roleChanged' => 'TCP mode changed; open the connection again',
+			'update.check' => 'Check for updates',
+			'update.availableTitle' => 'Update available',
+			'update.versionLine' => ({required Object current, required Object latest}) => 'Current ${current} · Latest ${latest}',
+			'update.releaseNotes' => 'Release notes',
+			'update.downloadInstall' => 'Download and install',
+			'update.openReleasePage' => 'Open release page',
+			'update.upToDate' => ({required Object version}) => 'You are on the latest version ${version}',
+			'update.downloadingTitle' => 'Downloading update',
+			'update.downloading' => 'Downloading installer…',
+			'update.downloadProgress' => ({required Object received, required Object total}) => 'Downloaded ${received} / ${total}',
+			'update.noRelease' => 'No published release yet',
+			'update.checkFailed' => ({required Object code}) => 'Update check failed (HTTP ${code})',
 			_ => null,
 		};
 	}

@@ -37,7 +37,11 @@
     "close": "Close",
     "add": "Add",
     "edit": "Edit",
-    "duplicate": "Duplicate"
+    "duplicate": "Duplicate",
+    "github": "Project",
+    "githubUrl": "https://github.com/chyi-dev/device_debug_tools",
+    "email": "Email",
+    "emailAddress": "757120553@qq.com"
   },
   "serial": {
     "menu": {
@@ -53,6 +57,7 @@
       "compact": "Compact (hide left panel)",
       "toolsPanel": "Show tools panel",
       "keys": "Keyboard shortcuts",
+      "checkUpdate": "Check for updates",
       "about": "About"
     },
     "kbd": {
@@ -857,6 +862,7 @@
       "compact": "Compact mode (hide left pane)",
       "toolsPanel": "Show tools pane",
       "keys": "Keyboard shortcuts",
+      "checkUpdate": "Check for updates",
       "about": "About"
     },
     "kbd": {
@@ -939,5 +945,19 @@
       "peerLeft": "Client left: $address",
       "roleChanged": "TCP mode changed; open the connection again"
     }
+  },
+  "update": {
+    "check": "Check for updates",
+    "availableTitle": "Update available",
+    "versionLine": "Current $current · Latest $latest",
+    "releaseNotes": "Release notes",
+    "downloadInstall": "Download and install",
+    "openReleasePage": "Open release page",
+    "upToDate": "You are on the latest version $version",
+    "downloadingTitle": "Downloading update",
+    "downloading": "Downloading installer…",
+    "downloadProgress": "Downloaded $received / $total",
+    "noRelease": "No published release yet",
+    "checkFailed": "Update check failed (HTTP $code)"
   }
 }

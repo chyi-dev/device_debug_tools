@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:device_debug_tools/app/theme/app_theme.dart';
+import 'package:device_debug_tools/core/storage/storage_keys.dart';
+import 'package:device_debug_tools/core/storage/user_prefs_storage.dart';
 import 'package:device_debug_tools/features/ble/data/ble_session_factory.dart';
 import 'package:device_debug_tools/features/ble/data/ble_workspace_store.dart';
 import 'package:device_debug_tools/features/ble/data/idle_ble_gateway.dart';
@@ -27,14 +30,33 @@ import 'package:device_debug_tools/features/socket/data/socket_session_factory.d
 import 'package:device_debug_tools/features/socket/data/socket_workspace_store.dart';
 import 'package:device_debug_tools/features/socket/model/socket_models.dart';
 import 'package:device_debug_tools/features/socket/repository/socket_console_repository.dart';
+import 'package:device_debug_tools/features/update/cubit/update_cubit.dart';
+import 'package:device_debug_tools/features/update/repository/update_repository.dart';
 import 'package:device_debug_tools/i18n/i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 
 void main() {
+  late Directory tempDir;
+  late UserPrefsStorage prefs;
+
   setUp(() async {
     await LocaleSettings.setLocale(AppLocale.zh);
+    tempDir = await Directory.systemTemp.createTemp('ddt_home_');
+    Hive.init(tempDir.path);
+    final box = await Hive.openBox<dynamic>(StorageKeys.settingsBox);
+    prefs = UserPrefsStorage(box);
+  });
+
+  tearDown(() async {
+    if (Hive.isBoxOpen(StorageKeys.settingsBox)) {
+      await Hive.close();
+    }
+    if (tempDir.existsSync()) {
+      await tempDir.delete(recursive: true);
+    }
   });
 
   testWidgets('新增 BLE 页签后指针事件不触发未布局 hit test', (tester) async {
@@ -58,8 +80,16 @@ void main() {
                 value: _FakeSockets(),
               ),
               RepositoryProvider<HomeTabStore>.value(value: _MemoryTabs()),
+              RepositoryProvider<UpdateRepository>(
+                create: (_) => UpdateRepository(prefs: prefs),
+              ),
             ],
-            child: const HomePage(),
+            child: BlocProvider(
+              create: (context) => UpdateCubit(
+                repository: context.read<UpdateRepository>(),
+              ),
+              child: const HomePage(),
+            ),
           ),
         ),
       ),

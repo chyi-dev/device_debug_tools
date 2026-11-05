@@ -13,6 +13,7 @@ import '../../serial/data/serial_session_factory.dart';
 import '../../serial/page/serial_console_page.dart';
 import '../../socket/data/socket_session_factory.dart';
 import '../../socket/page/socket_console_page.dart';
+import '../../update/widget/update_dialogs.dart';
 import '../cubit/home_tabs_cubit.dart';
 import '../data/home_tab_store.dart';
 import '../model/connection_kind.dart';
@@ -33,7 +34,7 @@ class HomePage extends StatelessWidget {
         sockets: context.read<SocketSessionFactory>(),
         tabs: context.read<HomeTabStore>(),
       )..start(),
-      child: const _HomeView(),
+      child: const UpdateHost(child: _HomeView()),
     );
   }
 }

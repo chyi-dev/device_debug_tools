@@ -8,6 +8,7 @@ import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../core/widgets/app_window_caption.dart';
 import '../../../i18n/i18n.dart';
+import '../../update/cubit/update_cubit.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
 
@@ -146,6 +147,12 @@ class SerialMenuBar extends StatelessWidget {
                                     menu.keys,
                                     onKeys,
                                     kbd: t.serial.kbd.f12,
+                                  ),
+                                  _Item(
+                                    menu.checkUpdate,
+                                    () => context
+                                        .read<UpdateCubit>()
+                                        .checkManual(),
                                   ),
                                   _Item(menu.about, onAbout),
                                 ],

@@ -10,6 +10,7 @@ import '../../../core/widgets/app_window_caption.dart';
 import '../../../i18n/i18n.dart';
 import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
+import '../../update/cubit/update_cubit.dart';
 
 class SocketMenuBar extends StatelessWidget {
   const SocketMenuBar({
@@ -144,6 +145,12 @@ class SocketMenuBar extends StatelessWidget {
                                     menu.keys,
                                     onKeys,
                                     kbd: t.socket.kbd.f12,
+                                  ),
+                                  _Item(
+                                    menu.checkUpdate,
+                                    () => context
+                                        .read<UpdateCubit>()
+                                        .checkManual(),
                                   ),
                                   _Item(menu.about, onAbout),
                                 ],

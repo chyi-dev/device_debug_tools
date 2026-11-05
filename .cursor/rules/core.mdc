@@ -10,9 +10,15 @@ alwaysApply: false
 
 ## 异常
 
-- 使用 `lib/core/exception/app_exception.dart` 的 sealed `AppException`：`DeviceException`、`StorageException`、`ValidationException`、`UnknownException`
+- 使用 `lib/core/exception/app_exception.dart` 的 sealed `AppException`：`DeviceException`、`StorageException`、`ValidationException`、`NetworkException`、`UnknownException`
 - Cubit / UI 层读取 `message`，不要到处 `e.toString()`
 - 新增异常子类加在同一文件，保持 sealed 便于 `switch` 穷举
+
+## 网络（更新检查）
+
+- 仅 `lib/features/update/` 访问外网：GitHub Releases API（`/releases/latest`）与附件下载
+- 匿名请求，User-Agent `device_debug_tools`；仓库常量见 `AppConstants.githubOwner` / `githubRepo`
+- Windows 安装包文件名约定：`device_debug_tools-<x.y.z>-setup.exe`
 
 ## 存储
 

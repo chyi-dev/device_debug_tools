@@ -37,7 +37,11 @@
     "close": "关闭",
     "add": "新增",
     "edit": "编辑",
-    "duplicate": "复制"
+    "duplicate": "复制",
+    "github": "项目地址",
+    "githubUrl": "https://github.com/chyi-dev/device_debug_tools",
+    "email": "邮箱",
+    "emailAddress": "757120553@qq.com"
   },
   "serial": {
     "menu": {
@@ -53,6 +57,7 @@
       "compact": "精简模式（收起左栏）",
       "toolsPanel": "显示工具面板",
       "keys": "快捷键说明",
+      "checkUpdate": "检查更新",
       "about": "关于"
     },
     "kbd": {
@@ -857,6 +862,7 @@
       "compact": "精简模式（收起左栏）",
       "toolsPanel": "显示工具面板",
       "keys": "快捷键说明",
+      "checkUpdate": "检查更新",
       "about": "关于"
     },
     "kbd": {
@@ -939,5 +945,19 @@
       "peerLeft": "客户端断开：$address",
       "roleChanged": "TCP 模式已切换，请重新打开连接"
     }
+  },
+  "update": {
+    "check": "检查更新",
+    "availableTitle": "发现新版本",
+    "versionLine": "当前 $current · 最新 $latest",
+    "releaseNotes": "更新说明",
+    "downloadInstall": "下载并安装",
+    "openReleasePage": "打开发布页",
+    "upToDate": "已是最新版本 $version",
+    "downloadingTitle": "正在下载更新",
+    "downloading": "正在下载安装包…",
+    "downloadProgress": "已下载 $received / $total",
+    "noRelease": "尚未发布正式版本",
+    "checkFailed": "检查更新失败（HTTP $code）"
   }
 }

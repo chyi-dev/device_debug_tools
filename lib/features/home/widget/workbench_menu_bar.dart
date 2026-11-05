@@ -9,6 +9,7 @@ import '../../../app/theme/serial_palette.dart';
 import '../../../core/widgets/app_window_caption.dart';
 import '../../../i18n/i18n.dart';
 import '../../serial/serial_metrics.dart';
+import '../../update/cubit/update_cubit.dart';
 
 class WorkbenchMenuAction {
   const WorkbenchMenuAction(this.label, this.onPressed, {this.kbd});
@@ -139,6 +140,12 @@ class WorkbenchMenuBar extends StatelessWidget {
                                     menu.keys,
                                     onKeys,
                                     kbd: t.serial.kbd.f12,
+                                  ),
+                                  WorkbenchMenuAction(
+                                    menu.checkUpdate,
+                                    () => context
+                                        .read<UpdateCubit>()
+                                        .checkManual(),
                                   ),
                                   WorkbenchMenuAction(menu.about, onAbout),
                                 ],

@@ -25,6 +25,10 @@ class ValidationException extends AppException {
   ValidationException(super.message);
 }
 
+class NetworkException extends AppException {
+  NetworkException(super.message);
+}
+
 class UnknownException extends AppException {
   UnknownException([super.message = '未知错误']);
 }

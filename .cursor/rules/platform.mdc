@@ -58,5 +58,6 @@ flutter run -d windows -t lib/main_dev.dart   # macos / linux 同理
 
 - [ ] 正式包走 `main.dart`（`appIsDev=false`）
 - [ ] `flutter analyze` 无问题、`flutter test` 通过
-- [ ] 版本号已更新
+- [ ] 版本号已更新（`pubspec.yaml` 与 `installer/windows/device_debug_tools.iss` 的 `MyAppVersion` 一致）
+- [ ] 在 `chyi-dev/device_debug_tools` 创建 GitHub Release，标签 `vX.Y.Z`（或 `X.Y.Z`），上传 `device_debug_tools-X.Y.Z-setup.exe` 为 Release asset
 - [ ] macOS entitlements 与所需能力一致
