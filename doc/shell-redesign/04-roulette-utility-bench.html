@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>方向 D · 模块化调试台 · 轮盘#13 降级</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --win:#e8ecf0;--panel:#f4f6f8;--field:#fff;--line:#b8c2cc;--line2:#d5dbe3;--text:#1a2330;--muted:#5a6572;--accent:#1a6fb5;--accent2:#e8f2fa;
+  --on:#1f9d55;--off:#c8392f;--log:#fcfdfe;--rx:#1b2630;--tx:#1461b8;--sys:#9a5a00;--prompt:#6b7480;
+  --font:"IBM Plex Sans","Segoe UI","Microsoft YaHei UI",sans-serif;
+  --mono:"IBM Plex Mono",Consolas,monospace;
+}
+*{box-sizing:border-box} html,body{margin:0;height:100%;background:#6d7680;font:13px/1.35 var(--font);color:var(--text);overflow:hidden}
+.wrap{height:100%;display:grid;place-items:center;padding:12px}
+.stage{width:1440px;height:900px;background:var(--win);border:1px solid #5c6570;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.meta{position:fixed;left:12px;bottom:10px;color:#2c3640;font:12px/1.4 var(--font);max-width:520px}
+.menubar{height:28px;display:flex;align-items:center;gap:2px;padding:0 6px;background:linear-gradient(#f7f8fa,#e4e8ed);border-bottom:1px solid var(--line);user-select:none}
+.brand{font-weight:600;font-size:12px;margin-right:8px}
+.menubar button,.tog{appearance:none;border:0;background:transparent;font:12px var(--font);padding:3px 8px;cursor:pointer;border-radius:2px}
+.menubar button:hover,.tog:hover{background:#d7dee6}
+.tog.on{background:var(--accent2);color:var(--accent);font-weight:600}
+.sp{flex:1}
+.win i{display:inline-block;width:12px;height:12px;border:1px solid #7a8490;margin-left:6px;background:#eef1f4}
+.tabs{height:30px;display:flex;align-items:stretch;background:#dde3e9;border-bottom:1px solid var(--line);padding-left:4px}
+.tab{display:flex;align-items:center;gap:6px;padding:0 12px;color:var(--muted);border:1px solid transparent;border-bottom:0;margin-top:3px;cursor:pointer;font-size:12px}
+.tab.on{background:var(--win);color:var(--text);border-color:var(--line);position:relative;top:1px;font-weight:600}
+.tag{font:10px/1 var(--mono);background:#2a3440;color:#fff;padding:2px 4px}
+.add{margin:4px 8px 0 auto;border:1px solid var(--line);background:var(--field);font:12px var(--font);padding:0 8px;cursor:pointer;height:22px}
+.body{flex:1;min-height:0;display:flex;padding:6px;gap:0;overflow:hidden}
+.pane{background:var(--panel);border:1px solid var(--line);min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.left{width:260px}.right{width:340px}.left.off,.right.off{display:none}
+.v,.h{flex:0 0 5px;cursor:col-resize;position:relative}.h{cursor:row-resize}
+.v:after,.h:after{content:"";position:absolute;inset:1px;background:#9aa6b2}
+.v:hover:after,.h:hover:after,.v.drag:after,.h.drag:after{background:var(--accent)}
+.center{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;background:transparent;border:0}
+.mods{padding:6px;overflow:auto;display:grid;gap:6px}
+.mod{background:var(--field);border:1px solid var(--line)}
+.mod>h3{margin:0;padding:4px 8px;font-size:11px;font-weight:600;color:var(--muted);background:#e9eef3;border-bottom:1px solid var(--line);letter-spacing:.04em;text-transform:uppercase}
+.mod .inn{padding:8px}
+.row{display:grid;grid-template-columns:58px 1fr;gap:6px;align-items:center;margin-bottom:4px}
+.row label{font-size:12px;color:var(--muted)}
+select,input,textarea{width:100%;height:24px;border:1px solid var(--line);background:var(--field);font:12px var(--font);padding:0 6px;outline:0}
+textarea{height:auto;min-height:64px;padding:6px;font:13px/1.5 var(--mono);resize:none}
+select:focus,input:focus,textarea:focus{border-color:var(--accent)}
+.btn{height:26px;border:1px solid var(--line);background:var(--field);font:12px var(--font);cursor:pointer;padding:0 10px}
+.btn.p{background:var(--accent);border-color:#145a96;color:#fff;font-weight:600}
+.btn.block{width:100%;height:30px;display:flex;align-items:center;justify-content:center;gap:6px}
+.lamp{width:8px;height:8px;border-radius:50%;background:var(--on)}
+.seg{float:right;display:inline-flex;border:1px solid var(--line)}
+.seg button{appearance:none;border:0;background:var(--field);font:11px var(--font);padding:1px 7px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--text);color:#fff}
+.log{flex:1;min-height:60px}
+.logh{height:28px;display:flex;align-items:center;gap:8px;padding:0 8px;border-bottom:1px solid var(--line);background:#e9eef3;font-size:12px}
+.logh strong{font-size:12px}.cnt{color:var(--muted)}.search{margin-left:auto;width:200px}
+.logb{flex:1;overflow:auto;background:var(--log);padding:8px 10px;font:13px/1.55 var(--mono);white-space:pre-wrap}
+.p{color:var(--prompt)}.rx{color:var(--rx)}.tx{color:var(--tx)}.sys{color:var(--sys)}
+.script{height:220px;display:flex;flex-direction:column;border:1px solid var(--line);background:var(--panel)}
+.script.hide{display:none}
+.scrh{height:26px;display:flex;align-items:center;gap:8px;padding:0 8px;border-bottom:1px solid var(--line);background:#e9eef3;font-size:12px}
+.scrb{flex:1;min-height:0;display:flex}
+.ed,.rl{min-width:0;overflow:auto;padding:8px;font:12px/1.5 var(--mono)}
+.ed{flex:1;background:#fafbfc}.rl{width:340px;border-left:1px solid var(--line);color:var(--muted);background:#eef2f6}
+.rl .err{color:var(--off)}
+.send{height:96px;display:grid;grid-template-columns:1fr 110px;gap:6px;padding:6px;border:1px solid var(--line);background:var(--panel)}
+.send .act{display:flex;flex-direction:column;gap:6px}.send .act .btn{flex:1}
+.tools{display:flex;flex-direction:column}
+.ttabs{display:flex;border-bottom:1px solid var(--line);background:#e9eef3;overflow-x:auto}
+.ttabs button{appearance:none;border:0;border-right:1px solid var(--line);background:transparent;font:11px var(--font);padding:7px 8px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.ttabs button.on{background:var(--field);color:var(--text);font-weight:600}
+.ttabs .sep{width:1px;background:#8b96a3}
+.tlist{flex:1;overflow:auto;padding:4px}
+.item{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:6px;border-bottom:1px solid var(--line2)}
+.item:hover{background:#e3ebf5}
+.item .n{font-weight:600;font-size:12px}.item .d{font:11px var(--mono);color:var(--muted)}.item .k{font:11px var(--mono);color:var(--accent);font-weight:600}
+.status{height:26px;display:flex;align-items:center;gap:12px;padding:0 8px;border-top:1px solid var(--line);background:#e4e8ed;font:11px/1 var(--font);color:var(--muted);font-variant-numeric:tabular-nums}
+.status .c{color:var(--text);font-weight:600;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--on)}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="stage" id="app">
+  <div class="menubar">
+    <div class="brand">设备调试工具</div>
+    <button type="button">文件</button><button type="button">设置</button><button type="button">工具</button><button type="button">帮助</button>
+    <div class="sp"></div>
+    <button type="button" class="tog" id="btnCompact">精简模式</button>
+    <button type="button" class="tog on" id="btnTools">工具面板</button>
+    <span class="win" aria-hidden="true"><i></i><i></i><i></i></span>
+  </div>
+  <div class="tabs">
+    <div class="tab on"><span class="tag">SERIAL</span>COM3 · 串口</div>
+    <div class="tab"><span class="tag">BLE</span>蓝牙 · 灯控</div>
+    <div class="tab"><span class="tag">MQTT</span>MQTT · broker</div>
+    <div class="tab"><span class="tag">TCP</span>TCP · 板卡</div>
+    <button type="button" class="add">＋ 新增</button>
+  </div>
+  <div class="body">
+    <aside class="pane left" id="left"><div class="mods">
+      <section class="mod"><h3>串口设置</h3><div class="inn">
+        <div class="row"><label>串口地址</label><select><option>COM3</option></select></div>
+        <div class="row"><label>波特率</label><input value="115200"></div>
+        <div class="row"><label>校验位</label><select><option>NONE</option></select></div>
+        <div class="row"><label>数据位</label><select><option>8</option></select></div>
+        <div class="row"><label>停止位</label><select><option>1</option></select></div>
+        <div class="row"><label>流控</label><select><option>NONE</option></select></div>
+        <button type="button" class="btn p block" style="margin-top:6px"><span class="lamp"></span>打开</button>
+      </div></section>
+      <section class="mod"><h3>接收设置 <span class="seg"><button type="button" class="on">HEX</button><button type="button">ASCII</button></span></h3><div class="inn">
+        <div class="row"><label>日志模式</label><select><option>开启</option></select></div>
+        <div class="row"><label>分包超时</label><input value="20 ms"></div>
+      </div></section>
+      <section class="mod"><h3>发送设置 <span class="seg"><button type="button">HEX</button><button type="button" class="on">ASCII</button></span></h3><div class="inn">
+        <div class="row"><label>附加位</label><select><option>无</option><option>CRC16</option></select></div>
+        <div class="row"><label>循环周期</label><input value="1000 ms"></div>
+      </div></section>
+    </div></aside>
+    <div class="v" data-s="left" title="拖宽 · 双击还原"></div>
+    <main class="center">
+      <section class="pane log" id="log"><div class="logh"><strong>数据日志</strong><span class="cnt">128 条</span><input class="search" placeholder="搜索…"></div><div class="logb" id="logb"></div></section>
+      <div class="h" data-s="script"></div>
+      <section class="script" id="script">
+        <div class="scrh"><strong>parse_sensor.lua</strong><span style="color:var(--muted)">on_receive · before_send</span><div class="sp"></div><button type="button" class="btn">运行</button><button type="button" class="btn" id="hideScr">收起</button></div>
+        <div class="scrb"><pre class="ed">function on_receive(frame)
+  print("RX", #frame, "bytes")
+  return frame
+end</pre><div class="v" data-s="scriptLog"></div><div class="rl" id="rl"><div>14:02:11.203  parse_sensor  RX 8 bytes</div><div class="err">14:02:18.001  before_send 返回 nil，已拦截</div></div></div>
+      </section>
+      <div class="h" data-s="send"></div>
+      <section class="send" id="send"><textarea>AT+VERSION?\r\n</textarea><div class="act"><button type="button" class="btn p">发送</button><button type="button" class="btn">清除</button></div></section>
+    </main>
+    <div class="v" data-s="right"></div>
+    <aside class="pane right tools" id="right">
+      <div class="ttabs" id="ttabs">
+        <button type="button" class="on" data-t="q">快捷指令</button>
+        <button type="button" data-t="b">批量发送</button>
+        <button type="button" data-t="r">自动应答</button>
+        <button type="button" data-t="h">历史发送</button>
+        <button type="button" data-t="c">校验计算</button>
+        <span class="sep"></span>
+        <button type="button" data-t="s">脚本</button>
+      </div>
+      <div class="tlist" id="tlist"></div>
+    </aside>
+  </div>
+  <footer class="status"><div class="c"><span class="dot"></span>COM3 OPENED, 115200, N, 8, 1, NONE</div><span>RX 12,480</span><span>TX 3,102</span><button type="button" class="btn" style="height:20px;padding:0 6px">复位计数</button><div class="sp"></div><span>模块化分组框 · 无毛玻璃</span></footer>
+</div></div>
+<p class="meta">方向 D · 🎲 轮盘 #13 Glassmorphism Bento <b>降级</b>：去掉发光/毛玻璃/紫 accent，只留模块化分组密度 → 浅色 Windows 调试台。</p>
+<script>
+(()=>{
+const D={left:260,right:340,script:220,send:96,scriptLog:340};
+const S={...D,leftOn:1,rightOn:1,scriptOn:1};
+const L=document.getElementById('left'),R=document.getElementById('right'),SC=document.getElementById('script'),SD=document.getElementById('send'),RL=document.getElementById('rl');
+const lines=[['sys','[2026-11-05 14:01:02.011]# SYS> 串口 COM3 已打开'],['rx','[2026-11-05 14:01:03.120]# RECV HEX>','55 AA 01 00 08 3F 12 00 9C'],['tx','[2026-11-05 14:01:03.880]# SEND ASCII>','AT+VERSION?\\r\\n'],['rx','[2026-11-05 14:01:04.010]# RECV ASCII>','VERSION:1.4.2'],['rx','[2026-11-05 14:01:08.441]# RECV HEX>','55 AA 02 00 04 01 00 A7'],['tx','[2026-11-05 14:01:09.002]# SEND HEX>','A5 5A 10 01 FF']];
+document.getElementById('logb').innerHTML=lines.map(([k,a,b])=>k==='sys'?`<div><span class="sys">${a}</span></div>`:`<div><span class="p">${a}</span>\n<span class="${k}">${b}</span></div>`).join('\n');
+const q=[{n:'读版本',d:'AT+VERSION?',k:'F1'},{n:'复位',d:'AT+RST',k:'F2'},{n:'查询 MAC',d:'AT+MAC?',k:'F3'},{n:'心跳',d:'55 AA 00 01',k:'F4'}];
+const render=t=>{document.getElementById('tlist').innerHTML=q.map(x=>`<div class="item"><button class="btn p">发送</button><div><div class="n">${x.n}</div><div class="d">${x.d}</div></div><span class="k">${x.k}</span></div>`).join('');if(t==='s'){S.scriptOn=1;apply();}};
+render('q');
+document.getElementById('ttabs').onclick=e=>{const b=e.target.closest('button[data-t]');if(!b)return;[...e.currentTarget.querySelectorAll('button[data-t]')].forEach(x=>x.classList.toggle('on',x===b));render(b.dataset.t);};
+function apply(){L.classList.toggle('off',!S.leftOn);R.classList.toggle('off',!S.rightOn);L.style.width=S.left+'px';R.style.width=S.right+'px';SC.classList.toggle('hide',!S.scriptOn);SC.style.height=S.script+'px';SD.style.height=S.send+'px';RL.style.width=S.scriptLog+'px';document.getElementById('btnCompact').classList.toggle('on',!S.leftOn);document.getElementById('btnTools').classList.toggle('on',S.rightOn);document.querySelector('[data-s=left]').style.display=S.leftOn?'':'none';document.querySelector('[data-s=right]').style.display=S.rightOn?'':'none';document.querySelector('[data-s=script]').style.display=S.scriptOn?'':'none';}
+apply();
+document.getElementById('btnCompact').onclick=()=>{S.leftOn=!S.leftOn;if(S.leftOn)S.left=D.left;apply();};
+document.getElementById('btnTools').onclick=()=>{S.rightOn=!S.rightOn;if(S.rightOn)S.right=D.right;apply();};
+document.getElementById('hideScr').onclick=()=>{S.scriptOn=0;apply();};
+const min={left:170,right:220,script:140,send:72,scriptLog:180};let drag=null;
+document.querySelectorAll('[data-s]').forEach(el=>{
+  el.onmousedown=e=>{drag={k:el.dataset.s,el,x:e.clientX,y:e.clientY,v:S[el.dataset.s]};el.classList.add('drag');e.preventDefault();};
+  el.ondblclick=()=>{S[el.dataset.s]=D[el.dataset.s];if(el.dataset.s==='left')S.leftOn=1;if(el.dataset.s==='right')S.rightOn=1;if(el.dataset.s==='script')S.scriptOn=1;apply();};
+});
+onmousemove=e=>{if(!drag)return;let n=drag.v;if(drag.k==='left'||drag.k==='scriptLog')n=drag.v+(e.clientX-drag.x);if(drag.k==='right')n=drag.v+(drag.x-e.clientX);if(drag.k==='script')n=drag.v+(e.clientY-drag.y);if(drag.k==='send')n=drag.v-(e.clientY-drag.y);S[drag.k]=Math.max(min[drag.k],Math.min(520,n));apply();};
+onmouseup=()=>{if(!drag)return;drag.el.classList.remove('drag');drag=null;};
+})();
+</script>
+</body>
+</html>

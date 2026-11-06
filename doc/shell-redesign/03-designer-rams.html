@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>方向 C · Rams 工业仪器 · 设备调试工具</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --win: #d7dce2;
+    --panel: #eef1f4;
+    --field: #ffffff;
+    --line: #b7c0ca;
+    --line2: #cfd6dd;
+    --text: #1c242c;
+    --muted: #5b6774;
+    --accent: #e36a1f;
+    --accent-dim: #f3d5c0;
+    --on: #1f9d55;
+    --off: #c8392f;
+    --log-bg: #fbfcfd;
+    --rx: #1b2630;
+    --tx: #1461b8;
+    --sys: #9a5a00;
+    --prompt: #6b7480;
+    --handle: #9aa6b2;
+    --metal: #c5ccd4;
+    --font: "Source Sans 3", "Segoe UI", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+    --mono: "Source Code Pro", "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #9aa3ad; color: var(--text); font: 14px/1.4 var(--font); overflow: hidden; }
+  .stage-wrap { height: 100%; display: grid; place-items: center; padding: 16px; }
+  .stage {
+    width: 1440px; height: 900px; background: var(--win); border: 1px solid #8e97a1;
+    border-radius: 6px; overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 18px 50px rgba(40,48,56,.35);
+  }
+  .meta { position: fixed; left: 16px; bottom: 12px; color: #44505c; font: 12px/1.4 var(--font); max-width: 480px; }
+
+  .menubar {
+    height: 34px; display: flex; align-items: center; gap: 2px; padding: 0 8px 0 10px;
+    background: linear-gradient(#f4f6f8, #e6eaee); border-bottom: 1px solid var(--line); user-select: none;
+  }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; margin-right: 8px; }
+  .brand .mark {
+    width: 16px; height: 16px; border-radius: 2px; background: var(--text);
+    box-shadow: inset 0 0 0 3px var(--accent);
+  }
+  .menubar button, .tog {
+    appearance: none; border: 0; background: transparent; color: var(--text);
+    font: 13px var(--font); padding: 4px 9px; border-radius: 3px; cursor: pointer;
+  }
+  .menubar button:hover, .tog:hover { background: #dde3e9; }
+  .tog.on { background: var(--accent-dim); color: #8a3a0c; font-weight: 600; }
+  .spacer { flex: 1; }
+  .win-btns { display: flex; gap: 8px; margin-left: 8px; }
+  .win-btns i { width: 12px; height: 12px; border: 1px solid #7d8792; border-radius: 1px; display: block; background: #e9edf1; }
+
+  .tabs {
+    height: 36px; display: flex; align-items: stretch; background: var(--panel);
+    border-bottom: 1px solid var(--line); padding-left: 6px;
+  }
+  .tab {
+    display: flex; align-items: center; gap: 8px; padding: 0 14px; color: var(--muted);
+    border: 1px solid transparent; border-bottom: 0; margin-top: 4px; border-radius: 4px 4px 0 0; cursor: pointer;
+  }
+  .tab.active {
+    background: var(--win); color: var(--text); border-color: var(--line);
+    box-shadow: 0 1px 0 var(--win); position: relative; top: 1px;
+  }
+  .tab .badge {
+    font: 600 10px/1 var(--mono); color: var(--field); background: var(--text);
+    padding: 3px 5px; border-radius: 2px;
+  }
+  .tab-add {
+    margin: 6px 8px 0 auto; height: 24px; border: 1px solid var(--line); background: var(--field);
+    border-radius: 3px; padding: 0 10px; font-size: 12px; cursor: pointer;
+  }
+
+  .meters {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 8px 8px 0;
+  }
+  .meter {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    padding: 8px 12px; display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .meter .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .meter .value { font: 600 18px/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .meter .value.accent { color: var(--accent); }
+
+  .body {
+    flex: 1; min-height: 0; display: grid;
+    grid-template-columns: var(--left, 272px) 6px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) 6px var(--tools, 220px);
+    padding: 8px; gap: 0; overflow: hidden;
+  }
+  .body.no-left { grid-template-columns: 0 0 minmax(0, 1fr); }
+  .body.no-tools { grid-template-rows: minmax(0, 1fr) 0 0; }
+
+  .pane {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+    min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .split { position: relative; cursor: col-resize; background: transparent; }
+  .split.h { cursor: row-resize; }
+  .split::after {
+    content: ""; position: absolute; inset: 1px; background: var(--metal);
+    border: 1px solid #a8b1bb; border-radius: 1px; opacity: .9;
+  }
+  .split:hover::after, .split.dragging::after { background: var(--accent); border-color: #b65312; }
+
+  .group { border-bottom: 1px solid var(--line2); padding: 10px 12px 12px; }
+  .group h3 {
+    margin: 0 0 8px; font-size: 12px; font-weight: 700; color: var(--muted);
+    letter-spacing: .04em; text-transform: uppercase;
+  }
+  .row { display: grid; grid-template-columns: 62px 1fr; gap: 8px; align-items: center; margin-bottom: 5px; }
+  .row label { font-size: 12px; color: var(--muted); }
+  select, input, textarea {
+    width: 100%; height: 26px; border-radius: 3px; border: 1px solid var(--line);
+    background: var(--field); color: var(--text); font: 13px var(--font); padding: 0 8px; outline: none;
+  }
+  textarea { height: auto; min-height: 64px; padding: 8px; font: 14px/1.55 var(--mono); resize: none; }
+  select:focus, input:focus, textarea:focus { border-color: var(--accent); }
+  .btn {
+    height: 28px; border-radius: 3px; border: 1px solid var(--line);
+    background: var(--field); color: var(--text); font: 13px var(--font); cursor: pointer; padding: 0 12px;
+  }
+  .btn.primary {
+    background: var(--accent); border-color: #b65312; color: #fff; font-weight: 700;
+  }
+  .btn.block { width: 100%; height: 32px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .lamp { width: 8px; height: 8px; border-radius: 50%; background: var(--on); box-shadow: 0 0 0 2px #c6ebd4; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; float: right; }
+  .seg button { appearance: none; border: 0; background: var(--field); color: var(--muted); font: 12px var(--font); padding: 2px 8px; cursor: pointer; }
+  .seg button.active { background: var(--text); color: var(--field); }
+
+  .center { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 0; border: 0; background: transparent; overflow: hidden; }
+  .log-pane { flex: 1; min-height: 80px; }
+  .log-head {
+    height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+    border-bottom: 1px solid var(--line); background: #e7ebf0;
+  }
+  .log-head strong { font-size: 13px; font-weight: 700; }
+  .count { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .search { margin-left: auto; width: 220px; }
+  .log-body {
+    flex: 1; overflow: auto; background: var(--log-bg); padding: 10px 14px;
+    font: 14px/1.6 var(--mono); white-space: pre-wrap;
+  }
+  .p { color: var(--prompt); } .rx { color: var(--rx); } .tx { color: var(--tx); } .sys { color: var(--sys); }
+
+  .script {
+    height: var(--script, 280px); display: flex; flex-direction: column;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: hidden;
+  }
+  .script.hidden { display: none; }
+  .script-head {
+    height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+    border-bottom: 1px solid var(--line); background: #e7ebf0; font-size: 13px;
+  }
+  .script-body { flex: 1; min-height: 0; display: flex; }
+  .editor, .runlog { min-width: 0; overflow: auto; padding: 10px 12px; font: 13px/1.55 var(--mono); }
+  .editor { flex: 1; background: #f7f8fa; }
+  .runlog { width: var(--scriptLog, 360px); border-left: 1px solid var(--line); color: var(--muted); background: #eef1f4; }
+  .runlog .err { color: var(--off); }
+
+  .send {
+    height: var(--send, 104px); display: grid; grid-template-columns: 1fr 120px; gap: 8px;
+    padding: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  }
+  .send .actions { display: flex; flex-direction: column; gap: 8px; }
+  .send .actions .btn { flex: 1; }
+
+  .tools {
+    grid-column: 1 / -1; display: flex; flex-direction: column; min-height: 0;
+  }
+  .tools.hidden { display: none; }
+  .tool-head {
+    height: 34px; display: flex; align-items: center; gap: 4px; padding: 0 8px;
+    border-bottom: 1px solid var(--line); background: #e7ebf0;
+  }
+  .tool-head button {
+    appearance: none; border: 1px solid transparent; background: transparent; color: var(--muted);
+    font: 12px var(--font); padding: 4px 10px; border-radius: 3px; cursor: pointer;
+  }
+  .tool-head button.active { background: var(--field); border-color: var(--line); color: var(--text); font-weight: 600; }
+  .tool-head .sep { width: 1px; height: 18px; background: var(--line); margin: 0 6px; }
+  .tool-body {
+    flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; overflow: hidden;
+  }
+  .tool-col {
+    border-right: 1px solid var(--line2); overflow: auto; padding: 8px;
+  }
+  .tool-col:last-child { border-right: 0; }
+  .tool-col h4 {
+    margin: 0 0 8px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  }
+  .item {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center;
+    padding: 7px 8px; border-radius: 3px;
+  }
+  .item:hover { background: #e3ebf5; }
+  .item .name { font-size: 13px; font-weight: 600; }
+  .item .data { font: 12px var(--mono); color: var(--muted); }
+  .item .key { font: 11px var(--mono); color: var(--accent); font-weight: 700; }
+
+  .status {
+    height: 30px; display: flex; align-items: center; gap: 14px; padding: 0 12px;
+    background: #e6eaee; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .status .conn { color: var(--text); display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .status .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--on); }
+  .status .grow { flex: 1; }
+</style>
+</head>
+<body>
+  <div class="stage-wrap">
+    <div class="stage" id="app">
+      <div class="menubar">
+        <div class="brand"><span class="mark"></span>设备调试工具</div>
+        <button type="button">文件</button>
+        <button type="button">设置</button>
+        <button type="button">工具</button>
+        <button type="button">帮助</button>
+        <div class="spacer"></div>
+        <button type="button" class="tog" id="btnCompact">精简模式</button>
+        <button type="button" class="tog on" id="btnTools">工具面板</button>
+        <div class="win-btns" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active"><span class="badge">SERIAL</span>COM3 · 串口</div>
+        <div class="tab"><span class="badge">BLE</span>蓝牙 · 灯控</div>
+        <div class="tab"><span class="badge">MQTT</span>MQTT · broker</div>
+        <div class="tab"><span class="badge">TCP</span>TCP · 板卡</div>
+        <button type="button" class="tab-add">＋ 新增</button>
+      </div>
+
+      <div class="meters">
+        <div class="meter"><span class="label">Baud</span><span class="value">115200</span></div>
+        <div class="meter"><span class="label">RX</span><span class="value">12480</span></div>
+        <div class="meter"><span class="label">TX</span><span class="value">3102</span></div>
+        <div class="meter"><span class="label">State</span><span class="value accent">OPEN</span></div>
+      </div>
+
+      <div class="body" id="body">
+        <aside class="pane" id="left">
+          <div class="group">
+            <h3>串口设置</h3>
+            <div class="row"><label>串口地址</label><select><option>COM3</option></select></div>
+            <div class="row"><label>波特率</label><input value="115200" /></div>
+            <div class="row"><label>校验位</label><select><option>NONE</option></select></div>
+            <div class="row"><label>数据位</label><select><option>8</option></select></div>
+            <div class="row"><label>停止位</label><select><option>1</option></select></div>
+            <div class="row"><label>流控</label><select><option>NONE</option></select></div>
+            <button type="button" class="btn primary block" style="margin-top:8px"><span class="lamp"></span>打开</button>
+          </div>
+          <div class="group">
+            <h3>接收设置 <span class="seg"><button type="button" class="active">HEX</button><button type="button">ASCII</button></span></h3>
+            <div class="row"><label>日志模式</label><select><option>开启</option></select></div>
+            <div class="row"><label>分包超时</label><input value="20 ms" /></div>
+          </div>
+          <div class="group">
+            <h3>发送设置 <span class="seg"><button type="button">HEX</button><button type="button" class="active">ASCII</button></span></h3>
+            <div class="row"><label>附加位</label><select><option>无</option><option>CRC16</option></select></div>
+            <div class="row"><label>循环周期</label><input value="1000 ms" /></div>
+          </div>
+        </aside>
+        <div class="split" data-split="left" title="拖拽调整宽度 · 双击还原"></div>
+
+        <main class="center" id="center">
+          <section class="pane log-pane" id="logPane">
+            <div class="log-head">
+              <strong>数据日志</strong>
+              <span class="count">128 条</span>
+              <input class="search" type="text" placeholder="搜索…" />
+            </div>
+            <div class="log-body" id="logBody"></div>
+          </section>
+          <div class="split h" data-split="script"></div>
+          <section class="script" id="script">
+            <div class="script-head">
+              <strong>parse_sensor.lua</strong>
+              <span style="color:var(--muted)">on_receive · before_send</span>
+              <div class="spacer"></div>
+              <button type="button" class="btn">运行</button>
+              <button type="button" class="btn" id="btnHideScript">收起</button>
+            </div>
+            <div class="script-body">
+              <pre class="editor">function on_receive(frame)
+  print("RX", #frame, "bytes")
+  return frame
+end</pre>
+              <div class="split" data-split="scriptLog"></div>
+              <div class="runlog" id="runlog">
+                <div>14:02:11.203  parse_sensor  RX 8 bytes</div>
+                <div>14:02:11.204  parse_sensor  ok</div>
+                <div class="err">14:02:18.001  parse_sensor  before_send 返回 nil，已拦截</div>
+              </div>
+            </div>
+          </section>
+          <div class="split h" data-split="send"></div>
+          <section class="send" id="send">
+            <textarea>AT+VERSION?\r\n</textarea>
+            <div class="actions">
+              <button type="button" class="btn primary">发送</button>
+              <button type="button" class="btn">清除</button>
+            </div>
+          </section>
+        </main>
+
+        <div class="split h" data-split="tools" title="拖拽调整工具区高度 · 双击还原" style="grid-column:1/-1"></div>
+        <aside class="pane tools" id="tools">
+          <div class="tool-head" id="toolTabs">
+            <button type="button" class="active" data-tab="all">总览</button>
+            <button type="button" data-tab="quick">快捷指令</button>
+            <button type="button" data-tab="batch">批量发送</button>
+            <button type="button" data-tab="reply">自动应答</button>
+            <button type="button" data-tab="hist">历史发送</button>
+            <button type="button" data-tab="crc">校验计算</button>
+            <span class="sep"></span>
+            <button type="button" data-tab="script">脚本</button>
+            <div class="spacer"></div>
+            <span style="font-size:12px;color:var(--muted)">工具区在底部 · 可调高度</span>
+          </div>
+          <div class="tool-body" id="toolBody"></div>
+        </aside>
+      </div>
+
+      <footer class="status">
+        <div class="conn"><span class="dot"></span>COM3 OPENED, 115200, N, 8, 1, NONE</div>
+        <span>RX 12,480</span>
+        <span>TX 3,102</span>
+        <button type="button" class="btn" style="height:22px;padding:0 8px">复位计数</button>
+        <div class="grow"></div>
+        <span>浅冷灰仪器台 · Rams / Braun</span>
+      </footer>
+    </div>
+  </div>
+  <p class="meta">方向 C · 🧠 Dieter Rams / Braun 工业仪器<br />顶部仪表读数条；工具区改为底部通栏可调高；橙 accent 只服务主操作。</p>
+<script>
+(() => {
+    const defaults = { left: 272, tools: 200, script: 180, send: 96, scriptLog: 360 };
+  const state = { ...defaults, leftOn: true, toolsOn: true, scriptOn: true };
+  const body = document.getElementById('body');
+  const left = document.getElementById('left');
+  const tools = document.getElementById('tools');
+  const script = document.getElementById('script');
+  const send = document.getElementById('send');
+  const runlog = document.getElementById('runlog');
+  const btnCompact = document.getElementById('btnCompact');
+  const btnTools = document.getElementById('btnTools');
+
+  const lines = [
+    ['sys', '[2026-11-05 14:01:02.011]# SYS> 串口 COM3 已打开'],
+    ['rx',  '[2026-11-05 14:01:03.120]# RECV HEX>', '55 AA 01 00 08 3F 12 00 9C'],
+    ['tx',  '[2026-11-05 14:01:03.880]# SEND ASCII>', 'AT+VERSION?\\r\\n'],
+    ['rx',  '[2026-11-05 14:01:04.010]# RECV ASCII>', 'VERSION:1.4.2'],
+    ['rx',  '[2026-11-05 14:01:08.441]# RECV HEX>', '55 AA 02 00 04 01 00 A7'],
+    ['tx',  '[2026-11-05 14:01:09.002]# SEND HEX>', 'A5 5A 10 01 FF'],
+  ];
+  document.getElementById('logBody').innerHTML = lines.map(([k,a,b]) => {
+    if (k==='sys') return `<div><span class="sys">${a}</span></div>`;
+    return `<div><span class="p">${a}</span>\n<span class="${k}">${b}</span></div>`;
+  }).join('\n');
+
+  const quick = [
+    { name:'读版本', data:'AT+VERSION?', key:'F1' },
+    { name:'复位', data:'AT+RST', key:'F2' },
+    { name:'查询 MAC', data:'AT+MAC?', key:'F3' },
+    { name:'心跳', data:'55 AA 00 01', key:'F4' },
+  ];
+  function item(q) {
+    return `<div class="item"><button class="btn primary">发送</button><div><div class="name">${q.name}</div><div class="data">${q.data}</div></div><span class="key">${q.key}</span></div>`;
+  }
+  function renderTools(tab) {
+    const el = document.getElementById('toolBody');
+    if (tab === 'script') {
+      state.scriptOn = true; apply();
+      el.innerHTML = `<div class="tool-col" style="grid-column:1/-1">${item({name:'parse_sensor.lua', data:'on_receive · before_send', key:'启用'})}${item({name:'modbus_crc.lua', data:'before_send', key:'停用'})}</div>`;
+      return;
+    }
+    if (tab !== 'all' && tab !== 'quick') {
+      el.innerHTML = `<div class="tool-col" style="grid-column:1/-1"><h4>${tab}</h4><div style="color:var(--muted);padding:8px">此页签能力位保留，方向稿用快捷指令示意密度。</div></div>`;
+      return;
+    }
+    el.innerHTML = `
+      <div class="tool-col"><h4>快捷指令</h4>${quick.map(item).join('')}</div>
+      <div class="tool-col"><h4>批量发送</h4><div class="item"><button class="btn">运行</button><div><div class="name">上电自检</div><div class="data">4 步 · 重复 1</div></div><span class="key">任务</span></div></div>
+      <div class="tool-col"><h4>自动应答</h4><div class="item"><button class="btn">执行</button><div><div class="name">心跳应答</div><div class="data">前缀 55 AA</div></div><span class="key">开</span></div></div>
+      <div class="tool-col"><h4>历史发送</h4><div class="item"><button class="btn">填入</button><div><div class="name">14:01:09</div><div class="data">A5 5A 10 01 FF</div></div><span class="key">重发</span></div></div>`;
+  }
+  renderTools('all');
+  document.getElementById('toolTabs').addEventListener('click', e => {
+    const b = e.target.closest('button[data-tab]');
+    if (!b) return;
+    [...e.currentTarget.querySelectorAll('button[data-tab]')].forEach(x => x.classList.toggle('active', x===b));
+    renderTools(b.dataset.tab);
+  });
+
+  function apply() {
+    body.style.setProperty('--left', state.left + 'px');
+    body.style.setProperty('--tools', state.tools + 'px');
+    body.classList.toggle('no-left', !state.leftOn);
+    body.classList.toggle('no-tools', !state.toolsOn);
+    left.style.display = state.leftOn ? '' : 'none';
+    tools.classList.toggle('hidden', !state.toolsOn);
+    script.classList.toggle('hidden', !state.scriptOn);
+    script.style.height = state.script + 'px';
+    send.style.height = state.send + 'px';
+    runlog.style.width = state.scriptLog + 'px';
+    btnCompact.classList.toggle('on', !state.leftOn);
+    btnTools.classList.toggle('on', state.toolsOn);
+    document.querySelector('[data-split="left"]').style.display = state.leftOn ? '' : 'none';
+    document.querySelector('[data-split="tools"]').style.display = state.toolsOn ? '' : 'none';
+    document.querySelector('[data-split="script"]').style.display = state.scriptOn ? '' : 'none';
+  }
+  apply();
+
+  btnCompact.onclick = () => { state.leftOn = !state.leftOn; if (state.leftOn) state.left = defaults.left; apply(); };
+  btnTools.onclick = () => { state.toolsOn = !state.toolsOn; if (state.toolsOn) state.tools = defaults.tools; apply(); };
+  document.getElementById('btnHideScript').onclick = () => { state.scriptOn = false; apply(); };
+
+  const mins = { left: 180, tools: 140, script: 160, send: 72, scriptLog: 200 };
+  let drag = null;
+  document.querySelectorAll('[data-split]').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      drag = { kind: el.dataset.split, el, x: e.clientX, y: e.clientY, val: state[el.dataset.split] };
+      el.classList.add('dragging'); e.preventDefault();
+    });
+    el.addEventListener('dblclick', () => {
+      state[el.dataset.split] = defaults[el.dataset.split];
+      if (el.dataset.split === 'left') state.leftOn = true;
+      if (el.dataset.split === 'tools') state.toolsOn = true;
+      if (el.dataset.split === 'script') state.scriptOn = true;
+      apply();
+    });
+  });
+  window.addEventListener('mousemove', e => {
+    if (!drag) return;
+    let next = drag.val;
+    if (drag.kind === 'left' || drag.kind === 'scriptLog') next = drag.val + (e.clientX - drag.x);
+    if (drag.kind === 'script') next = drag.val + (e.clientY - drag.y);
+    if (drag.kind === 'send' || drag.kind === 'tools') next = drag.val - (e.clientY - drag.y);
+    state[drag.kind] = Math.max(mins[drag.kind], Math.min(560, next));
+    apply();
+  });
+  window.addEventListener('mouseup', () => { if (!drag) return; drag.el.classList.remove('dragging'); drag = null; });
+})();
+</script>
+</body>
+</html>

@@ -41,7 +41,8 @@
     "github": "项目地址",
     "githubUrl": "https://github.com/chyi-dev/device_debug_tools",
     "email": "邮箱",
-    "emailAddress": "757120553@qq.com"
+    "emailAddress": "757120553@qq.com",
+    "appreciateHint": "使用微信扫一扫"
   },
   "serial": {
     "menu": {
@@ -59,6 +60,7 @@
       "keys": "快捷键说明",
       "checkUpdate": "检查更新",
       "activate": "激活…",
+      "appreciate": "赞赏作者",
       "about": "关于"
     },
     "kbd": {
@@ -865,6 +867,7 @@
       "keys": "快捷键说明",
       "checkUpdate": "检查更新",
       "activate": "激活…",
+      "appreciate": "赞赏作者",
       "about": "关于"
     },
     "kbd": {

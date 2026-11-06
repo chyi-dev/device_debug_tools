@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>方向 B · Warp 参照 · 设备调试工具</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --win: #161412;
+    --panel: #1d1b18;
+    --field: #26231f;
+    --line: #35322d;
+    --line2: #2a2723;
+    --text: #faf9f6;
+    --muted: #a8a49c;
+    --accent: #d4a35c;
+    --accent-dim: color-mix(in oklab, var(--accent) 18%, transparent);
+    --on: #6bcf8e;
+    --off: #e07065;
+    --log-bg: #12100e;
+    --rx: #b7e4c7;
+    --tx: #c9b8a0;
+    --sys: #e0c37a;
+    --prompt: #8a857c;
+    --handle: #4a4640;
+    --font: "IBM Plex Sans", "Segoe UI", "PingFang SC", "Microsoft YaHei UI", sans-serif;
+    --mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #0c0b0a; color: var(--text); font: 14px/1.45 var(--font); overflow: hidden; }
+  .stage-wrap { height: 100%; display: grid; place-items: center; padding: 16px; }
+  .stage {
+    width: 1440px; height: 900px; background: var(--win); border: 1px solid var(--line);
+    border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 28px 90px rgba(0,0,0,.5);
+  }
+  .meta { position: fixed; left: 16px; bottom: 12px; color: #6b6560; font: 12px/1.4 var(--font); max-width: 460px; }
+
+  .top {
+    display: grid; grid-template-columns: 64px 1fr auto; align-items: stretch;
+    border-bottom: 1px solid var(--line); background: var(--panel); min-height: 72px;
+  }
+  .rail-brand {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; border-right: 1px solid var(--line); color: var(--muted); font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase;
+  }
+  .rail-brand .glyph {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--field);
+    border: 1px solid var(--line); display: grid; place-items: center;
+    font: 600 12px var(--mono); color: var(--accent);
+  }
+  .top-main { display: flex; flex-direction: column; min-width: 0; }
+  .menubar {
+    height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 12px;
+    color: var(--muted); font-size: 13px;
+  }
+  .menubar button, .chip {
+    appearance: none; border: 0; background: transparent; color: inherit;
+    font: 13px var(--font); padding: 4px 8px; border-radius: 999px; cursor: pointer;
+  }
+  .menubar button:hover, .chip:hover { background: var(--field); color: var(--text); }
+  .chip.on { background: var(--accent-dim); color: var(--accent); }
+  .spacer { flex: 1; }
+  .win-btns { display: flex; gap: 6px; }
+  .win-btns i { width: 11px; height: 11px; border-radius: 50%; background: #4a4640; display: block; }
+  .win-btns i:nth-child(1){background:#c9a227} .win-btns i:nth-child(2){background:#6bcf8e} .win-btns i:nth-child(3){background:#e07065}
+
+  .sessions {
+    display: flex; gap: 6px; padding: 0 10px 8px; overflow-x: auto; align-items: center;
+  }
+  .session {
+    display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+    cursor: pointer; white-space: nowrap; font-size: 13px;
+  }
+  .session.active {
+    background: var(--field); border-color: var(--line); color: var(--text);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent);
+  }
+  .session .pip { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .session.active .pip { background: var(--on); }
+  .session .kind { font: 10px/1 var(--mono); letter-spacing: .06em; color: var(--accent); }
+  .session-add {
+    margin-left: 4px; border: 1px dashed var(--line); background: transparent;
+    color: var(--muted); border-radius: 999px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+  }
+
+  .workspace {
+    flex: 1; min-height: 0; display: grid;
+    grid-template-columns: var(--left, 248px) 6px minmax(0, 1fr) 6px var(--right, 340px);
+    grid-template-rows: minmax(0, 1fr); padding: 8px; gap: 0; overflow: hidden;
+  }
+  .workspace.no-left { grid-template-columns: 0 0 minmax(0, 1fr) 6px var(--right, 340px); }
+  .workspace.no-right { grid-template-columns: var(--left, 248px) 6px minmax(0, 1fr) 0 0; }
+  .workspace.no-left.no-right { grid-template-columns: 0 0 minmax(0, 1fr) 0 0; }
+
+  .pane {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .split { cursor: col-resize; position: relative; }
+  .split.h { cursor: row-resize; }
+  .split::after {
+    content:""; position:absolute; inset: 2px; border-radius: 2px;
+    background: var(--handle); opacity: .45;
+  }
+  .split:hover::after, .split.dragging::after { background: var(--accent); opacity: .9; }
+
+  .settings { padding: 10px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+  .block {
+    background: var(--field); border: 1px solid var(--line2); border-radius: 10px; padding: 10px 12px;
+  }
+  .block header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+  }
+  .row { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .row label { font-size: 12px; color: var(--muted); }
+  select, input, textarea, .ctrl {
+    width: 100%; height: 28px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--log-bg); color: var(--text); font: 13px var(--font); padding: 0 8px; outline: none;
+  }
+  textarea { height: auto; min-height: 70px; padding: 8px; font: 14px/1.55 var(--mono); resize: none; }
+  .btn {
+    height: 32px; border-radius: 999px; border: 1px solid var(--line);
+    background: #353534; color: var(--text); font: 13px var(--font); cursor: pointer; padding: 0 14px;
+  }
+  .btn.primary { background: var(--accent); color: #1a140c; border-color: transparent; font-weight: 600; }
+  .btn.block { width: 100%; }
+  .lamp { width: 8px; height: 8px; border-radius: 50%; background: var(--on); display: inline-block; margin-right: 8px; }
+
+  .center { display: flex; flex-direction: column; gap: 0; min-width: 0; min-height: 0; border: 0; background: transparent; overflow: hidden; }
+  .pane#right, .pane#left { min-height: 0; }
+  .inspector {
+    flex: 0 0 auto; margin-bottom: 8px; padding: 8px 12px; display: flex; gap: 16px; align-items: center;
+    background: color-mix(in oklab, var(--panel) 88%, #000); border: 1px solid var(--line); border-radius: 12px;
+    font-size: 12px; color: var(--muted);
+  }
+  .inspector strong { color: var(--text); font-weight: 500; }
+  .inspector .tag {
+    font: 11px var(--mono); padding: 3px 8px; border-radius: 999px;
+    background: var(--accent-dim); color: var(--accent);
+  }
+
+  .log-pane { flex: 1; min-height: 80px; }
+  .log-head {
+    height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .log-head strong { font-size: 13px; }
+  .count { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .search { margin-left: auto; width: 220px; border-radius: 999px; }
+
+  .blocks {
+    flex: 1; overflow: auto; background: var(--log-bg); padding: 12px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .frame {
+    border: 1px solid var(--line2); border-radius: 10px; background: var(--panel);
+    padding: 10px 12px; font: 14px/1.55 var(--mono);
+  }
+  .frame:hover, .frame.selected {
+    border-color: color-mix(in oklab, var(--accent) 55%, var(--line));
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+  .frame .meta-line { display: flex; gap: 10px; align-items: center; color: var(--prompt); font-size: 12px; margin-bottom: 6px; }
+  .frame .dir {
+    font-size: 10px; letter-spacing: .08em; padding: 2px 6px; border-radius: 999px; border: 1px solid var(--line);
+  }
+  .frame.rx .dir { color: var(--rx); border-color: color-mix(in oklab, var(--rx) 35%, var(--line)); }
+  .frame.tx .dir { color: var(--tx); border-color: color-mix(in oklab, var(--tx) 35%, var(--line)); }
+  .frame.sys .dir { color: var(--sys); }
+  .frame .payload.rx { color: var(--rx); }
+  .frame .payload.tx { color: var(--tx); }
+  .frame .payload.sys { color: var(--sys); }
+
+  .script {
+    height: var(--script, 300px); display: flex; flex-direction: column;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 0;
+  }
+  .script.hidden { display: none; }
+  .script-head {
+    height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+    border-bottom: 1px solid var(--line); font-size: 13px;
+  }
+  .script-body { flex: 1; min-height: 0; display: flex; }
+  .editor, .runlog { min-width: 0; overflow: auto; padding: 10px 12px; font: 13px/1.55 var(--mono); }
+  .editor { flex: 1; background: #100e0c; }
+  .runlog { width: var(--scriptLog, 360px); border-left: 1px solid var(--line); color: var(--muted); background: #171512; }
+  .runlog .err { color: var(--off); }
+
+  .send {
+    height: var(--send, 104px); display: grid; grid-template-columns: 1fr 128px; gap: 8px;
+    padding: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  }
+  .send .actions { display: flex; flex-direction: column; gap: 8px; }
+  .send .actions .btn { flex: 1; border-radius: 10px; }
+
+  .tools .tabs {
+    display: flex; gap: 2px; padding: 8px 8px 0; overflow-x: auto; border-bottom: 1px solid var(--line);
+  }
+  .tools .tabs button {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font: 12px var(--font); padding: 8px 10px; border-radius: 8px 8px 0 0; cursor: pointer; white-space: nowrap;
+  }
+  .tools .tabs button.active { background: var(--field); color: var(--accent); }
+  .tools .tabs .sep { width: 1px; background: var(--line); margin: 8px 4px; }
+  .tool-list { flex: 1; overflow: auto; padding: 8px; }
+  .item {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+    padding: 10px; border-radius: 10px;
+  }
+  .item:hover { background: var(--field); }
+  .item .name { font-size: 13px; font-weight: 500; }
+  .item .data { font: 12px var(--mono); color: var(--muted); margin-top: 2px; }
+  .item .key { font: 11px var(--mono); color: var(--accent); }
+
+  .status {
+    height: 30px; display: flex; align-items: center; gap: 14px; padding: 0 14px;
+    border-top: 1px solid var(--line); background: var(--panel); font-size: 12px; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .status .conn { color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--on); }
+  .status .grow { flex: 1; }
+</style>
+</head>
+<body>
+  <div class="stage-wrap">
+    <div class="stage" id="app">
+      <header class="top">
+        <div class="rail-brand"><div class="glyph">DD</div>Debug</div>
+        <div class="top-main">
+          <div class="menubar">
+            <button type="button">文件</button>
+            <button type="button">设置</button>
+            <button type="button">工具</button>
+            <button type="button">帮助</button>
+            <div class="spacer"></div>
+            <button type="button" class="chip" id="btnCompact">精简模式</button>
+            <button type="button" class="chip on" id="btnTools">工具面板</button>
+            <div class="win-btns" aria-hidden="true"><i></i><i></i><i></i></div>
+          </div>
+          <div class="sessions">
+            <div class="session active"><span class="pip"></span><span class="kind">SERIAL</span>COM3 · 串口</div>
+            <div class="session"><span class="pip"></span><span class="kind">BLE</span>蓝牙 · 灯控</div>
+            <div class="session"><span class="pip"></span><span class="kind">MQTT</span>MQTT · broker</div>
+            <div class="session"><span class="pip"></span><span class="kind">TCP</span>TCP · 板卡</div>
+            <button type="button" class="session-add">＋ 新增</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="workspace" id="workspace">
+        <aside class="pane" id="left">
+          <div class="settings">
+            <section class="block">
+              <header><span>串口设置</span><span>OPEN</span></header>
+              <div class="row"><label>串口地址</label><select><option>COM3</option></select></div>
+              <div class="row"><label>波特率</label><input value="115200" /></div>
+              <div class="row"><label>校验位</label><select><option>NONE</option></select></div>
+              <div class="row"><label>数据位</label><select><option>8</option></select></div>
+              <div class="row"><label>停止位</label><select><option>1</option></select></div>
+              <div class="row"><label>流控</label><select><option>NONE</option></select></div>
+              <button type="button" class="btn primary block" style="margin-top:8px"><span class="lamp"></span>打开</button>
+            </section>
+            <section class="block">
+              <header><span>接收设置</span><span>HEX</span></header>
+              <div class="row"><label>日志模式</label><select><option>开启</option></select></div>
+              <div class="row"><label>分包超时</label><input value="20 ms" /></div>
+            </section>
+            <section class="block">
+              <header><span>发送设置</span><span>ASCII</span></header>
+              <div class="row"><label>附加位</label><select><option>无</option><option>CRC16</option></select></div>
+              <div class="row"><label>循环周期</label><input value="1000 ms" /></div>
+            </section>
+          </div>
+        </aside>
+        <div class="split" data-split="left" title="拖拽调整宽度 · 双击还原"></div>
+
+        <main class="center" id="center">
+          <div class="inspector">
+            <span class="tag">CURRENT BLOCK</span>
+            <strong>RECV HEX · 9 bytes</strong>
+            <span>14:01:03.120</span>
+            <span>可点选日志块 · 像 Warp 的 command block</span>
+          </div>
+          <section class="pane log-pane" id="logPane">
+            <div class="log-head">
+              <strong>数据日志</strong>
+              <span class="count">128 条 · 块视图</span>
+              <input class="search ctrl" placeholder="搜索…" />
+            </div>
+            <div class="blocks" id="blocks"></div>
+          </section>
+          <div class="split h" data-split="script" title="拖拽调整高度 · 双击还原"></div>
+          <section class="script" id="script">
+            <div class="script-head">
+              <strong>parse_sensor.lua</strong>
+              <span style="color:var(--muted)">on_receive · before_send</span>
+              <div class="spacer"></div>
+              <button type="button" class="btn">运行</button>
+              <button type="button" class="btn" id="btnHideScript">收起</button>
+            </div>
+            <div class="script-body">
+              <pre class="editor">function on_receive(frame)
+  print("RX", #frame, "bytes")
+  return frame
+end</pre>
+              <div class="split" data-split="scriptLog"></div>
+              <div class="runlog" id="runlog">
+                <div>14:02:11.203  parse_sensor  RX 8 bytes</div>
+                <div>14:02:11.204  parse_sensor  ok</div>
+                <div class="err">14:02:18.001  parse_sensor  before_send 返回 nil，已拦截</div>
+              </div>
+            </div>
+          </section>
+          <div class="split h" data-split="send"></div>
+          <section class="send" id="send">
+            <textarea>AT+VERSION?\r\n</textarea>
+            <div class="actions">
+              <button type="button" class="btn primary">发送</button>
+              <button type="button" class="btn">清除</button>
+            </div>
+          </section>
+        </main>
+
+        <div class="split" data-split="right"></div>
+        <aside class="pane tools" id="right">
+          <div class="tabs" id="toolTabs">
+            <button type="button" class="active" data-tab="quick">快捷指令</button>
+            <button type="button" data-tab="batch">批量发送</button>
+            <button type="button" data-tab="reply">自动应答</button>
+            <button type="button" data-tab="hist">历史发送</button>
+            <button type="button" data-tab="crc">校验计算</button>
+            <span class="sep"></span>
+            <button type="button" data-tab="script">脚本</button>
+          </div>
+          <div class="tool-list" id="toolList"></div>
+        </aside>
+      </div>
+
+      <footer class="status">
+        <div class="conn"><span class="dot"></span>COM3 OPENED, 115200, N, 8, 1, NONE</div>
+        <span>RX 12,480</span>
+        <span>TX 3,102</span>
+        <button type="button" class="chip" style="padding:2px 8px">复位计数</button>
+        <div class="grow"></div>
+        <span>暖色块终端骨架 · Warp 参照</span>
+      </footer>
+    </div>
+  </div>
+  <p class="meta">方向 B · 🏆 现实参照 Warp<br />连接页签改成胶囊会话条；日志改为可选中块列表；暖近黑 × 羊皮纸字 × 琥珀 accent。</p>
+<script>
+(() => {
+    const defaults = { left: 248, right: 340, script: 220, send: 104, scriptLog: 360 };
+  const state = { ...defaults, leftOn: true, rightOn: true, scriptOn: true };
+  const ws = document.getElementById('workspace');
+  const left = document.getElementById('left');
+  const right = document.getElementById('right');
+  const script = document.getElementById('script');
+  const send = document.getElementById('send');
+  const runlog = document.getElementById('runlog');
+  const btnCompact = document.getElementById('btnCompact');
+  const btnTools = document.getElementById('btnTools');
+
+  const frames = [
+    { k:'sys', t:'14:01:02.011', d:'SYS', p:'串口 COM3 已打开' },
+    { k:'rx', t:'14:01:03.120', d:'RECV HEX', p:'55 AA 01 00 08 3F 12 00 9C' },
+    { k:'tx', t:'14:01:03.880', d:'SEND ASCII', p:'AT+VERSION?\\r\\n' },
+    { k:'rx', t:'14:01:04.010', d:'RECV ASCII', p:'VERSION:1.4.2' },
+    { k:'rx', t:'14:01:08.441', d:'RECV HEX', p:'55 AA 02 00 04 01 00 A7' },
+    { k:'tx', t:'14:01:09.002', d:'SEND HEX', p:'A5 5A 10 01 FF' },
+  ];
+  const blocks = document.getElementById('blocks');
+  blocks.innerHTML = frames.map((f,i) => `
+    <article class="frame ${f.k}${i===1?' selected':''}">
+      <div class="meta-line"><span class="dir">${f.d}</span><span>${f.t}</span><span>#${i+1}</span></div>
+      <div class="payload ${f.k}">${f.p}</div>
+    </article>`).join('');
+  blocks.addEventListener('click', e => {
+    const art = e.target.closest('.frame');
+    if (!art) return;
+    blocks.querySelectorAll('.frame').forEach(x => x.classList.remove('selected'));
+    art.classList.add('selected');
+  });
+
+  const quick = [
+    { name:'读版本', data:'AT+VERSION?', key:'F1' },
+    { name:'复位', data:'AT+RST', key:'F2' },
+    { name:'查询 MAC', data:'AT+MAC?', key:'F3' },
+    { name:'心跳', data:'55 AA 00 01', key:'F4' },
+  ];
+  function renderTools(tab) {
+    const list = document.getElementById('toolList');
+    if (tab === 'script') {
+      list.innerHTML = `<div class="item"><button class="btn primary">运行</button><div><div class="name">parse_sensor.lua</div><div class="data">on_receive · before_send</div></div><span class="key">启用</span></div>`;
+      state.scriptOn = true; apply(); return;
+    }
+    list.innerHTML = quick.map(q => `<div class="item"><button class="btn primary">发送</button><div><div class="name">${q.name}</div><div class="data">${q.data}</div></div><span class="key">${q.key}</span></div>`).join('');
+  }
+  renderTools('quick');
+  document.getElementById('toolTabs').addEventListener('click', e => {
+    const b = e.target.closest('button[data-tab]');
+    if (!b) return;
+    [...e.currentTarget.querySelectorAll('button[data-tab]')].forEach(x => x.classList.toggle('active', x===b));
+    renderTools(b.dataset.tab);
+  });
+
+  function apply() {
+    ws.style.setProperty('--left', state.left + 'px');
+    ws.style.setProperty('--right', state.right + 'px');
+    ws.classList.toggle('no-left', !state.leftOn);
+    ws.classList.toggle('no-right', !state.rightOn);
+    left.style.display = state.leftOn ? '' : 'none';
+    right.style.display = state.rightOn ? '' : 'none';
+    script.classList.toggle('hidden', !state.scriptOn);
+    script.style.setProperty('--script', state.script + 'px');
+    script.style.height = state.script + 'px';
+    send.style.height = state.send + 'px';
+    runlog.style.width = state.scriptLog + 'px';
+    btnCompact.classList.toggle('on', !state.leftOn);
+    btnTools.classList.toggle('on', state.rightOn);
+    document.querySelectorAll('[data-split="left"],[data-split="right"]').forEach(el => {
+      el.style.display = (el.dataset.split === 'left' ? state.leftOn : state.rightOn) ? '' : 'none';
+    });
+    document.querySelector('[data-split="script"]').style.display = state.scriptOn ? '' : 'none';
+  }
+  apply();
+
+  btnCompact.onclick = () => { state.leftOn = !state.leftOn; if (state.leftOn) state.left = defaults.left; apply(); };
+  btnTools.onclick = () => { state.rightOn = !state.rightOn; if (state.rightOn) state.right = defaults.right; apply(); };
+  document.getElementById('btnHideScript').onclick = () => { state.scriptOn = false; apply(); };
+
+  const mins = { left: 180, right: 220, script: 160, send: 72, scriptLog: 200 };
+  let drag = null;
+  document.querySelectorAll('[data-split]').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      drag = { kind: el.dataset.split, el, x: e.clientX, y: e.clientY, val: state[el.dataset.split] };
+      el.classList.add('dragging'); e.preventDefault();
+    });
+    el.addEventListener('dblclick', () => {
+      state[el.dataset.split] = defaults[el.dataset.split];
+      if (el.dataset.split === 'left') state.leftOn = true;
+      if (el.dataset.split === 'right') state.rightOn = true;
+      if (el.dataset.split === 'script') state.scriptOn = true;
+      apply();
+    });
+  });
+  window.addEventListener('mousemove', e => {
+    if (!drag) return;
+    let next = drag.val;
+    if (drag.kind === 'left' || drag.kind === 'scriptLog') next = drag.val + (e.clientX - drag.x);
+    if (drag.kind === 'right') next = drag.val + (drag.x - e.clientX);
+    if (drag.kind === 'script') next = drag.val + (e.clientY - drag.y);
+    if (drag.kind === 'send') next = drag.val - (e.clientY - drag.y);
+    state[drag.kind] = Math.max(mins[drag.kind], Math.min(560, next));
+    apply();
+  });
+  window.addEventListener('mouseup', () => { if (!drag) return; drag.el.classList.remove('dragging'); drag = null; });
+})();
+</script>
+</body>
+</html>

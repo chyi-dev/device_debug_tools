@@ -121,6 +121,7 @@ class _Translations$common$en extends Translations$common$zh {
 	@override String get githubUrl => 'https://github.com/chyi-dev/device_debug_tools';
 	@override String get email => 'Email';
 	@override String get emailAddress => '757120553@qq.com';
+	@override String get appreciateHint => 'Scan with WeChat';
 }
 
 // Path: serial
@@ -335,6 +336,7 @@ class _Translations$serial$menu$en extends Translations$serial$menu$zh {
 	@override String get keys => 'Keyboard shortcuts';
 	@override String get checkUpdate => 'Check for updates';
 	@override String get activate => 'Activate…';
+	@override String get appreciate => 'Support the author';
 	@override String get about => 'About';
 }
 
@@ -1292,6 +1294,7 @@ class _Translations$socket$menu$en extends Translations$socket$menu$zh {
 	@override String get keys => 'Keyboard shortcuts';
 	@override String get checkUpdate => 'Check for updates';
 	@override String get activate => 'Activate…';
+	@override String get appreciate => 'Support the author';
 	@override String get about => 'About';
 }
 
@@ -1696,6 +1699,7 @@ extension on TranslationsEn {
 			'common.githubUrl' => 'https://github.com/chyi-dev/device_debug_tools',
 			'common.email' => 'Email',
 			'common.emailAddress' => '757120553@qq.com',
+			'common.appreciateHint' => 'Scan with WeChat',
 			'serial.menu.file' => 'File',
 			'serial.menu.settings' => 'Settings',
 			'serial.menu.tools' => 'Tools',
@@ -1710,6 +1714,7 @@ extension on TranslationsEn {
 			'serial.menu.keys' => 'Keyboard shortcuts',
 			'serial.menu.checkUpdate' => 'Check for updates',
 			'serial.menu.activate' => 'Activate…',
+			'serial.menu.appreciate' => 'Support the author',
 			'serial.menu.about' => 'About',
 			'serial.kbd.ctrlS' => 'Ctrl+S',
 			'serial.kbd.f12' => 'F12',
@@ -2170,10 +2175,10 @@ extension on TranslationsEn {
 			'ble.dialog.ruleTitle' => 'Reply rule',
 			'ble.dialog.batchTitle' => 'Batch job',
 			'ble.dialog.scriptTitle' => 'Script',
-			'ble.dialog.name' => 'Name',
-			'ble.dialog.data' => 'Data',
 			_ => null,
 		} ?? switch (path) {
+			'ble.dialog.name' => 'Name',
+			'ble.dialog.data' => 'Data',
 			'ble.dialog.key' => 'Shortcut',
 			'ble.dialog.pattern' => 'Pattern',
 			'ble.dialog.code' => 'Code',
@@ -2386,6 +2391,7 @@ extension on TranslationsEn {
 			'socket.menu.keys' => 'Keyboard shortcuts',
 			'socket.menu.checkUpdate' => 'Check for updates',
 			'socket.menu.activate' => 'Activate…',
+			'socket.menu.appreciate' => 'Support the author',
 			'socket.menu.about' => 'About',
 			'socket.kbd.ctrlS' => 'Ctrl+S',
 			'socket.kbd.f12' => 'F12',

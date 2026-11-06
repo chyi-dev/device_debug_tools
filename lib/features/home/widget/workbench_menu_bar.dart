@@ -11,6 +11,7 @@ import '../../../i18n/i18n.dart';
 import '../../license/widget/license_dialogs.dart';
 import '../../serial/serial_metrics.dart';
 import '../../update/cubit/update_cubit.dart';
+import 'appreciate_dialog.dart';
 
 class WorkbenchMenuAction {
   const WorkbenchMenuAction(this.label, this.onPressed, {this.kbd});
@@ -151,6 +152,10 @@ class WorkbenchMenuBar extends StatelessWidget {
                                   WorkbenchMenuAction(
                                     menu.activate,
                                     () => showLicenseActivateDialog(context),
+                                  ),
+                                  WorkbenchMenuAction(
+                                    menu.appreciate,
+                                    () => showAppreciateDialog(context),
                                   ),
                                   WorkbenchMenuAction(menu.about, onAbout),
                                 ],

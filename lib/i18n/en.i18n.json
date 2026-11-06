@@ -41,7 +41,8 @@
     "github": "Project",
     "githubUrl": "https://github.com/chyi-dev/device_debug_tools",
     "email": "Email",
-    "emailAddress": "757120553@qq.com"
+    "emailAddress": "757120553@qq.com",
+    "appreciateHint": "Scan with WeChat"
   },
   "serial": {
     "menu": {
@@ -59,6 +60,7 @@
       "keys": "Keyboard shortcuts",
       "checkUpdate": "Check for updates",
       "activate": "Activate…",
+      "appreciate": "Support the author",
       "about": "About"
     },
     "kbd": {
@@ -865,6 +867,7 @@
       "keys": "Keyboard shortcuts",
       "checkUpdate": "Check for updates",
       "activate": "Activate…",
+      "appreciate": "Support the author",
       "about": "About"
     },
     "kbd": {

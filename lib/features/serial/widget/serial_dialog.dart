@@ -30,6 +30,7 @@ class SerialDialogFrame extends StatelessWidget {
     required this.actions,
     this.side,
     this.titleTrailing,
+    this.maxWidth,
   });
 
   final String title;
@@ -42,6 +43,9 @@ class SerialDialogFrame extends StatelessWidget {
   /// 放在表单右侧，例如应答规则的课表。有侧栏时对话框加宽并撑到固定高度。
   final Widget? side;
 
+  /// 无侧栏时忽略；默认 [SerialMetrics.dialogWidth]。
+  final double? maxWidth;
+
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
@@ -50,7 +54,9 @@ class SerialDialogFrame extends StatelessWidget {
     final tutor = side != null;
     final dialogW = math.min(
       screen.width * (tutor ? 0.96 : 0.92),
-      tutor ? SerialMetrics.dialogTutorWidth : SerialMetrics.dialogWidth,
+      tutor
+          ? SerialMetrics.dialogTutorWidth
+          : (maxWidth ?? SerialMetrics.dialogWidth),
     );
     final maxH = screen.height * (tutor ? 0.92 : 0.86);
     final dialogH = tutor

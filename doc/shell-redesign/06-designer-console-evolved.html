@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>方向 F · 现网串口台进化</title>
+<style>
+:root{
+  --win:#e6e9ed;
+  --panel:#f4f6f8;
+  --field:#ffffff;
+  --line:#b4bec8;
+  --line2:#d8dee5;
+  --text:#1a2330;
+  --muted:#4a5562;
+  --accent:#1666bc;
+  --accent-border:#135a9e;
+  --hover:#dde7f2;
+  --head:#eef1f4;
+  --on:#1f9d55;
+  --off:#c8392f;
+  --log:#ffffff;
+  --rx:#18222c;
+  --tx:#135db0;
+  --sys:#8f5400;
+  --prompt:#65707d;
+  --mark:#ffe28a;
+  --lamp-idle:#b9c1ca;
+  --split:#9aa5b0;
+  --radius-sm:6px;
+  --radius-ctrl:4px;
+  --font:"Segoe UI","Microsoft YaHei UI","PingFang SC",sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#7f8892;font:14px/1.4 var(--font);color:var(--text);overflow:hidden}
+.wrap{height:100%;display:grid;place-items:center;padding:12px}
+.stage{
+  width:1440px;height:900px;background:var(--win);border:1px solid #66707a;
+  display:flex;flex-direction:column;box-shadow:0 14px 40px rgba(0,0,0,.28);border-radius:2px;
+}
+.meta{position:fixed;left:12px;bottom:10px;color:#2f3842;font:12px/1.4 var(--font);max-width:540px}
+
+/* —— 顶栏 —— */
+.menubar{
+  height:34px;display:flex;align-items:center;gap:2px;padding:0 8px 0 10px;
+  background:var(--panel);border-bottom:1px solid var(--line);user-select:none;
+}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin-right:8px}
+.brand .ico{
+  width:16px;height:16px;border-radius:2px;border:1px solid var(--accent-border);
+  background:var(--accent);position:relative;
+}
+.brand .ico:after{
+  content:"";position:absolute;inset:3px 3px 3px 3px;border:1px solid rgba(255,255,255,.55);
+}
+.menubar button,.tog{
+  appearance:none;border:0;background:transparent;font:14px var(--font);
+  padding:4px 9px;cursor:pointer;border-radius:var(--radius-ctrl);color:var(--text);
+}
+.menubar button:hover,.tog:hover{background:var(--hover)}
+.tog.on{background:#d3e4f5;color:var(--accent);font-weight:600}
+.sp{flex:1;min-height:100%;cursor:default}
+.winbtns{display:flex;align-items:center;gap:0;margin-left:4px}
+.winbtns span{
+  width:34px;height:26px;display:grid;place-items:center;border:0;background:transparent;
+  color:var(--muted);font:12px/1 var(--font);cursor:default;
+}
+.winbtns span:hover{background:var(--hover);color:var(--text)}
+.winbtns span.close:hover{background:#e81123;color:#fff}
+
+.tabs{
+  height:36px;display:flex;align-items:stretch;background:var(--panel);
+  border-bottom:1px solid var(--line);padding-left:6px;
+}
+.tab{
+  display:flex;align-items:center;gap:8px;padding:0 14px;color:var(--muted);
+  border:1px solid transparent;border-bottom:0;margin-top:5px;
+  border-radius:var(--radius-sm) var(--radius-sm) 0 0;cursor:pointer;font-size:14px;
+}
+.tab.on{
+  background:var(--win);color:var(--text);border-color:var(--line);
+  box-shadow:0 1px 0 var(--win);position:relative;top:1px;font-weight:600;
+}
+.badge{font:12px/1 var(--mono);background:var(--text);color:#fff;padding:3px 5px;border-radius:2px}
+.add{
+  margin:6px 10px 0 auto;height:24px;border:1px solid var(--line);background:var(--field);
+  font:12px var(--font);padding:0 10px;cursor:pointer;border-radius:var(--radius-ctrl);color:var(--text);
+}
+.add:hover{background:var(--hover)}
+
+/* —— 主体 —— */
+.body{flex:1;min-height:0;display:flex;padding:8px;gap:0;overflow:hidden}
+.pane{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);
+  min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;
+}
+.left{width:272px}.right{width:352px}.left.off,.right.off{display:none}
+
+/* 分割条：8px 热区，中间 1px 线 */
+.v,.h{flex:0 0 8px;position:relative;z-index:2}
+.v{cursor:col-resize}.h{cursor:row-resize}
+.v:before,.h:before{
+  content:"";position:absolute;background:transparent;
+}
+.v:before{inset:0 2px}.h:before{inset:2px 0}
+.v:after,.h:after{
+  content:"";position:absolute;background:var(--split);opacity:.55;border-radius:1px;
+}
+.v:after{top:18%;bottom:18%;left:3.5px;width:1px}
+.h:after{left:18%;right:18%;top:3.5px;height:1px}
+.v:hover:after,.h:hover:after,.v.drag:after,.h.drag:after{
+  background:var(--accent);opacity:1;
+}
+.v:hover:after,.v.drag:after{width:2px;left:3px}
+.h:hover:after,.h.drag:after{height:2px;top:3px}
+
+.center{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border:0;background:transparent;gap:0}
+
+/* 左栏：真正的分组框 */
+.side{overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px;background:var(--win);border-color:transparent}
+.side.pane{border:0;border-radius:0;background:transparent}
+.grp{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:7px 12px 8px;
+}
+.grp h3{margin:0 0 8px;font-size:12px;font-weight:600;color:var(--muted);overflow:hidden}
+.row{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;margin-bottom:5px}
+.row:last-child{margin-bottom:0}
+.row label{font-size:12px;color:var(--muted)}
+.pins{display:flex;gap:10px;align-items:center;margin-top:8px;padding-top:6px;border-top:1px solid var(--line2)}
+.pin{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.pin i{width:8px;height:8px;border-radius:50%;background:var(--lamp-idle);display:block}
+.pin.on i{background:var(--on)}
+
+select,input,textarea{
+  width:100%;height:26px;border:1px solid var(--line);background:var(--field);
+  font:14px var(--font);padding:0 8px;outline:0;border-radius:var(--radius-ctrl);color:var(--text);
+}
+textarea{height:auto;min-height:64px;padding:8px;font:15px/1.55 var(--mono);resize:none}
+select:focus,input:focus,textarea:focus{border-color:var(--accent)}
+.btn{
+  height:28px;border:1px solid var(--line);background:var(--field);font:14px var(--font);
+  cursor:pointer;padding:0 12px;border-radius:var(--radius-ctrl);color:var(--text);
+}
+.btn:hover{background:var(--hover)}
+.btn.p{background:var(--accent);border-color:var(--accent-border);color:#fff;font-weight:600}
+.btn.p:hover{filter:brightness(1.05);background:var(--accent)}
+.btn.sm{height:24px;padding:0 8px;font-size:12px}
+.btn.block{width:100%;height:32px;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px}
+.lamp{width:8px;height:8px;border-radius:50%;background:var(--on);box-shadow:0 0 0 2px #c6ebd4}
+.seg{float:right;display:inline-flex;border:1px solid var(--line);border-radius:var(--radius-ctrl);overflow:hidden}
+.seg button{appearance:none;border:0;background:var(--field);font:12px var(--font);padding:2px 8px;cursor:pointer;color:var(--muted)}
+.seg button:hover{background:var(--hover)}
+.seg button.on{background:var(--text);color:#fff}
+
+/* 日志 */
+.log{flex:1;min-height:60px}
+.logh{
+  height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;
+  border-bottom:1px solid var(--line);background:var(--head);flex:0 0 auto;
+}
+.logh strong{font-size:14px;font-weight:600}
+.cnt{font-size:12px;color:var(--muted)}
+.search{margin-left:auto;width:220px;height:26px;font:12px var(--font)}
+.logb{flex:1;overflow:auto;background:var(--log);padding:12px 16px;font:14px/1.6 var(--mono)}
+.log-entry{margin-bottom:10px}
+.log-entry:last-child{margin-bottom:0}
+.p{color:var(--prompt)}.rx{color:var(--rx)}.tx{color:var(--tx)}.sys{color:var(--sys)}
+.mark{background:var(--mark)}
+
+/* 脚本坞 */
+.script{
+  height:280px;display:flex;flex-direction:column;border:1px solid var(--line);
+  border-radius:var(--radius-sm);background:var(--panel);flex:0 0 auto;
+}
+.script.hide{display:none}
+.scrh{
+  height:34px;display:flex;align-items:center;gap:10px;padding:0 12px;
+  border-bottom:1px solid var(--line);background:var(--head);font-size:14px;flex:0 0 auto;
+}
+.scrh .hooks{font-size:12px;color:var(--muted)}
+.scrh .state{
+  font:12px var(--font);color:var(--on);background:#e5f6ec;border:1px solid #b7e4c7;
+  border-radius:var(--radius-ctrl);padding:1px 6px;
+}
+.scrb{flex:1;min-height:0;display:flex}
+.ed,.rl{min-width:0;overflow:auto;padding:12px 14px;font:14px/1.55 var(--mono)}
+.ed{flex:1;background:var(--field);margin:0;border:0}
+.ed .kw{color:var(--accent)}.ed .cm{color:var(--prompt)}
+.rl{width:380px;border-left:1px solid var(--line);color:var(--muted);background:var(--head)}
+.rl .err{color:var(--off)}
+
+/* 发送 */
+.send{
+  height:104px;display:grid;grid-template-columns:1fr 120px;gap:8px;padding:8px;
+  border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--panel);flex:0 0 auto;
+}
+.send .compose{display:flex;flex-direction:column;min-width:0;gap:4px}
+.send .compose textarea{flex:1;min-height:0}
+.send .hint{font:12px var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.send .act{display:flex;flex-direction:column;gap:8px}
+.send .act .btn{flex:1}
+
+/* 右工具 */
+.tools{display:flex;flex-direction:column}
+.ttabs{display:flex;border-bottom:1px solid var(--line);background:var(--head);overflow-x:auto;flex:0 0 auto}
+.ttabs button{
+  appearance:none;border:0;background:transparent;font:12px var(--font);padding:9px 10px;
+  cursor:pointer;color:var(--muted);white-space:nowrap;border-bottom:2px solid transparent;
+}
+.ttabs button:hover{color:var(--text);background:rgba(0,0,0,.03)}
+.ttabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.ttabs .sep{width:1px;background:var(--line);margin:8px 4px;flex:0 0 auto}
+.tlist{flex:1;overflow:auto;padding:4px}
+.item{
+  display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+  padding:7px 8px;border-radius:var(--radius-ctrl);
+}
+.item:hover{background:var(--hover)}
+.item .n{font-size:14px;font-weight:500}
+.item .d{font:12px var(--mono);color:var(--muted);margin-top:1px}
+.item .k{
+  font:12px/1 var(--mono);color:var(--accent);font-weight:600;
+  border:1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background:color-mix(in srgb, var(--accent) 8%, var(--field));
+  border-radius:3px;padding:3px 5px;
+}
+
+/* 状态栏 */
+.status{
+  height:30px;display:flex;align-items:center;gap:14px;padding:0 12px;
+  border-top:1px solid var(--line);background:var(--panel);font:12px var(--font);
+  color:var(--muted);font-variant-numeric:tabular-nums;
+}
+.status .c{color:var(--text);font-weight:600;display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--on)}
+.status .btn{height:22px;padding:0 8px;font-size:12px}
+.status .note{margin-left:auto;color:var(--prompt)}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="stage">
+  <div class="menubar">
+    <div class="brand"><span class="ico" aria-hidden="true"></span>设备调试工具</div>
+    <button type="button">文件</button><button type="button">设置</button><button type="button">工具</button><button type="button">帮助</button>
+    <div class="sp" title="拖拽移动窗口（示意）"></div>
+    <button type="button" class="tog" id="btnCompact" title="收起或展开左侧设置栏">精简模式</button>
+    <button type="button" class="tog on" id="btnTools" title="显示或隐藏工具面板">工具面板</button>
+    <div class="winbtns" aria-hidden="true"><span>─</span><span>□</span><span class="close">✕</span></div>
+  </div>
+  <div class="tabs">
+    <div class="tab on"><span class="badge">SERIAL</span>COM3 · 串口</div>
+    <div class="tab"><span class="badge">BLE</span>蓝牙 · 灯控</div>
+    <div class="tab"><span class="badge">MQTT</span>MQTT · broker</div>
+    <div class="tab"><span class="badge">TCP</span>TCP · 板卡</div>
+    <button type="button" class="add">＋ 新增</button>
+  </div>
+  <div class="body">
+    <aside class="pane left side" id="left">
+      <section class="grp">
+        <h3>串口设置</h3>
+        <div class="row"><label>串口地址</label><select><option>COM3</option><option>COM4</option></select></div>
+        <div class="row"><label>波特率</label><input value="115200"></div>
+        <div class="row"><label>校验位</label><select><option>NONE</option><option>ODD</option><option>EVEN</option></select></div>
+        <div class="row"><label>数据位</label><select><option>8</option><option>7</option></select></div>
+        <div class="row"><label>停止位</label><select><option>1</option><option>1.5</option><option>2</option></select></div>
+        <div class="row"><label>流控</label><select><option>NONE</option></select></div>
+        <button type="button" class="btn p block"><span class="lamp"></span>打开</button>
+        <div class="pins">
+          <span class="pin on"><i></i>DCD</span>
+          <span class="pin"><i></i>DSR</span>
+          <span class="pin on"><i></i>CTS</span>
+          <span class="pin"><i></i>RI</span>
+        </div>
+      </section>
+      <section class="grp">
+        <h3>接收设置 <span class="seg"><button type="button" class="on">HEX</button><button type="button">ASCII</button></span></h3>
+        <div class="row"><label>日志模式</label><select><option>开启</option><option>关闭</option></select></div>
+        <div class="row"><label>分包超时</label><input value="20 ms"></div>
+      </section>
+      <section class="grp">
+        <h3>发送设置 <span class="seg"><button type="button">HEX</button><button type="button" class="on">ASCII</button></span></h3>
+        <div class="row"><label>附加位</label><select><option>无</option><option>CRC16</option><option>SUM8</option></select></div>
+        <div class="row"><label>循环周期</label><input value="1000 ms"></div>
+      </section>
+    </aside>
+    <div class="v" data-s="left" title="拖拽调整宽度 · 双击还原"></div>
+    <main class="center">
+      <section class="pane log" id="log">
+        <div class="logh">
+          <strong>数据日志</strong>
+          <span class="cnt">128 条</span>
+          <input class="search" id="search" placeholder="搜索…" value="VERSION">
+        </div>
+        <div class="logb" id="logb"></div>
+      </section>
+      <div class="h" data-s="script" title="拖拽调整高度 · 双击还原"></div>
+      <section class="script" id="script">
+        <div class="scrh">
+          <strong>parse_sensor.lua</strong>
+          <span class="hooks">on_receive · before_send</span>
+          <span class="state">启用</span>
+          <div class="sp"></div>
+          <button type="button" class="btn sm">运行</button>
+          <button type="button" class="btn sm" id="hideScr">收起</button>
+        </div>
+        <div class="scrb">
+          <pre class="ed"><span class="kw">function</span> on_receive(frame)
+  print(<span class="cm">"RX"</span>, #frame, <span class="cm">"bytes"</span>)
+  <span class="kw">return</span> frame
+<span class="kw">end</span>
+
+<span class="kw">function</span> before_send(frame)
+  <span class="cm">-- 末尾补 CRC16</span>
+  <span class="kw">return</span> append_crc16(frame)
+<span class="kw">end</span></pre>
+          <div class="v" data-s="scriptLog" title="拖拽调整宽度 · 双击还原"></div>
+          <div class="rl" id="rl">
+            <div>14:02:11.203  parse_sensor  RX 8 bytes</div>
+            <div>14:02:11.204  parse_sensor  ok</div>
+            <div class="err">14:02:18.001  parse_sensor  before_send 返回 nil，已拦截</div>
+          </div>
+        </div>
+      </section>
+      <div class="h" data-s="send" title="拖拽调整高度 · 双击还原"></div>
+      <section class="send" id="send">
+        <div class="compose">
+          <textarea>AT+VERSION?\r\n</textarea>
+          <div class="hint">实发 13 字节：41 54 2B 56 45 52 53 49 4F 4E 3F 0D 0A</div>
+        </div>
+        <div class="act">
+          <button type="button" class="btn p">发送</button>
+          <button type="button" class="btn">清除</button>
+        </div>
+      </section>
+    </main>
+    <div class="v" data-s="right" title="拖拽调整宽度 · 双击还原"></div>
+    <aside class="pane right tools" id="right">
+      <div class="ttabs" id="ttabs">
+        <button type="button" class="on" data-t="q">快捷指令</button>
+        <button type="button" data-t="b">批量发送</button>
+        <button type="button" data-t="r">自动应答</button>
+        <button type="button" data-t="h">历史发送</button>
+        <button type="button" data-t="c">校验计算</button>
+        <span class="sep"></span>
+        <button type="button" data-t="s">脚本</button>
+      </div>
+      <div class="tlist" id="tlist"></div>
+    </aside>
+  </div>
+  <footer class="status">
+    <div class="c"><span class="dot"></span>COM3 OPENED, 115200, N, 8, 1, NONE</div>
+    <span>RX 12,480</span>
+    <span>TX 3,102</span>
+    <button type="button" class="btn">复位计数</button>
+    <span class="note">拖分割条调布局 · 双击还原</span>
+  </footer>
+</div></div>
+<p class="meta">方向 F · 第二轮细节：分组框、细分割条、引脚灯、发送实发预览、脚本启用态、工具行快捷键徽标。</p>
+<script>
+(()=>{
+const D={left:272,right:352,script:280,send:104,scriptLog:380};
+const S={...D,leftOn:1,rightOn:1,scriptOn:1};
+const L=document.getElementById('left'),R=document.getElementById('right'),SC=document.getElementById('script'),SD=document.getElementById('send'),RL=document.getElementById('rl');
+
+const lines=[
+  {k:'sys', a:'[2026-11-05 14:01:02.011]# SYS> 串口 COM3 已打开'},
+  {k:'rx', a:'[2026-11-05 14:01:03.120]# RECV HEX>', b:'55 AA 01 00 08 3F 12 00 9C'},
+  {k:'tx', a:'[2026-11-05 14:01:03.880]# SEND ASCII>', b:'AT+VERSION?\\r\\n'},
+  {k:'rx', a:'[2026-11-05 14:01:04.010]# RECV ASCII>', b:'VERSION:1.4.2', mark:'VERSION'},
+  {k:'rx', a:'[2026-11-05 14:01:08.441]# RECV HEX>', b:'55 AA 02 00 04 01 00 A7'},
+  {k:'tx', a:'[2026-11-05 14:01:09.002]# SEND HEX>', b:'A5 5A 10 01 FF'},
+];
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function hi(s,q){
+  if(!q) return esc(s);
+  const i=s.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0) return esc(s);
+  return esc(s.slice(0,i))+'<span class="mark">'+esc(s.slice(i,i+q.length))+'</span>'+esc(s.slice(i+q.length));
+}
+function renderLog(){
+  const q=document.getElementById('search').value.trim();
+  document.getElementById('logb').innerHTML=lines.map(x=>{
+    if(x.k==='sys') return `<div class="log-entry"><span class="sys">${esc(x.a)}</span></div>`;
+    return `<div class="log-entry"><div><span class="p">${esc(x.a)}</span></div><div class="${x.k}">${hi(x.b,q)}</div></div>`;
+  }).join('');
+}
+renderLog();
+document.getElementById('search').oninput=renderLog;
+
+const q=[
+  {n:'读版本',d:'AT+VERSION?',k:'F1'},
+  {n:'复位',d:'AT+RST',k:'F2'},
+  {n:'查询 MAC',d:'AT+MAC?',k:'F3'},
+  {n:'心跳',d:'55 AA 00 01',k:'F4'},
+];
+const renderTools=t=>{
+  const list=document.getElementById('tlist');
+  if(t==='s'){
+    list.innerHTML=`
+      <div class="item"><button class="btn sm p">运行</button><div><div class="n">parse_sensor.lua</div><div class="d">on_receive · before_send</div></div><span class="k">启用</span></div>
+      <div class="item"><button class="btn sm">运行</button><div><div class="n">modbus_crc.lua</div><div class="d">before_send</div></div><span class="k">停用</span></div>`;
+    S.scriptOn=1;apply();return;
+  }
+  list.innerHTML=q.map(x=>`<div class="item"><button class="btn sm p">发送</button><div><div class="n">${x.n}</div><div class="d">${x.d}</div></div><span class="k">${x.k}</span></div>`).join('');
+};
+renderTools('q');
+document.getElementById('ttabs').onclick=e=>{
+  const b=e.target.closest('button[data-t]');
+  if(!b) return;
+  [...e.currentTarget.querySelectorAll('button[data-t]')].forEach(x=>x.classList.toggle('on',x===b));
+  renderTools(b.dataset.t);
+};
+
+function apply(){
+  L.classList.toggle('off',!S.leftOn);
+  R.classList.toggle('off',!S.rightOn);
+  L.style.width=S.left+'px';
+  R.style.width=S.right+'px';
+  SC.classList.toggle('hide',!S.scriptOn);
+  SC.style.height=S.script+'px';
+  SD.style.height=S.send+'px';
+  RL.style.width=S.scriptLog+'px';
+  document.getElementById('btnCompact').classList.toggle('on',!S.leftOn);
+  document.getElementById('btnTools').classList.toggle('on',S.rightOn);
+  document.querySelector('[data-s=left]').style.display=S.leftOn?'':'none';
+  document.querySelector('[data-s=right]').style.display=S.rightOn?'':'none';
+  document.querySelector('[data-s=script]').style.display=S.scriptOn?'':'none';
+}
+apply();
+
+document.getElementById('btnCompact').onclick=()=>{S.leftOn=!S.leftOn;if(S.leftOn)S.left=D.left;apply();};
+document.getElementById('btnTools').onclick=()=>{S.rightOn=!S.rightOn;if(S.rightOn)S.right=D.right;apply();};
+document.getElementById('hideScr').onclick=()=>{S.scriptOn=0;apply();};
+
+const min={left:180,right:220,script:160,send:88,scriptLog:200};
+let drag=null;
+document.querySelectorAll('[data-s]').forEach(el=>{
+  el.onmousedown=e=>{
+    drag={k:el.dataset.s,el,x:e.clientX,y:e.clientY,v:S[el.dataset.s]};
+    el.classList.add('drag');e.preventDefault();
+  };
+  el.ondblclick=()=>{
+    S[el.dataset.s]=D[el.dataset.s];
+    if(el.dataset.s==='left')S.leftOn=1;
+    if(el.dataset.s==='right')S.rightOn=1;
+    if(el.dataset.s==='script')S.scriptOn=1;
+    apply();
+  };
+});
+onmousemove=e=>{
+  if(!drag) return;
+  let n=drag.v;
+  if(drag.k==='left'||drag.k==='scriptLog') n=drag.v+(e.clientX-drag.x);
+  if(drag.k==='right') n=drag.v+(drag.x-e.clientX);
+  if(drag.k==='script') n=drag.v+(e.clientY-drag.y);
+  if(drag.k==='send') n=drag.v-(e.clientY-drag.y);
+  S[drag.k]=Math.max(min[drag.k],Math.min(560,n));
+  apply();
+};
+onmouseup=()=>{if(!drag)return;drag.el.classList.remove('drag');drag=null;};
+})();
+</script>
+</body>
+</html>

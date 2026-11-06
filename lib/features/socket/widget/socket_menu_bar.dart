@@ -8,6 +8,7 @@ import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../core/widgets/app_window_caption.dart';
 import '../../../i18n/i18n.dart';
+import '../../home/widget/appreciate_dialog.dart';
 import '../../license/widget/license_dialogs.dart';
 import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
@@ -156,6 +157,10 @@ class SocketMenuBar extends StatelessWidget {
                                   _Item(
                                     menu.activate,
                                     () => showLicenseActivateDialog(context),
+                                  ),
+                                  _Item(
+                                    menu.appreciate,
+                                    () => showAppreciateDialog(context),
                                   ),
                                   _Item(menu.about, onAbout),
                                 ],

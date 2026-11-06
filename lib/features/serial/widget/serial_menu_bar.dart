@@ -8,6 +8,7 @@ import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../core/widgets/app_window_caption.dart';
 import '../../../i18n/i18n.dart';
+import '../../home/widget/appreciate_dialog.dart';
 import '../../license/widget/license_dialogs.dart';
 import '../../update/cubit/update_cubit.dart';
 import '../model/serial_models.dart';
@@ -158,6 +159,10 @@ class SerialMenuBar extends StatelessWidget {
                                   _Item(
                                     menu.activate,
                                     () => showLicenseActivateDialog(context),
+                                  ),
+                                  _Item(
+                                    menu.appreciate,
+                                    () => showAppreciateDialog(context),
                                   ),
                                   _Item(menu.about, onAbout),
                                 ],

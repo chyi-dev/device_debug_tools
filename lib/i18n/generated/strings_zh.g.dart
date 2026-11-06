@@ -195,6 +195,9 @@ class Translations$common$zh {
 
 	/// zh: '757120553@qq.com'
 	String get emailAddress => '757120553@qq.com';
+
+	/// zh: '使用微信扫一扫'
+	String get appreciateHint => '使用微信扫一扫';
 }
 
 // Path: serial
@@ -619,6 +622,9 @@ class Translations$serial$menu$zh {
 
 	/// zh: '激活…'
 	String get activate => '激活…';
+
+	/// zh: '赞赏作者'
+	String get appreciate => '赞赏作者';
 
 	/// zh: '关于'
 	String get about => '关于';
@@ -2696,6 +2702,9 @@ class Translations$socket$menu$zh {
 	/// zh: '激活…'
 	String get activate => '激活…';
 
+	/// zh: '赞赏作者'
+	String get appreciate => '赞赏作者';
+
 	/// zh: '关于'
 	String get about => '关于';
 }
@@ -3351,6 +3360,7 @@ extension on Translations {
 			'common.githubUrl' => 'https://github.com/chyi-dev/device_debug_tools',
 			'common.email' => '邮箱',
 			'common.emailAddress' => '757120553@qq.com',
+			'common.appreciateHint' => '使用微信扫一扫',
 			'serial.menu.file' => '文件',
 			'serial.menu.settings' => '设置',
 			'serial.menu.tools' => '工具',
@@ -3365,6 +3375,7 @@ extension on Translations {
 			'serial.menu.keys' => '快捷键说明',
 			'serial.menu.checkUpdate' => '检查更新',
 			'serial.menu.activate' => '激活…',
+			'serial.menu.appreciate' => '赞赏作者',
 			'serial.menu.about' => '关于',
 			'serial.kbd.ctrlS' => 'Ctrl+S',
 			'serial.kbd.f12' => 'F12',
@@ -3825,10 +3836,10 @@ extension on Translations {
 			'ble.dialog.ruleTitle' => '应答规则',
 			'ble.dialog.batchTitle' => '批量任务',
 			'ble.dialog.scriptTitle' => '脚本',
-			'ble.dialog.name' => '名称',
-			'ble.dialog.data' => '数据',
 			_ => null,
 		} ?? switch (path) {
+			'ble.dialog.name' => '名称',
+			'ble.dialog.data' => '数据',
 			'ble.dialog.key' => '快捷键',
 			'ble.dialog.pattern' => '匹配',
 			'ble.dialog.code' => '代码',
@@ -4041,6 +4052,7 @@ extension on Translations {
 			'socket.menu.keys' => '快捷键说明',
 			'socket.menu.checkUpdate' => '检查更新',
 			'socket.menu.activate' => '激活…',
+			'socket.menu.appreciate' => '赞赏作者',
 			'socket.menu.about' => '关于',
 			'socket.kbd.ctrlS' => 'Ctrl+S',
 			'socket.kbd.f12' => 'F12',
