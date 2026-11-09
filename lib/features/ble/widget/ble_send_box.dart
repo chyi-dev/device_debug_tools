@@ -69,8 +69,7 @@ class _BleSendBoxState extends State<BleSendBox> {
           ),
           child: Column(
             children: [
-              SizedBox(
-                height: SerialMetrics.sendHeight,
+              Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -116,22 +115,33 @@ class _BleSendBoxState extends State<BleSendBox> {
                         width: SerialMetrics.sendSide,
                         child: Padding(
                           padding: const EdgeInsets.all(AppSpacing.sm),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              SerialButton(
-                                label: t.ble.send,
-                                primary: true,
-                                expand: true,
-                                onPressed: cubit.sendFromEditor,
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              SerialButton(
-                                label: t.ble.clear,
-                                expand: true,
-                                onPressed: () => cubit.setTxText(''),
-                              ),
-                            ],
+                          child: LayoutBuilder(
+                            builder: (context, box) {
+                              const gap = AppSpacing.xs;
+                              final btnH = ((box.maxHeight - gap) / 2).clamp(
+                                SerialMetrics.buttonSm,
+                                SerialMetrics.control,
+                              );
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  SerialButton(
+                                    label: t.ble.send,
+                                    primary: true,
+                                    expand: true,
+                                    height: btnH,
+                                    onPressed: cubit.sendFromEditor,
+                                  ),
+                                  const SizedBox(height: gap),
+                                  SerialButton(
+                                    label: t.ble.clear,
+                                    expand: true,
+                                    height: btnH,
+                                    onPressed: () => cubit.setTxText(''),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ),
                       ),

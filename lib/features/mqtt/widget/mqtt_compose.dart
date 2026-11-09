@@ -59,102 +59,137 @@ class _MqttComposeState extends State<MqttCompose> {
           ),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.sm),
+              Expanded(
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      t.mqtt.compose.to,
-                      style: AppTextStyles.caption(
-                        cs,
-                      ).copyWith(color: palette.muted),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: SerialField(
-                        controller: _topic,
-                        height: SerialMetrics.controlSm,
-                        onChanged: (value) => cubit.patch(pubTopic: value),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    SizedBox(
-                      width: 64,
-                      child: SerialDropdown<int>(
-                        value: state.pubQos,
-                        items: const [
-                          (value: 0, label: '0'),
-                          (value: 1, label: '1'),
-                          (value: 2, label: '2'),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                              AppSpacing.xs,
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  t.mqtt.compose.to,
+                                  style: AppTextStyles.caption(
+                                    cs,
+                                  ).copyWith(color: palette.muted),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: SerialField(
+                                    controller: _topic,
+                                    height: SerialMetrics.controlSm,
+                                    onChanged: (value) =>
+                                        cubit.patch(pubTopic: value),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                SizedBox(
+                                  width: 64,
+                                  child: SerialDropdown<int>(
+                                    value: state.pubQos,
+                                    items: const [
+                                      (value: 0, label: '0'),
+                                      (value: 1, label: '1'),
+                                      (value: 2, label: '2'),
+                                    ],
+                                    onChanged: (value) =>
+                                        cubit.patch(pubQos: value),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                SerialCheck(
+                                  label: t.mqtt.compose.retain,
+                                  value: state.pubRetain,
+                                  onChanged: (value) =>
+                                      cubit.patch(pubRetain: value),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Focus(
+                              onKeyEvent: (node, event) {
+                                if (event is KeyDownEvent &&
+                                    event.logicalKey ==
+                                        LogicalKeyboardKey.enter &&
+                                    HardwareKeyboard.instance.isControlPressed) {
+                                  cubit.publish();
+                                  return KeyEventResult.handled;
+                                }
+                                return KeyEventResult.ignored;
+                              },
+                              child: TextField(
+                                controller: _payload,
+                                expands: true,
+                                maxLines: null,
+                                onChanged: (value) =>
+                                    cubit.patch(payload: value),
+                                style: AppTextStyles.mono(
+                                  cs,
+                                  fontSize: 15,
+                                  height: 1.5,
+                                  color: palette.text,
+                                ),
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: palette.field,
+                                  hintText: t.mqtt.compose.payload,
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.all(
+                                    AppSpacing.sm,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
-                        onChanged: (value) => cubit.patch(pubQos: value),
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    SerialCheck(
-                      label: t.mqtt.compose.retain,
-                      value: state.pubRetain,
-                      onChanged: (value) => cubit.patch(pubRetain: value),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: SerialMetrics.sendHeight,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Focus(
-                        onKeyEvent: (node, event) {
-                          if (event is KeyDownEvent &&
-                              event.logicalKey == LogicalKeyboardKey.enter &&
-                              HardwareKeyboard.instance.isControlPressed) {
-                            cubit.publish();
-                            return KeyEventResult.handled;
-                          }
-                          return KeyEventResult.ignored;
-                        },
-                        child: TextField(
-                          controller: _payload,
-                          expands: true,
-                          maxLines: null,
-                          onChanged: (value) => cubit.patch(payload: value),
-                          style: AppTextStyles.mono(
-                            cs,
-                            fontSize: 15,
-                            height: 1.5,
-                            color: palette.text,
-                          ),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: palette.field,
-                            hintText: t.mqtt.compose.payload,
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.all(AppSpacing.sm),
-                          ),
-                        ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border(left: BorderSide(color: palette.line)),
                       ),
-                    ),
-                    SizedBox(
-                      width: SerialMetrics.sendSide,
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SerialButton(
-                              label: t.mqtt.compose.publish,
-                              primary: true,
-                              expand: true,
-                              onPressed: cubit.publish,
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            SerialButton(
-                              label: t.mqtt.compose.clear,
-                              expand: true,
-                              onPressed: () => cubit.patch(payload: ''),
-                            ),
-                          ],
+                      child: SizedBox(
+                        width: SerialMetrics.sendSide,
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.sm),
+                          child: LayoutBuilder(
+                            builder: (context, box) {
+                              const gap = AppSpacing.xs;
+                              final btnH = ((box.maxHeight - gap) / 2).clamp(
+                                SerialMetrics.buttonSm,
+                                SerialMetrics.control,
+                              );
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  SerialButton(
+                                    label: t.mqtt.compose.publish,
+                                    primary: true,
+                                    expand: true,
+                                    height: btnH,
+                                    onPressed: cubit.publish,
+                                  ),
+                                  const SizedBox(height: gap),
+                                  SerialButton(
+                                    label: t.mqtt.compose.clear,
+                                    expand: true,
+                                    height: btnH,
+                                    onPressed: () => cubit.patch(payload: ''),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),

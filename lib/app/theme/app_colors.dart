@@ -27,22 +27,23 @@ abstract final class AppColors {
   static const Color snackInfoBgDark = Color(0xFF1E3A8A);
   static const Color snackInfoFgDark = Color(0xFF93C5FD);
 
-  // 串口调试台 · 白底经典（doc/design/design.md §2）
-  static const Color serialWin = Color(0xFFE9EDF1);
-  static const Color serialPanel = Color(0xFFF7F8FA);
+  // 串口调试台 · 白底（doc/shell-redesign F 稿）
+  static const Color serialWin = Color(0xFFE6E9ED);
+  static const Color serialPanel = Color(0xFFF4F6F8);
   static const Color serialField = Color(0xFFFFFFFF);
-  static const Color serialLine = Color(0xFFC5CED7);
-  static const Color serialLine2 = Color(0xFFDFE4E9);
-  static const Color serialText = Color(0xFF1F2933);
-  static const Color serialMuted = Color(0xFF56616E);
-  static const Color serialAccent = Color(0xFF1769C2);
+  static const Color serialLine = Color(0xFFB4BEC8);
+  static const Color serialLine2 = Color(0xFFD8DEE5);
+  static const Color serialText = Color(0xFF1A2330);
+  static const Color serialMuted = Color(0xFF4A5562);
+  static const Color serialAccent = Color(0xFF1666BC);
+  static const Color serialAccentBorder = Color(0xFF135A9E);
   static const Color serialAccentInk = Color(0xFFFFFFFF);
-  static const Color serialHover = Color(0xFFE3EBF5);
+  static const Color serialHover = Color(0xFFDDE7F2);
   static const Color serialLogBg = Color(0xFFFFFFFF);
-  static const Color serialLogPrompt = Color(0xFF6B7480);
-  static const Color serialLogRx = Color(0xFF1B2630);
-  static const Color serialLogTx = Color(0xFF1461B8);
-  static const Color serialLogSys = Color(0xFF9A5A00);
+  static const Color serialLogPrompt = Color(0xFF65707D);
+  static const Color serialLogRx = Color(0xFF18222C);
+  static const Color serialLogTx = Color(0xFF135DB0);
+  static const Color serialLogSys = Color(0xFF8F5400);
   static const Color serialMark = Color(0xFFFFE28A);
   static const Color serialOn = Color(0xFF1F9D55);
   static const Color serialOff = Color(0xFFC8392F);
@@ -57,6 +58,7 @@ abstract final class AppColors {
   static const Color serialTextDark = Color(0xFFE3E7EC);
   static const Color serialMutedDark = Color(0xFFA1AAB5);
   static const Color serialAccentDark = Color(0xFF4C9BF0);
+  static const Color serialAccentBorderDark = Color(0xFF6BB0F5);
   static const Color serialAccentInkDark = Color(0xFF0C1624);
   static const Color serialHoverDark = Color(0xFF2B323B);
   static const Color serialLogBgDark = Color(0xFF0D1013);

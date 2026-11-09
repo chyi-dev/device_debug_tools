@@ -898,7 +898,8 @@ class _Translations$ble$scan$en extends Translations$ble$scan$zh {
 	// Translations
 	@override String get title => 'Devices';
 	@override String get ready => 'Ready';
-	@override String get filter => 'Name or address';
+	@override String get filter => 'Filter';
+	@override String get filterHint => 'Name or address';
 	@override String get scan => 'Scan';
 	@override String get scanning => 'Scanning';
 	@override String get empty => 'No matching devices';
@@ -1061,6 +1062,7 @@ class _Translations$mqtt$section$en extends Translations$mqtt$section$zh {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
+	@override String get connection => 'Connection';
 	@override String get session => 'Session';
 	@override String get tls => 'TLS';
 	@override String get will => 'Will';
@@ -2124,7 +2126,8 @@ extension on TranslationsEn {
 			'serial.notice.fileLoaded' => ({required Object name}) => 'Loaded ${name}',
 			'ble.scan.title' => 'Devices',
 			'ble.scan.ready' => 'Ready',
-			'ble.scan.filter' => 'Name or address',
+			'ble.scan.filter' => 'Filter',
+			'ble.scan.filterHint' => 'Name or address',
 			'ble.scan.scan' => 'Scan',
 			'ble.scan.scanning' => 'Scanning',
 			'ble.scan.empty' => 'No matching devices',
@@ -2174,9 +2177,9 @@ extension on TranslationsEn {
 			'ble.dialog.quickTitle' => 'Quick command',
 			'ble.dialog.ruleTitle' => 'Reply rule',
 			'ble.dialog.batchTitle' => 'Batch job',
-			'ble.dialog.scriptTitle' => 'Script',
 			_ => null,
 		} ?? switch (path) {
+			'ble.dialog.scriptTitle' => 'Script',
 			'ble.dialog.name' => 'Name',
 			'ble.dialog.data' => 'Data',
 			'ble.dialog.key' => 'Shortcut',
@@ -2230,6 +2233,7 @@ extension on TranslationsEn {
 			'mqtt.disconnect' => 'Disconnect',
 			'mqtt.expand' => 'Show connection settings',
 			'mqtt.collapse' => 'Hide connection settings',
+			'mqtt.section.connection' => 'Connection',
 			'mqtt.section.session' => 'Session',
 			'mqtt.section.tls' => 'TLS',
 			'mqtt.section.will' => 'Will',

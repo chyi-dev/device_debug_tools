@@ -7,12 +7,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
+import '../../../core/widgets/app_split_view.dart';
 import '../../../i18n/i18n.dart';
 import '../cubit/serial_console_cubit.dart';
 import '../cubit/serial_console_state.dart';
 import '../data/serial_stamp.dart';
 import '../model/serial_models.dart';
-import '../serial_metrics.dart';
 import 'serial_chrome.dart';
 import 'serial_editors.dart';
 import 'serial_l10n.dart';
@@ -50,29 +50,12 @@ class SerialScriptDock extends StatelessWidget {
               _DockHead(script: script, meta: meta),
               Divider(height: 1, color: palette.line),
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, box) {
-                    final logWidth = math.min(
-                      SerialMetrics.scriptLog,
-                      box.maxWidth * 0.45,
-                    );
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: _CodeEditor(
-                            key: ValueKey(script.id),
-                            script: script,
-                          ),
-                        ),
-                        VerticalDivider(width: 1, color: palette.line),
-                        SizedBox(
-                          width: logWidth,
-                          child: _RunLog(entries: state.scriptLog),
-                        ),
-                      ],
-                    );
-                  },
+                child: AppScriptDockSplit(
+                  editor: _CodeEditor(
+                    key: ValueKey(script.id),
+                    script: script,
+                  ),
+                  runLog: _RunLog(entries: state.scriptLog),
                 ),
               ),
             ],

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/serial_palette.dart';
+import '../../../core/widgets/app_split_view.dart';
 import '../../../i18n/i18n.dart';
 import '../cubit/socket_console_cubit.dart';
 import '../cubit/socket_console_state.dart';
@@ -176,71 +176,36 @@ class _SocketConsoleViewState extends State<SocketConsoleView> {
                     ),
                     if (widget.belowMenu != null) widget.belowMenu!,
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        child: Row(
-                          children: [
-                            if (!chrome.compact) ...[
-                              SizedBox(
-                                width: SerialMetrics.sidebar,
-                                child: const SocketSidePanel(),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                            ],
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child:
-                                        BlocBuilder<
-                                          SocketConsoleCubit,
-                                          SocketConsoleState
-                                        >(
-                                          buildWhen: (previous, current) =>
-                                              previous.lines != current.lines ||
-                                              previous.rxFormat !=
-                                                  current.rxFormat ||
-                                              previous.logMode !=
-                                                  current.logMode ||
-                                              previous.wrap != current.wrap ||
-                                              previous.hideRx !=
-                                                  current.hideRx ||
-                                              previous.autoScroll !=
-                                                  current.autoScroll ||
-                                              previous.open != current.open,
-                                          builder: (context, state) {
-                                            return SocketLogView(
-                                              state: state,
-                                              search: _query,
-                                              searchFocus: _searchFocus,
-                                              onSearch: (value) => setState(
-                                                () => _query = value,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                  ),
-                                  if (chrome.scriptDockVisible) ...[
-                                    const SizedBox(height: AppSpacing.sm),
-                                    const SizedBox(
-                                      height: SerialMetrics.scriptDock,
-                                      child: SocketScriptDock(),
-                                    ),
-                                  ],
-                                  const SizedBox(height: AppSpacing.sm),
-                                  const SocketSendBox(),
-                                ],
-                              ),
-                            ),
-                            if (chrome.toolsVisible) ...[
-                              const SizedBox(width: AppSpacing.sm),
-                              const SizedBox(
-                                width: SerialMetrics.tools,
-                                child: SocketToolsPanel(),
-                              ),
-                            ],
-                          ],
+                      child: AppConsoleShell(
+                        compact: chrome.compact,
+                        toolsVisible: chrome.toolsVisible,
+                        scriptVisible: chrome.scriptDockVisible,
+                        onCollapseLeft: () => cubit.setCompact(true),
+                        onCollapseRight: () => cubit.setToolsVisible(false),
+                        left: const SocketSidePanel(),
+                        centerTop: BlocBuilder<SocketConsoleCubit,
+                            SocketConsoleState>(
+                          buildWhen: (previous, current) =>
+                              previous.lines != current.lines ||
+                              previous.rxFormat != current.rxFormat ||
+                              previous.logMode != current.logMode ||
+                              previous.wrap != current.wrap ||
+                              previous.hideRx != current.hideRx ||
+                              previous.autoScroll != current.autoScroll ||
+                              previous.open != current.open,
+                          builder: (context, state) {
+                            return SocketLogView(
+                              state: state,
+                              search: _query,
+                              searchFocus: _searchFocus,
+                              onSearch: (value) =>
+                                  setState(() => _query = value),
+                            );
+                          },
                         ),
+                        scriptDock: const SocketScriptDock(),
+                        send: const SocketSendBox(),
+                        right: const SocketToolsPanel(),
                       ),
                     ),
                     const SocketStatusBar(),

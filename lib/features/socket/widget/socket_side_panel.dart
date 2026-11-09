@@ -19,13 +19,14 @@ class SocketSidePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 外壳 AppConsoleShell 已有 8px，这里不再垫一层。
     return ListView(
-      padding: const EdgeInsets.only(right: 2),
+      padding: EdgeInsets.zero,
       children: const [
         _ConnGroup(),
-        SizedBox(height: AppSpacing.xs + 2),
+        SizedBox(height: AppSpacing.sm),
         _RxGroup(),
-        SizedBox(height: AppSpacing.xs + 2),
+        SizedBox(height: AppSpacing.sm),
         _TxGroup(),
       ],
     );
@@ -88,6 +89,7 @@ class _ConnGroup extends StatelessWidget {
               ),
               SerialFieldRow(
                 label: c.port,
+                bottomGap: state.isUdp || state.isTcpServer,
                 child: _CommitField(
                   value: '${state.port}',
                   numeric: true,
@@ -97,14 +99,7 @@ class _ConnGroup extends StatelessWidget {
                 ),
               ),
               if (state.isUdp) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  c.remoteTitle,
-                  style: AppTextStyles.caption(
-                    Theme.of(context).colorScheme,
-                  ).copyWith(color: palette.muted),
-                ),
-                const SizedBox(height: AppSpacing.xs),
+                SerialSectionLabel(c.remoteTitle),
                 SerialFieldRow(
                   label: c.remoteHost,
                   child: _CommitField(
@@ -115,6 +110,7 @@ class _ConnGroup extends StatelessWidget {
                 ),
                 SerialFieldRow(
                   label: c.remotePort,
+                  bottomGap: false,
                   child: _CommitField(
                     value: '${state.remotePort}',
                     numeric: true,
@@ -127,11 +123,15 @@ class _ConnGroup extends StatelessWidget {
               if (state.isTcpServer) ...[
                 SerialFieldRow(
                   label: c.peers,
+                  bottomGap: false,
                   child: SerialDropdown<String?>(
                     value: state.selectedPeerId,
                     enabled: state.open,
                     items: [
-                      (value: null, label: c.peerAll(count: state.peers.length)),
+                      (
+                        value: null,
+                        label: c.peerAll(count: state.peers.length),
+                      ),
                       for (final peer in state.peers)
                         (value: peer.id, label: peer.address),
                     ],
@@ -139,14 +139,11 @@ class _ConnGroup extends StatelessWidget {
                   ),
                 ),
                 if (state.open && state.peers.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.xs),
-                    child: Text(
-                      c.emptyPeers,
-                      style: AppTextStyles.caption(
-                        Theme.of(context).colorScheme,
-                      ).copyWith(color: palette.muted),
-                    ),
+                  Text(
+                    c.emptyPeers,
+                    style: AppTextStyles.caption(
+                      Theme.of(context).colorScheme,
+                    ).copyWith(color: palette.muted),
                   ),
               ],
               const SizedBox(height: AppSpacing.sm),

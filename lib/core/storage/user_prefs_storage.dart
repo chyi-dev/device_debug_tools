@@ -53,4 +53,22 @@ class UserPrefsStorage {
   Future<void> clearUpdateDismissedVersion() async {
     await _box.delete(StorageKeys.updateDismissedVersion);
   }
+
+  /// 四协议共用的调试台分区尺寸（逻辑 px）。
+  Map<String, double> readConsoleLayout() {
+    final raw = _box.get(StorageKeys.consoleLayout);
+    if (raw is! Map) return const {};
+    final out = <String, double>{};
+    for (final entry in raw.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      if (key is! String) continue;
+      if (value is num) out[key] = value.toDouble();
+    }
+    return out;
+  }
+
+  Future<void> saveConsoleLayout(Map<String, double> layout) async {
+    await _box.put(StorageKeys.consoleLayout, layout);
+  }
 }

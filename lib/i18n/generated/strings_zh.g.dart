@@ -1893,8 +1893,11 @@ class Translations$ble$scan$zh {
 	/// zh: '就绪'
 	String get ready => '就绪';
 
+	/// zh: '筛选'
+	String get filter => '筛选';
+
 	/// zh: '名称或地址'
-	String get filter => '名称或地址';
+	String get filterHint => '名称或地址';
 
 	/// zh: '扫描'
 	String get scan => '扫描';
@@ -2201,6 +2204,9 @@ class Translations$mqtt$section$zh {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// zh: '连接'
+	String get connection => '连接';
 
 	/// zh: '会话'
 	String get session => '会话';
@@ -3785,7 +3791,8 @@ extension on Translations {
 			'serial.notice.fileLoaded' => ({required Object name}) => '已载入 ${name}',
 			'ble.scan.title' => '设备',
 			'ble.scan.ready' => '就绪',
-			'ble.scan.filter' => '名称或地址',
+			'ble.scan.filter' => '筛选',
+			'ble.scan.filterHint' => '名称或地址',
 			'ble.scan.scan' => '扫描',
 			'ble.scan.scanning' => '扫描中',
 			'ble.scan.empty' => '没有匹配的设备',
@@ -3835,9 +3842,9 @@ extension on Translations {
 			'ble.dialog.quickTitle' => '快捷指令',
 			'ble.dialog.ruleTitle' => '应答规则',
 			'ble.dialog.batchTitle' => '批量任务',
-			'ble.dialog.scriptTitle' => '脚本',
 			_ => null,
 		} ?? switch (path) {
+			'ble.dialog.scriptTitle' => '脚本',
 			'ble.dialog.name' => '名称',
 			'ble.dialog.data' => '数据',
 			'ble.dialog.key' => '快捷键',
@@ -3891,6 +3898,7 @@ extension on Translations {
 			'mqtt.disconnect' => '断开',
 			'mqtt.expand' => '展开连接设置',
 			'mqtt.collapse' => '收起连接设置',
+			'mqtt.section.connection' => '连接',
 			'mqtt.section.session' => '会话',
 			'mqtt.section.tls' => 'TLS',
 			'mqtt.section.will' => '遗嘱',

@@ -342,8 +342,10 @@ class _IconToggle extends StatelessWidget {
           height: 26,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 2),
           decoration: BoxDecoration(
-            color: on ? palette.field : Colors.transparent,
-            border: Border.all(color: on ? palette.line : Colors.transparent),
+            color: on ? palette.hover : Colors.transparent,
+            border: Border.all(
+              color: on ? palette.accentBorder : Colors.transparent,
+            ),
             borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
           ),
           alignment: Alignment.center,
@@ -351,7 +353,7 @@ class _IconToggle extends StatelessWidget {
             label,
             style: AppTextStyles.caption(
               cs,
-            ).copyWith(color: on ? palette.text : palette.muted, fontSize: 13),
+            ).copyWith(color: on ? palette.accent : palette.muted, fontSize: 13),
           ),
         ),
       ),

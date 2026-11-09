@@ -17,11 +17,12 @@ class BleSidePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 外壳 AppConsoleShell 已有 8px，这里不再垫一层。
     return ListView(
-      padding: const EdgeInsets.only(right: 2),
+      padding: EdgeInsets.zero,
       children: const [
         _DeviceGroup(),
-        SizedBox(height: AppSpacing.xs + 2),
+        SizedBox(height: AppSpacing.sm),
         _PinGroup(),
       ],
     );
@@ -66,34 +67,31 @@ class _DeviceGroup extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _CommitField(
-                      value: state.filter,
-                      hint: t.ble.scan.filter,
-                      onCommit: cubit.setFilter,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  SerialButton(
-                    label: state.scanning
-                        ? t.ble.scan.scanning
-                        : t.ble.scan.scan,
-                    small: true,
-                    leading: state.scanning
-                        ? SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.5,
-                              color: palette.accent,
-                            ),
-                          )
-                        : null,
-                    onPressed: state.scanning ? null : cubit.scan,
-                  ),
-                ],
+              SerialFieldRow(
+                label: t.ble.scan.filter,
+                child: _CommitField(
+                  value: state.filter,
+                  hint: t.ble.scan.filterHint,
+                  enabled: !state.connected,
+                  onCommit: cubit.setFilter,
+                ),
+              ),
+              SerialButton(
+                label: state.scanning ? t.ble.scan.scanning : t.ble.scan.scan,
+                expand: true,
+                small: true,
+                leading: state.scanning
+                    ? SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.5,
+                          color: palette.accent,
+                        ),
+                      )
+                    : null,
+                onPressed:
+                    state.scanning || state.connected ? null : cubit.scan,
               ),
               const SizedBox(height: AppSpacing.sm),
               ConstrainedBox(
@@ -144,15 +142,12 @@ class _DeviceGroup extends StatelessWidget {
                                               device.label,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
-                                              style:
-                                                  AppTextStyles.caption(
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme,
-                                                  ).copyWith(
-                                                    color: palette.text,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
+                                              style: AppTextStyles.caption(
+                                                Theme.of(context).colorScheme,
+                                              ).copyWith(
+                                                color: palette.text,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
                                             Text(
                                               device.address,
@@ -226,24 +221,28 @@ class _PinGroup extends StatelessWidget {
         return SerialGroup(
           title: t.ble.pin.title,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _PinSlot(
+              SerialFieldRow(
                 label: t.ble.pin.notify,
-                value: state.pinNotify?.uuid ?? t.ble.pin.unpinned,
+                child: _PinValue(
+                  state.pinNotify?.uuid ?? t.ble.pin.unpinned,
+                ),
               ),
-              const SizedBox(height: AppSpacing.xs),
-              _PinSlot(
+              SerialFieldRow(
                 label: t.ble.pin.write,
-                value: state.pinWrite?.uuid ?? t.ble.pin.unpinned,
+                child: _PinValue(
+                  state.pinWrite?.uuid ?? t.ble.pin.unpinned,
+                ),
               ),
-              const SizedBox(height: AppSpacing.sm),
               if (!state.connected)
-                Text(
-                  t.ble.pin.needConnect,
-                  style: AppTextStyles.caption(
-                    Theme.of(context).colorScheme,
-                  ).copyWith(color: palette.muted),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: SerialMetrics.formGap),
+                  child: Text(
+                    t.ble.pin.needConnect,
+                    style: AppTextStyles.caption(
+                      Theme.of(context).colorScheme,
+                    ).copyWith(color: palette.muted),
+                  ),
                 )
               else
                 for (final service in state.services) ...[
@@ -347,7 +346,6 @@ class _PinGroup extends StatelessWidget {
                 label: t.ble.writeType,
                 child: SerialDropdown<BleWriteType>(
                   value: state.writeType,
-                  height: SerialMetrics.controlSm,
                   items: [
                     (
                       value: BleWriteType.withoutResponse,
@@ -391,41 +389,38 @@ class _PinGroup extends StatelessWidget {
   }
 }
 
-class _PinSlot extends StatelessWidget {
-  const _PinSlot({required this.label, required this.value});
+class _PinValue extends StatelessWidget {
+  const _PinValue(this.value);
 
-  final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs + 2,
-      ),
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: palette.field,
         border: Border.all(color: palette.line),
         borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
       ),
-      child: Text.rich(
-        TextSpan(
-          text: '$label ',
-          style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
-          children: [
-            TextSpan(
-              text: value,
+      child: SizedBox(
+        height: SerialMetrics.controlSm,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.mono(
-                cs,
+                Theme.of(context).colorScheme,
                 fontSize: 12,
                 color: palette.text,
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -438,12 +433,14 @@ class _CommitField extends StatefulWidget {
     required this.onCommit,
     this.hint,
     this.numeric = false,
+    this.enabled = true,
   });
 
   final String value;
   final ValueChanged<String> onCommit;
   final String? hint;
   final bool numeric;
+  final bool enabled;
 
   @override
   State<_CommitField> createState() => _CommitFieldState();
@@ -475,15 +472,19 @@ class _CommitFieldState extends State<_CommitField> {
     return SerialField(
       controller: _controller,
       focusNode: _focus,
+      enabled: widget.enabled,
       hint: widget.hint,
+      mono: true,
       height: SerialMetrics.controlSm,
       keyboardType: widget.numeric ? TextInputType.number : null,
       inputFormatters: widget.numeric
           ? [FilteringTextInputFormatter.digitsOnly]
           : null,
-      onChanged: widget.onCommit,
-      onSubmitted: widget.onCommit,
-      onFocusLost: () => widget.onCommit(_controller.text),
+      onChanged: widget.enabled ? widget.onCommit : null,
+      onSubmitted: widget.enabled ? widget.onCommit : null,
+      onFocusLost: widget.enabled
+          ? () => widget.onCommit(_controller.text)
+          : null,
     );
   }
 }

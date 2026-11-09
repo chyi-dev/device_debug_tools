@@ -67,8 +67,7 @@ class _SerialSendBoxState extends State<SerialSendBox> {
           ),
           child: Column(
             children: [
-              SizedBox(
-                height: SerialMetrics.sendHeight,
+              Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

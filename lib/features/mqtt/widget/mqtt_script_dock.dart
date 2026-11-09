@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,10 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
+import '../../../core/widgets/app_split_view.dart';
 import '../../../i18n/i18n.dart';
 import '../../serial/data/serial_stamp.dart';
 import '../../serial/model/serial_models.dart';
-import '../../serial/serial_metrics.dart';
 import '../../serial/widget/serial_chrome.dart';
 import '../../serial/widget/serial_editors.dart';
 import '../cubit/mqtt_console_cubit.dart';
@@ -62,29 +60,12 @@ class MqttScriptDock extends StatelessWidget {
               _Head(script: script, meta: meta),
               Divider(height: 1, color: palette.line),
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, box) {
-                    final logWidth = math.min(
-                      SerialMetrics.scriptLog,
-                      box.maxWidth * 0.45,
-                    );
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: _CodeEditor(
-                            key: ValueKey(script.id),
-                            script: script,
-                          ),
-                        ),
-                        VerticalDivider(width: 1, color: palette.line),
-                        SizedBox(
-                          width: logWidth,
-                          child: _RunLog(entries: state.scriptLog),
-                        ),
-                      ],
-                    );
-                  },
+                child: AppScriptDockSplit(
+                  editor: _CodeEditor(
+                    key: ValueKey(script.id),
+                    script: script,
+                  ),
+                  runLog: _RunLog(entries: state.scriptLog),
                 ),
               ),
             ],

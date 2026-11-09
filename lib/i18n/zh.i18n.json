@@ -548,7 +548,8 @@
     "scan": {
       "title": "设备",
       "ready": "就绪",
-      "filter": "名称或地址",
+      "filter": "筛选",
+      "filterHint": "名称或地址",
       "scan": "扫描",
       "scanning": "扫描中",
       "empty": "没有匹配的设备",
@@ -674,6 +675,7 @@
     "expand": "展开连接设置",
     "collapse": "收起连接设置",
     "section": {
+      "connection": "连接",
       "session": "会话",
       "tls": "TLS",
       "will": "遗嘱"

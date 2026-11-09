@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/serial_palette.dart';
+import '../../../core/widgets/app_split_view.dart';
 import '../../../i18n/i18n.dart';
 import '../cubit/serial_console_cubit.dart';
 import '../cubit/serial_console_state.dart';
@@ -179,71 +179,36 @@ class _SerialConsoleViewState extends State<SerialConsoleView> {
                     ),
                     if (widget.belowMenu != null) widget.belowMenu!,
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        child: Row(
-                          children: [
-                            if (!chrome.compact) ...[
-                              SizedBox(
-                                width: SerialMetrics.sidebar,
-                                child: const SerialSidePanel(),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                            ],
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child:
-                                        BlocBuilder<
-                                          SerialConsoleCubit,
-                                          SerialConsoleState
-                                        >(
-                                          buildWhen: (previous, current) =>
-                                              previous.lines != current.lines ||
-                                              previous.rxFormat !=
-                                                  current.rxFormat ||
-                                              previous.logMode !=
-                                                  current.logMode ||
-                                              previous.wrap != current.wrap ||
-                                              previous.hideRx !=
-                                                  current.hideRx ||
-                                              previous.autoScroll !=
-                                                  current.autoScroll ||
-                                              previous.open != current.open,
-                                          builder: (context, state) {
-                                            return SerialLogView(
-                                              state: state,
-                                              search: _query,
-                                              searchFocus: _searchFocus,
-                                              onSearch: (value) => setState(
-                                                () => _query = value,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                  ),
-                                  if (chrome.scriptDockVisible) ...[
-                                    const SizedBox(height: AppSpacing.sm),
-                                    const SizedBox(
-                                      height: SerialMetrics.scriptDock,
-                                      child: SerialScriptDock(),
-                                    ),
-                                  ],
-                                  const SizedBox(height: AppSpacing.sm),
-                                  const SerialSendBox(),
-                                ],
-                              ),
-                            ),
-                            if (chrome.toolsVisible) ...[
-                              const SizedBox(width: AppSpacing.sm),
-                              const SizedBox(
-                                width: SerialMetrics.tools,
-                                child: SerialToolsPanel(),
-                              ),
-                            ],
-                          ],
+                      child: AppConsoleShell(
+                        compact: chrome.compact,
+                        toolsVisible: chrome.toolsVisible,
+                        scriptVisible: chrome.scriptDockVisible,
+                        onCollapseLeft: () => cubit.setCompact(true),
+                        onCollapseRight: () => cubit.setToolsVisible(false),
+                        left: const SerialSidePanel(),
+                        centerTop: BlocBuilder<SerialConsoleCubit,
+                            SerialConsoleState>(
+                          buildWhen: (previous, current) =>
+                              previous.lines != current.lines ||
+                              previous.rxFormat != current.rxFormat ||
+                              previous.logMode != current.logMode ||
+                              previous.wrap != current.wrap ||
+                              previous.hideRx != current.hideRx ||
+                              previous.autoScroll != current.autoScroll ||
+                              previous.open != current.open,
+                          builder: (context, state) {
+                            return SerialLogView(
+                              state: state,
+                              search: _query,
+                              searchFocus: _searchFocus,
+                              onSearch: (value) =>
+                                  setState(() => _query = value),
+                            );
+                          },
                         ),
+                        scriptDock: const SerialScriptDock(),
+                        send: const SerialSendBox(),
+                        right: const SerialToolsPanel(),
                       ),
                     ),
                     const SerialStatusBar(),

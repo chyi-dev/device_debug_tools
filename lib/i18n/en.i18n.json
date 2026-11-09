@@ -548,7 +548,8 @@
     "scan": {
       "title": "Devices",
       "ready": "Ready",
-      "filter": "Name or address",
+      "filter": "Filter",
+      "filterHint": "Name or address",
       "scan": "Scan",
       "scanning": "Scanning",
       "empty": "No matching devices",
@@ -674,6 +675,7 @@
     "expand": "Show connection settings",
     "collapse": "Hide connection settings",
     "section": {
+      "connection": "Connection",
       "session": "Session",
       "tls": "TLS",
       "will": "Will"

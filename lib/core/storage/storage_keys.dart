@@ -11,6 +11,7 @@ abstract final class StorageKeys {
   static const String tcpWorkspace = 'tcp_workspace';
   static const String udpWorkspace = 'udp_workspace';
   static const String homeTabs = 'home_tabs';
+  static const String consoleLayout = 'console_layout';
   static const String updateLastCheckMs = 'update_last_check_ms';
   static const String updateDismissedVersion = 'update_dismissed_version';
 

@@ -18,13 +18,14 @@ class SerialSidePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 外壳 AppConsoleShell 已有 8px，这里不再垫一层，避免相对中间接收区缩进。
     return ListView(
-      padding: const EdgeInsets.only(right: 2),
+      padding: EdgeInsets.zero,
       children: const [
         _PortGroup(),
-        SizedBox(height: AppSpacing.xs + 2),
+        SizedBox(height: AppSpacing.sm),
         _RxGroup(),
-        SizedBox(height: AppSpacing.xs + 2),
+        SizedBox(height: AppSpacing.sm),
         _TxGroup(),
       ],
     );
@@ -130,6 +131,7 @@ class _PortGroup extends StatelessWidget {
               ),
               SerialFieldRow(
                 label: port.flow,
+                bottomGap: false,
                 child: SerialDropdown<FlowControl>(
                   value: state.flow,
                   items: [

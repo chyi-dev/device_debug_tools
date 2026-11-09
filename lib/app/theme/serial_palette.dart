@@ -13,6 +13,7 @@ class SerialPalette extends ThemeExtension<SerialPalette> {
     required this.text,
     required this.muted,
     required this.accent,
+    required this.accentBorder,
     required this.accentInk,
     required this.hover,
     required this.logBg,
@@ -34,6 +35,7 @@ class SerialPalette extends ThemeExtension<SerialPalette> {
   final Color text;
   final Color muted;
   final Color accent;
+  final Color accentBorder;
   final Color accentInk;
   final Color hover;
   final Color logBg;
@@ -55,6 +57,7 @@ class SerialPalette extends ThemeExtension<SerialPalette> {
     text: AppColors.serialText,
     muted: AppColors.serialMuted,
     accent: AppColors.serialAccent,
+    accentBorder: AppColors.serialAccentBorder,
     accentInk: AppColors.serialAccentInk,
     hover: AppColors.serialHover,
     logBg: AppColors.serialLogBg,
@@ -77,6 +80,7 @@ class SerialPalette extends ThemeExtension<SerialPalette> {
     text: AppColors.serialTextDark,
     muted: AppColors.serialMutedDark,
     accent: AppColors.serialAccentDark,
+    accentBorder: AppColors.serialAccentBorderDark,
     accentInk: AppColors.serialAccentInkDark,
     hover: AppColors.serialHoverDark,
     logBg: AppColors.serialLogBgDark,
@@ -106,6 +110,7 @@ class SerialPalette extends ThemeExtension<SerialPalette> {
     Color? text,
     Color? muted,
     Color? accent,
+    Color? accentBorder,
     Color? accentInk,
     Color? hover,
     Color? logBg,
@@ -127,6 +132,7 @@ class SerialPalette extends ThemeExtension<SerialPalette> {
       text: text ?? this.text,
       muted: muted ?? this.muted,
       accent: accent ?? this.accent,
+      accentBorder: accentBorder ?? this.accentBorder,
       accentInk: accentInk ?? this.accentInk,
       hover: hover ?? this.hover,
       logBg: logBg ?? this.logBg,
@@ -154,6 +160,7 @@ class SerialPalette extends ThemeExtension<SerialPalette> {
       text: mix(text, other.text),
       muted: mix(muted, other.muted),
       accent: mix(accent, other.accent),
+      accentBorder: mix(accentBorder, other.accentBorder),
       accentInk: mix(accentInk, other.accentInk),
       hover: mix(hover, other.hover),
       logBg: mix(logBg, other.logBg),

@@ -4,15 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/serial_palette.dart';
+import '../../../core/widgets/app_split_view.dart';
 import '../../../i18n/i18n.dart';
 import '../../home/widget/workbench_menu_bar.dart';
 import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
 import '../../serial/widget/serial_chrome.dart';
 import '../../serial/widget/serial_editors.dart';
-import '../ble_metrics.dart';
 import '../cubit/ble_console_cubit.dart';
 import '../cubit/ble_console_state.dart';
 import '../model/ble_models.dart';
@@ -188,54 +187,30 @@ class _BleConsoleViewState extends State<BleConsoleView> {
                     ),
                     if (widget.belowMenu != null) widget.belowMenu!,
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        child: Row(
-                          children: [
-                            SerialFoldPane(
-                              visible: !chrome.compact,
-                              width: BleMetrics.sidebar,
-                              gapAfter: AppSpacing.sm,
-                              child: const BleSidePanel(),
-                            ),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child:
-                                        BlocBuilder<
-                                          BleConsoleCubit,
-                                          BleConsoleState
-                                        >(
-                                          buildWhen: (a, b) =>
-                                              a.lines != b.lines ||
-                                              a.wrap != b.wrap ||
-                                              a.autoScroll != b.autoScroll,
-                                          builder: (context, state) {
-                                            return BleLogView(
-                                              state: state,
-                                              search: _query,
-                                              searchFocus: _searchFocus,
-                                              onSearch: (value) => setState(
-                                                () => _query = value,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                  ),
-                                  const SizedBox(height: AppSpacing.sm),
-                                  const BleSendBox(),
-                                ],
-                              ),
-                            ),
-                            SerialFoldPane(
-                              visible: chrome.toolsVisible,
-                              width: SerialMetrics.tools,
-                              gapBefore: AppSpacing.sm,
-                              child: const BleToolsPanel(),
-                            ),
-                          ],
+                      child: AppConsoleShell(
+                        compact: chrome.compact,
+                        toolsVisible: chrome.toolsVisible,
+                        scriptVisible: false,
+                        onCollapseLeft: () => cubit.setCompact(true),
+                        onCollapseRight: () => cubit.setToolsVisible(false),
+                        left: const BleSidePanel(),
+                        centerTop: BlocBuilder<BleConsoleCubit, BleConsoleState>(
+                          buildWhen: (a, b) =>
+                              a.lines != b.lines ||
+                              a.wrap != b.wrap ||
+                              a.autoScroll != b.autoScroll,
+                          builder: (context, state) {
+                            return BleLogView(
+                              state: state,
+                              search: _query,
+                              searchFocus: _searchFocus,
+                              onSearch: (value) =>
+                                  setState(() => _query = value),
+                            );
+                          },
                         ),
+                        send: const BleSendBox(),
+                        right: const BleToolsPanel(),
                       ),
                     ),
                     const BleStatusBar(),

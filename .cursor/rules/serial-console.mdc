@@ -1,25 +1,27 @@
 ---
-description: 串口调试台界面约定（以 doc/design/serial-console.html 为准）
-globs: lib/features/serial/**/*.dart,doc/design/**
+description: 串口调试台界面约定（以 shell-redesign F 稿为准）
+globs: lib/features/serial/**/*.dart,lib/core/widgets/app_split_view.dart,lib/core/widgets/console_layout.dart,doc/shell-redesign/**
 alwaysApply: false
 ---
 
 # 串口调试台界面约定
 
-唯一设计依据：`doc/design/serial-console.html` + `doc/design/design.md`。布局参照野人家园串口调试助手 V5.15；界面里不出现 UartAssist 名称或 logo。
+唯一设计依据：`doc/shell-redesign/06-designer-console-evolved.html` + `doc/shell-redesign/direction-approved.md`。布局参照野人家园串口调试助手 V5.15；界面里不出现 UartAssist 名称或 logo。
 
-## 布局（不要改骨架）
+## 布局（骨架允许可拖分区）
 
-- 菜单栏 → 三栏主体 → 状态栏。左栏 272（串口 / 接收 / 发送设置），中间数据日志 + 发送框，右侧工具面板 352（快捷指令 / 批量发送 / 自动应答 / 历史发送 / 校验计算 | 脚本）
+- 菜单栏 → 三栏主体 → 状态栏。默认：左栏 272（串口 / 接收 / 发送设置），中间数据日志 + 可选脚本坞 + 发送框，右侧工具面板 352（快捷指令 / 批量发送 / 自动应答 / 历史发送 / 校验计算 | 脚本）
+- 分区可拖（`AppConsoleShell` / `AppSplitHandle`）：左宽、右宽、脚本高、发送高、脚本内编辑器|运行日志；热区 8px、常态 1px 线；双击还原默认；拖到最小触发精简 / 隐藏工具
+- 默认尺寸见 `SerialMetrics`（左 272 / 右 352 / 脚本坞 280 / 发送 104 / 脚本运行日志 380）；四协议共用 `consoleLayout` 持久化
 - 左栏可收起（精简模式），工具面板可隐藏；窗口 < 1180 宽默认精简模式
 - 不新增第四栏、顶部工具条或底部抽屉；新功能放进现有分组或工具面板页签
-- 唯一例外：「脚本」页签（与其他页签竖线隔开）选中脚本时，在数据日志与发送框之间停靠 312 高的编辑区（左编辑器 + 右 380 运行日志），切换页签或「收起」即消失
+- 「脚本」页签选中脚本时，在数据日志与发送框之间停靠可拖高的编辑区（左编辑器 + 右可拖宽运行日志），切换页签或「收起」即消失
 
 ## 视觉
 
-- 颜色只用 `design.md` §2 的 token，白底经典 / 黑底经典两套都要定义；加到 `AppColors`，主题切换走 `AppCubit`
-- 唯一强调色 `accent`；绿 / 红只表示连接与引脚状态。禁止渐变、发光、左侧色条提示、emoji 图标
-- 正文 14、标签与说明 12，最小 12；日志和发送框等宽字体（`AppTextStyles.mono`，日志 14）
+- 颜色用 `direction-approved.md` Light token（及现有 dark twin），加到 `AppColors` / `SerialPalette`；主题切换走 `AppCubit`
+- 唯一强调色 `accent`（主按钮描边用 `accentBorder`）；绿 / 红只表示连接与引脚状态。禁止渐变、发光、左侧色条提示、emoji 图标
+- 正文 14、标签与说明 12，最小 12；日志等宽 14 / 行高 1.6，发送框等宽 15（`AppTextStyles.mono`）
 - 间距用 `AppSpacing`，圆角 `radiusSm`，不写裸数字
 
 ## 行为（与设计稿一致）
@@ -38,5 +40,5 @@ alwaysApply: false
 
 ## 改设计稿
 
-- 只改 `doc/design/src/`，再 `node doc/design/build.mjs`；不要手改生成的 `doc/design/serial-console.html`
-- 行为或 token 变更同步更新 `doc/design/design.md`，并跑 `node doc/design/verify.mjs`（需可解析 playwright）
+- 外壳视觉以 `doc/shell-redesign/` 为准；不要为对齐 F 回改 `doc/design/` 旧稿
+- 行为或 token 变更同步更新 `doc/shell-redesign/direction-approved.md`

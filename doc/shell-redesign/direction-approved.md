@@ -72,6 +72,16 @@
 - 发送区底部「实发 N 字节」预览行
 - 工具行：小号发送按钮 + F 键徽标；窗控按钮示意
 
-## 本阶段范围
+## 本阶段范围（HTML）
 
-只改 F 的 HTML + 截图 + 本文件。Flutter 与 `doc/design/` 不动，待用户确认微调满意后再议。
+只改 F 的 HTML + 截图 + 本文件。`doc/design/` 不动。
+
+## Flutter 落地（2026-11-09）
+
+已在 `dev-ui` 按本文件与 `06-designer-console-evolved.html` 落地：
+
+- 共用 `AppConsoleShell` / `AppSplitHandle` / `AppScriptDockSplit`（`lib/core/widgets/app_split_view.dart`）
+- 四协议 ConsoleView 接同一壳；`consoleLayout` 全局持久化（左/右/脚本/发送/脚本日志宽）
+- Light token 与 `accentBorder` 写入 `AppColors` / `SerialPalette`；dark 仅补 twin
+- 标签 12、日志 mono 14/1.6、发送 mono 15；MQTT 侧栏拆为连接 / 会话 / 遗嘱三组
+- 规则见 `.cursor/rules/serial-console.mdc`

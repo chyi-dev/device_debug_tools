@@ -112,6 +112,7 @@ class _MqttLogViewState extends State<MqttLogView> {
                       style: AppTextStyles.mono(
                         cs,
                         fontSize: 14,
+                        height: 1.6,
                         color: palette.logPrompt,
                       ),
                     ),

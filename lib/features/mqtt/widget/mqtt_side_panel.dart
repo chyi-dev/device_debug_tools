@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
@@ -17,9 +18,16 @@ class MqttSidePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 外壳 AppConsoleShell 已有 8px，这里不再垫一层。
     return ListView(
-      padding: const EdgeInsets.only(right: 2),
-      children: const [_ConnGroup()],
+      padding: EdgeInsets.zero,
+      children: const [
+        _ConnGroup(),
+        SizedBox(height: AppSpacing.sm),
+        _SessionGroup(),
+        SizedBox(height: AppSpacing.sm),
+        _WillGroup(),
+      ],
     );
   }
 }
@@ -38,33 +46,19 @@ class _ConnGroup extends StatelessWidget {
           a.scheme != b.scheme ||
           a.wsPath != b.wsPath ||
           a.connecting != b.connecting ||
-          a.connected != b.connected ||
-          a.version != b.version ||
-          a.clientId != b.clientId ||
-          a.username != b.username ||
-          a.password != b.password ||
-          a.caFile != b.caFile ||
-          a.clientCert != b.clientCert ||
-          a.clientKey != b.clientKey ||
-          a.keepAlive != b.keepAlive ||
-          a.sessionExpiry != b.sessionExpiry ||
-          a.cleanStart != b.cleanStart ||
-          a.autoReconnect != b.autoReconnect ||
-          a.willTopic != b.willTopic ||
-          a.willPayload != b.willPayload ||
-          a.willQos != b.willQos ||
-          a.willRetain != b.willRetain,
+          a.connected != b.connected,
       builder: (context, state) {
         final cubit = context.read<MqttConsoleCubit>();
+        final locked = state.connected || state.connecting;
         return SerialGroup(
-          title: t.mqtt.title,
+          title: t.mqtt.section.connection,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SerialFieldRow(
                 label: t.mqtt.scheme,
                 child: SerialDropdown<MqttScheme>(
                   value: state.scheme,
+                  enabled: !locked,
                   items: const [
                     (value: MqttScheme.mqtt, label: 'mqtt'),
                     (value: MqttScheme.mqtts, label: 'mqtts'),
@@ -78,25 +72,31 @@ class _ConnGroup extends StatelessWidget {
                 label: t.mqtt.host,
                 child: MqttCommitField(
                   value: state.host,
+                  enabled: !locked,
                   onCommit: (value) => cubit.patch(host: value),
                 ),
               ),
               SerialFieldRow(
                 label: t.mqtt.port,
+                bottomGap: state.scheme.webSocket,
                 child: MqttCommitField(
                   value: '${state.port}',
                   numeric: true,
+                  enabled: !locked,
                   onCommit: (value) => cubit.patch(port: value),
                 ),
               ),
               if (state.scheme.webSocket)
                 SerialFieldRow(
                   label: t.mqtt.path,
+                  bottomGap: false,
                   child: MqttCommitField(
                     value: state.wsPath,
+                    enabled: !locked,
                     onCommit: (value) => cubit.patch(wsPath: value),
                   ),
                 ),
+              const SizedBox(height: AppSpacing.sm),
               SerialButton(
                 label: state.connecting
                     ? t.mqtt.connecting
@@ -111,11 +111,47 @@ class _ConnGroup extends StatelessWidget {
                 ),
                 onPressed: state.connecting ? null : cubit.toggleConnect,
               ),
-              SerialSectionLabel(t.mqtt.section.session),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SessionGroup extends StatelessWidget {
+  const _SessionGroup();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    return BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
+      buildWhen: (a, b) =>
+          a.version != b.version ||
+          a.clientId != b.clientId ||
+          a.username != b.username ||
+          a.password != b.password ||
+          a.caFile != b.caFile ||
+          a.clientCert != b.clientCert ||
+          a.clientKey != b.clientKey ||
+          a.keepAlive != b.keepAlive ||
+          a.sessionExpiry != b.sessionExpiry ||
+          a.cleanStart != b.cleanStart ||
+          a.autoReconnect != b.autoReconnect ||
+          a.scheme != b.scheme ||
+          a.connected != b.connected,
+      builder: (context, state) {
+        final cubit = context.read<MqttConsoleCubit>();
+        final locked = state.connected;
+        return SerialGroup(
+          title: t.mqtt.section.session,
+          child: Column(
+            children: [
               SerialFieldRow(
                 label: t.mqtt.version,
                 child: SerialDropdown<MqttVersion>(
                   value: state.version,
+                  enabled: !locked,
                   items: const [
                     (value: MqttVersion.v311, label: '3.1.1'),
                     (value: MqttVersion.v5, label: '5.0'),
@@ -127,6 +163,7 @@ class _ConnGroup extends StatelessWidget {
                 label: t.mqtt.clientId,
                 child: MqttCommitField(
                   value: state.clientId,
+                  enabled: !locked,
                   onCommit: (value) => cubit.patch(clientId: value),
                 ),
               ),
@@ -134,6 +171,7 @@ class _ConnGroup extends StatelessWidget {
                 label: t.mqtt.username,
                 child: MqttCommitField(
                   value: state.username,
+                  enabled: !locked,
                   onCommit: (value) => cubit.patch(username: value),
                 ),
               ),
@@ -141,6 +179,7 @@ class _ConnGroup extends StatelessWidget {
                 label: t.mqtt.password,
                 child: MqttCommitField(
                   value: state.password,
+                  enabled: !locked,
                   onCommit: (value) => cubit.patch(password: value),
                 ),
               ),
@@ -149,6 +188,7 @@ class _ConnGroup extends StatelessWidget {
                 child: MqttCommitField(
                   value: '${state.keepAlive}',
                   numeric: true,
+                  enabled: !locked,
                   onCommit: (value) => cubit.patch(keepAlive: value),
                 ),
               ),
@@ -158,42 +198,82 @@ class _ConnGroup extends StatelessWidget {
                   child: MqttCommitField(
                     value: '${state.sessionExpiry}',
                     numeric: true,
+                    enabled: !locked,
                     onCommit: (value) => cubit.patch(sessionExpiry: value),
                   ),
                 ),
-              SerialCheck(
-                label: t.mqtt.cleanStart,
-                value: state.cleanStart,
-                onChanged: (value) => cubit.patch(cleanStart: value),
-              ),
-              SerialCheck(
-                label: t.mqtt.autoReconnect,
-                value: state.autoReconnect,
-                onChanged: (value) => cubit.patch(autoReconnect: value),
+              IgnorePointer(
+                ignoring: locked,
+                child: Opacity(
+                  opacity: locked ? 0.55 : 1,
+                  child: Column(
+                    children: [
+                      SerialCheck(
+                        label: t.mqtt.cleanStart,
+                        value: state.cleanStart,
+                        onChanged: (value) => cubit.patch(cleanStart: value),
+                      ),
+                      SerialCheck(
+                        label: t.mqtt.autoReconnect,
+                        value: state.autoReconnect,
+                        onChanged: (value) =>
+                            cubit.patch(autoReconnect: value),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               if (state.scheme.showsCertificates) ...[
                 SerialSectionLabel(t.mqtt.section.tls),
                 _FileRow(
                   label: t.mqtt.ca,
                   value: mqttFileLabel(t, state.caFile),
-                  onPick: cubit.pickCa,
+                  onPick: locked ? null : cubit.pickCa,
                 ),
                 _FileRow(
                   label: t.mqtt.cert,
                   value: mqttFileLabel(t, state.clientCert),
-                  onPick: cubit.pickCert,
+                  onPick: locked ? null : cubit.pickCert,
                 ),
                 _FileRow(
                   label: t.mqtt.key,
                   value: mqttFileLabel(t, state.clientKey),
-                  onPick: cubit.pickKey,
+                  onPick: locked ? null : cubit.pickKey,
                 ),
               ],
-              SerialSectionLabel(t.mqtt.section.will),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WillGroup extends StatelessWidget {
+  const _WillGroup();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    return BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
+      buildWhen: (a, b) =>
+          a.willTopic != b.willTopic ||
+          a.willPayload != b.willPayload ||
+          a.willQos != b.willQos ||
+          a.willRetain != b.willRetain ||
+          a.connected != b.connected,
+      builder: (context, state) {
+        final cubit = context.read<MqttConsoleCubit>();
+        final locked = state.connected;
+        return SerialGroup(
+          title: t.mqtt.section.will,
+          child: Column(
+            children: [
               SerialFieldRow(
                 label: t.mqtt.willTopic,
                 child: MqttCommitField(
                   value: state.willTopic,
+                  enabled: !locked,
                   onCommit: (value) => cubit.patch(willTopic: value),
                 ),
               ),
@@ -201,6 +281,7 @@ class _ConnGroup extends StatelessWidget {
                 label: t.mqtt.willPayload,
                 child: MqttCommitField(
                   value: state.willPayload,
+                  enabled: !locked,
                   onCommit: (value) => cubit.patch(willPayload: value),
                 ),
               ),
@@ -208,6 +289,7 @@ class _ConnGroup extends StatelessWidget {
                 label: t.mqtt.willQos,
                 child: SerialDropdown<int>(
                   value: state.willQos,
+                  enabled: !locked,
                   items: const [
                     (value: 0, label: '0'),
                     (value: 1, label: '1'),
@@ -216,10 +298,16 @@ class _ConnGroup extends StatelessWidget {
                   onChanged: (value) => cubit.patch(willQos: value),
                 ),
               ),
-              SerialCheck(
-                label: t.mqtt.willRetain,
-                value: state.willRetain,
-                onChanged: (value) => cubit.patch(willRetain: value),
+              IgnorePointer(
+                ignoring: locked,
+                child: Opacity(
+                  opacity: locked ? 0.55 : 1,
+                  child: SerialCheck(
+                    label: t.mqtt.willRetain,
+                    value: state.willRetain,
+                    onChanged: (value) => cubit.patch(willRetain: value),
+                  ),
+                ),
               ),
             ],
           ),
@@ -238,7 +326,7 @@ class _FileRow extends StatelessWidget {
 
   final String label;
   final String value;
-  final VoidCallback onPick;
+  final VoidCallback? onPick;
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +344,7 @@ class _FileRow extends StatelessWidget {
               ).copyWith(color: SerialPalette.of(context).muted),
             ),
           ),
+          const SizedBox(width: AppSpacing.xs + 2),
           SerialButton(
             label: Translations.of(context).mqtt.pick,
             small: true,
@@ -274,12 +363,14 @@ class MqttCommitField extends StatefulWidget {
     required this.onCommit,
     this.hint,
     this.numeric = false,
+    this.enabled = true,
   });
 
   final String value;
   final ValueChanged<String> onCommit;
   final String? hint;
   final bool numeric;
+  final bool enabled;
 
   @override
   State<MqttCommitField> createState() => MqttCommitFieldState();
@@ -311,15 +402,19 @@ class MqttCommitFieldState extends State<MqttCommitField> {
     return SerialField(
       controller: _controller,
       focusNode: _focus,
+      enabled: widget.enabled,
       hint: widget.hint,
+      mono: true,
       height: SerialMetrics.controlSm,
       keyboardType: widget.numeric ? TextInputType.number : null,
       inputFormatters: widget.numeric
           ? [FilteringTextInputFormatter.digitsOnly]
           : null,
-      onChanged: widget.onCommit,
-      onSubmitted: widget.onCommit,
-      onFocusLost: () => widget.onCommit(_controller.text),
+      onChanged: widget.enabled ? widget.onCommit : null,
+      onSubmitted: widget.enabled ? widget.onCommit : null,
+      onFocusLost: widget.enabled
+          ? () => widget.onCommit(_controller.text)
+          : null,
     );
   }
 }

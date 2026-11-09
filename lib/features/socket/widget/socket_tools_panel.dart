@@ -1166,9 +1166,12 @@ class _KeyChip extends StatelessWidget {
     final palette = SerialPalette.of(context);
     return Container(
       margin: const EdgeInsets.only(right: AppSpacing.xs),
-      padding: const EdgeInsets.symmetric(horizontal: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       decoration: BoxDecoration(
-        border: Border.all(color: palette.line),
+        color: Color.lerp(palette.field, palette.accent, 0.08),
+        border: Border.all(
+          color: Color.lerp(palette.line, palette.accent, 0.35)!,
+        ),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
@@ -1176,8 +1179,8 @@ class _KeyChip extends StatelessWidget {
         style: AppTextStyles.mono(
           Theme.of(context).colorScheme,
           fontSize: 12,
-          color: palette.muted,
-        ),
+          color: palette.accent,
+        ).copyWith(fontWeight: FontWeight.w600, height: 1),
       ),
     );
   }

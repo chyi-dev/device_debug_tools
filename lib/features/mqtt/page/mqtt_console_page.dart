@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/serial_palette.dart';
+import '../../../core/widgets/app_split_view.dart';
 import '../../../i18n/i18n.dart';
 import '../../home/widget/workbench_menu_bar.dart';
 import '../../serial/serial_metrics.dart';
@@ -133,7 +133,10 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
           if (toast != null) _showToast(toast);
         },
         child: BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
-          buildWhen: (a, b) => a.scriptDockVisible != b.scriptDockVisible,
+          buildWhen: (a, b) =>
+              a.scriptDockVisible != b.scriptDockVisible ||
+              a.compact != b.compact ||
+              a.toolsVisible != b.toolsVisible,
           builder: (context, chrome) {
             final cubit = context.read<MqttConsoleCubit>();
             return Stack(
@@ -141,9 +144,8 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                 Column(
                   children: [
                     WorkbenchMenuBar(
-                      compact: false,
-                      toolsOn: true,
-                      showLayoutToggles: false,
+                      compact: chrome.compact,
+                      toolsOn: chrome.toolsVisible,
                       fileItems: [
                         WorkbenchMenuAction(
                           t.mqtt.saveLog,
@@ -160,8 +162,10 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                             MqttToolTab.script => t.mqtt.tab.script,
                           }, () => cubit.setTab(tab)),
                       ],
-                      onCompact: () {},
-                      onTools: () {},
+                      onCompact: () =>
+                          cubit.patch(compact: !chrome.compact),
+                      onTools: () =>
+                          cubit.patch(toolsVisible: !chrome.toolsVisible),
                       onKeys: () => showShortcutHelp(context),
                       onAbout: () => showSerialAbout(context),
                       compactLabel: t.mqtt.compact,
@@ -171,58 +175,31 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                     ),
                     if (widget.belowMenu != null) widget.belowMenu!,
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        child: Row(
-                          children: [
-                            const SizedBox(
-                              width: SerialMetrics.sidebar,
-                              child: MqttSidePanel(),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child:
-                                        BlocBuilder<
-                                          MqttConsoleCubit,
-                                          MqttConsoleState
-                                        >(
-                                          buildWhen: (a, b) =>
-                                              a.lines != b.lines,
-                                          builder: (context, state) {
-                                            return MqttLogView(
-                                              state: state,
-                                              search: _query,
-                                              searchFocus: _searchFocus,
-                                              onSearch: (value) => setState(
-                                                () => _query = value,
-                                              ),
-                                              onClear: cubit.clearLog,
-                                            );
-                                          },
-                                        ),
-                                  ),
-                                  if (chrome.scriptDockVisible) ...[
-                                    const SizedBox(height: AppSpacing.sm),
-                                    const SizedBox(
-                                      height: SerialMetrics.scriptDock,
-                                      child: MqttScriptDock(),
-                                    ),
-                                  ],
-                                  const SizedBox(height: AppSpacing.sm),
-                                  const MqttCompose(),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            const SizedBox(
-                              width: SerialMetrics.tools,
-                              child: MqttToolsPanel(),
-                            ),
-                          ],
+                      child: AppConsoleShell(
+                        compact: chrome.compact,
+                        toolsVisible: chrome.toolsVisible,
+                        scriptVisible: chrome.scriptDockVisible,
+                        onCollapseLeft: () => cubit.patch(compact: true),
+                        onCollapseRight: () =>
+                            cubit.patch(toolsVisible: false),
+                        left: const MqttSidePanel(),
+                        centerTop:
+                            BlocBuilder<MqttConsoleCubit, MqttConsoleState>(
+                          buildWhen: (a, b) => a.lines != b.lines,
+                          builder: (context, state) {
+                            return MqttLogView(
+                              state: state,
+                              search: _query,
+                              searchFocus: _searchFocus,
+                              onSearch: (value) =>
+                                  setState(() => _query = value),
+                              onClear: cubit.clearLog,
+                            );
+                          },
                         ),
+                        scriptDock: const MqttScriptDock(),
+                        send: const MqttCompose(),
+                        right: const MqttToolsPanel(),
                       ),
                     ),
                     const MqttStatusBar(),

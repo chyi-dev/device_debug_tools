@@ -53,7 +53,8 @@ class SerialGroup extends StatelessWidget {
                 ],
               ],
             ),
-            const SizedBox(height: AppSpacing.xs + 2),
+            // 与 F 稿 .grp h3 { margin-bottom: 8px } 对齐
+            const SizedBox(height: AppSpacing.sm),
             child,
           ],
         ),
@@ -63,16 +64,24 @@ class SerialGroup extends StatelessWidget {
 }
 
 class SerialFieldRow extends StatelessWidget {
-  const SerialFieldRow({super.key, required this.label, required this.child});
+  const SerialFieldRow({
+    super.key,
+    required this.label,
+    required this.child,
+    this.bottomGap = true,
+  });
 
   final String label;
   final Widget child;
+
+  /// 为 false 时去掉底距，避免与后续 `SizedBox(sm)` 叠成 13px。
+  final bool bottomGap;
 
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: SerialMetrics.formGap),
+      padding: EdgeInsets.only(bottom: bottomGap ? SerialMetrics.formGap : 0),
       child: Row(
         children: [
           SizedBox(
@@ -83,7 +92,7 @@ class SerialFieldRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.caption(
                 Theme.of(context).colorScheme,
-              ).copyWith(color: palette.muted, fontSize: 13),
+              ).copyWith(color: palette.muted, fontSize: 12),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -140,8 +149,10 @@ class SerialButton extends StatelessWidget {
         : accent
         ? palette.accent
         : palette.text;
-    final border = alert || primary
+    final border = alert
         ? bg
+        : primary
+        ? palette.accentBorder
         : accent
         ? palette.accent
         : palette.line;
