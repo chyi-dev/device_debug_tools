@@ -97,6 +97,9 @@ class Translations$home$zh {
 	/// zh: '＋ 新增'
 	String get addConnection => '＋ 新增';
 
+	/// zh: '新增连接'
+	String get addConnectionTitle => '新增连接';
+
 	/// zh: '串口'
 	String get kindSerial => '串口';
 
@@ -3336,6 +3339,7 @@ extension on Translations {
 			'home.welcome' => '欢迎使用设备调试工具',
 			'home.placeholder' => '在 lib/features 下添加功能模块',
 			'home.addConnection' => '＋ 新增',
+			'home.addConnectionTitle' => '新增连接',
 			'home.kindSerial' => '串口',
 			'home.kindBle' => '蓝牙 BLE',
 			'home.kindMqtt' => 'MQTT',
@@ -3841,9 +3845,9 @@ extension on Translations {
 			'ble.script.explain' => '钩子读的是当前钉住的特征，换钉不用改脚本。',
 			'ble.dialog.quickTitle' => '快捷指令',
 			'ble.dialog.ruleTitle' => '应答规则',
-			'ble.dialog.batchTitle' => '批量任务',
 			_ => null,
 		} ?? switch (path) {
+			'ble.dialog.batchTitle' => '批量任务',
 			'ble.dialog.scriptTitle' => '脚本',
 			'ble.dialog.name' => '名称',
 			'ble.dialog.data' => '数据',

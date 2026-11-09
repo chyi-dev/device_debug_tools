@@ -96,7 +96,7 @@ class _TabPane extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final home = context.read<HomeTabsCubit>();
-    // 每个页签都挂连接栏：新建/切换时不要把正在处理指针的 MenuAnchor 卸掉。
+    // 每个页签都挂连接栏，避免切换页签时卸掉栏上的交互控件。
     const chrome = _ConnectionChrome();
     switch (tab.kind) {
       case ConnectionKind.serial:

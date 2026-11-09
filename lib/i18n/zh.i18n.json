@@ -10,6 +10,7 @@
     "welcome": "欢迎使用设备调试工具",
     "placeholder": "在 lib/features 下添加功能模块",
     "addConnection": "＋ 新增",
+    "addConnectionTitle": "新增连接",
     "kindSerial": "串口",
     "kindBle": "蓝牙 BLE",
     "kindMqtt": "MQTT",

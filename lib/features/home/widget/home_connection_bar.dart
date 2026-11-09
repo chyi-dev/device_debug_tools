@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
@@ -15,8 +14,8 @@ import '../../serial/cubit/serial_console_cubit.dart';
 import '../../serial/cubit/serial_console_state.dart';
 import '../../serial/serial_metrics.dart';
 import '../cubit/home_tabs_cubit.dart';
-import '../model/connection_kind.dart';
 import '../model/home_tab.dart';
+import 'home_add_connection.dart';
 import 'home_tab_rename.dart';
 
 class HomeConnectionBar extends StatelessWidget {
@@ -186,7 +185,7 @@ class _ConnectionTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
     final cubit = context.read<HomeTabsCubit>();
-    final color = _kindColor(context, tab.kind);
+    final color = homeKindColor(context, tab.kind);
     return Material(
       color: selected ? palette.field : palette.panel,
       child: InkWell(
@@ -344,7 +343,7 @@ class _TabBody extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             child: Text(
-              _kindBadge(t, tab.kind),
+              homeKindBadge(t, tab.kind),
               style: AppTextStyles.mono(
                 Theme.of(context).colorScheme,
                 fontSize: 12,
@@ -386,31 +385,14 @@ class _AddConnectionButton extends StatelessWidget {
     final cubit = context.read<HomeTabsCubit>();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-      child: MenuAnchor(
-        menuChildren: [
-          for (final kind in ConnectionKind.values)
-            MenuItemButton(
-              onPressed: () => cubit.add(kind),
-              child: Text(_kindName(context, kind)),
-            ),
-        ],
-        builder: (context, controller, child) {
-          return TextButton(
-            onPressed: () {
-              if (controller.isOpen) {
-                controller.close();
-              } else {
-                controller.open();
-              }
-            },
-            child: Text(
-              t.home.addConnection,
-              style: AppTextStyles.caption(
-                Theme.of(context).colorScheme,
-              ).copyWith(color: palette.text),
-            ),
-          );
-        },
+      child: TextButton(
+        onPressed: () => showHomeAddConnection(context, cubit: cubit),
+        child: Text(
+          t.home.addConnection,
+          style: AppTextStyles.caption(
+            Theme.of(context).colorScheme,
+          ).copyWith(color: palette.text),
+        ),
       ),
     );
   }
@@ -421,42 +403,5 @@ String _tabTitle(BuildContext context, HomeTab tab, String? portName) {
   if (label.isNotEmpty) return label;
   final port = portName?.trim() ?? '';
   if (port.isNotEmpty) return port;
-  return _kindName(context, tab.kind);
-}
-
-String _kindName(BuildContext context, ConnectionKind kind) {
-  final t = Translations.of(context);
-  return switch (kind) {
-    ConnectionKind.serial => t.home.kindSerial,
-    ConnectionKind.ble => t.home.kindBle,
-    ConnectionKind.mqtt => t.home.kindMqtt,
-    ConnectionKind.tcp => t.home.kindTcp,
-    ConnectionKind.udp => t.home.kindUdp,
-  };
-}
-
-String _kindBadge(Translations t, ConnectionKind kind) {
-  return switch (kind) {
-    ConnectionKind.serial => t.home.badgeSerial,
-    ConnectionKind.ble => t.home.badgeBle,
-    ConnectionKind.mqtt => t.home.badgeMqtt,
-    ConnectionKind.tcp => t.home.badgeTcp,
-    ConnectionKind.udp => t.home.badgeUdp,
-  };
-}
-
-Color _kindColor(BuildContext context, ConnectionKind kind) {
-  final dark = Theme.of(context).brightness == Brightness.dark;
-  return switch (kind) {
-    ConnectionKind.serial =>
-      dark ? AppColors.protocolSerialDark : AppColors.protocolSerial,
-    ConnectionKind.ble =>
-      dark ? AppColors.protocolBleDark : AppColors.protocolBle,
-    ConnectionKind.mqtt =>
-      dark ? AppColors.protocolMqttDark : AppColors.protocolMqtt,
-    ConnectionKind.tcp =>
-      dark ? AppColors.protocolTcpDark : AppColors.protocolTcp,
-    ConnectionKind.udp =>
-      dark ? AppColors.protocolUdpDark : AppColors.protocolUdp,
-  };
+  return homeKindName(context, tab.kind);
 }

@@ -82,6 +82,7 @@ class _Translations$home$en extends Translations$home$zh {
 	@override String get welcome => 'Welcome to Device Debug Tools';
 	@override String get placeholder => 'Add feature modules under lib/features';
 	@override String get addConnection => '+ New';
+	@override String get addConnectionTitle => 'New connection';
 	@override String get kindSerial => 'Serial';
 	@override String get kindBle => 'Bluetooth LE';
 	@override String get kindMqtt => 'MQTT';
@@ -1671,6 +1672,7 @@ extension on TranslationsEn {
 			'home.welcome' => 'Welcome to Device Debug Tools',
 			'home.placeholder' => 'Add feature modules under lib/features',
 			'home.addConnection' => '+ New',
+			'home.addConnectionTitle' => 'New connection',
 			'home.kindSerial' => 'Serial',
 			'home.kindBle' => 'Bluetooth LE',
 			'home.kindMqtt' => 'MQTT',
@@ -2176,9 +2178,9 @@ extension on TranslationsEn {
 			'ble.script.explain' => 'Hooks read the currently pinned characteristics; re-pinning does not require script changes.',
 			'ble.dialog.quickTitle' => 'Quick command',
 			'ble.dialog.ruleTitle' => 'Reply rule',
-			'ble.dialog.batchTitle' => 'Batch job',
 			_ => null,
 		} ?? switch (path) {
+			'ble.dialog.batchTitle' => 'Batch job',
 			'ble.dialog.scriptTitle' => 'Script',
 			'ble.dialog.name' => 'Name',
 			'ble.dialog.data' => 'Data',

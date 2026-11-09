@@ -10,6 +10,7 @@
     "welcome": "Welcome to Device Debug Tools",
     "placeholder": "Add feature modules under lib/features",
     "addConnection": "+ New",
+    "addConnectionTitle": "New connection",
     "kindSerial": "Serial",
     "kindBle": "Bluetooth LE",
     "kindMqtt": "MQTT",
