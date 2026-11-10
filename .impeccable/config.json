@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "/Users/chyi/workspace/device_debug_tools/doc/design/mcp-demos/thumbs.html"
+        ],
+        "createdAt": "2026-11-10T12:40:50.637Z",
+        "reason": "六格缩略图是窗口骨架，菜单栏和批准条故意通栏贴边，内缩就不再是那一版的结构"
+      }
+    ]
+  }
+}

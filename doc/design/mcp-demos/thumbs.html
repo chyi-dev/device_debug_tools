@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>MCP 六张方向</title>
+<style>
+:root{
+  --win:#e6e9ed;--panel:#f4f6f8;--field:#fff;--line:#b4bec8;--text:#1a2330;
+  --muted:#4a5562;--accent:#1666bc;--on:#1f9d55;--off:#c8392f;--sys:#8f5400;
+  --font:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  --mono:"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--win);color:var(--text);font:14px/1.4 var(--font)}
+.page{width:1520px;padding:20px 24px 16px}
+h1{margin:0 0 14px;font-size:22px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(3,480px);gap:16px 16px}
+.cell{width:480px}
+.frame{width:480px;height:300px;background:var(--panel);border:1px solid var(--line);overflow:hidden;position:relative}
+.cap{margin-top:6px;font-size:14px;color:var(--text)}
+.cap b{font-weight:600}
+.cap span{color:var(--muted)}
+.bar{height:28px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:600}
+.tabs{height:28px;border-bottom:1px solid var(--line);display:flex;align-items:flex-end;padding:0 8px;gap:6px;background:var(--panel)}
+.tb{font-size:12px;padding:4px 8px;border:1px solid var(--line);border-bottom:0;background:var(--win);color:var(--text)}
+.row{display:flex;height:216px}
+.side{width:78px;border-right:1px solid var(--line);background:var(--win);padding:8px}
+.log{flex:1;background:#fff;padding:10px 12px;font:12px/1.45 var(--mono);color:var(--text)}
+.g{color:var(--muted)}
+.s{color:var(--sys)}
+.st{height:28px;border-top:1px solid var(--line);display:flex;align-items:center;padding:0 8px;font-size:12px;color:var(--muted);background:var(--panel)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--on);display:inline-block;margin-right:4px}
+.drawer{position:absolute;top:56px;right:0;bottom:28px;width:176px;background:var(--panel);border-left:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:8px}
+.sw{border:1px solid var(--line);background:var(--field);padding:8px 10px;font-size:13px;font-weight:600}
+.sw.on{border-color:var(--accent);background:#fff;color:var(--accent)}
+.strip{height:74px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 10px}
+.hex{font:26px/1 var(--mono);letter-spacing:.04em}
+.btns{display:flex;flex-direction:column;gap:6px}
+.btns i{font-style:normal;display:block;height:28px;line-height:28px;padding:0 8px;background:var(--accent);color:#fff;font-size:12px;font-weight:600;text-align:center}
+.btns i.g{background:var(--field);color:var(--text);border:1px solid var(--line);line-height:26px}
+.wide{width:210px;border-left:1px solid var(--line);background:var(--panel);padding:8px;display:flex;flex-direction:column;gap:6px}
+.wide pre{margin:0;flex:1;background:#fff;border:1px solid var(--line);padding:8px;font:12px/1.4 var(--mono);color:var(--text)}
+.tog{display:flex;justify-content:space-between;font-size:12px;background:#fff;border:1px solid var(--line);padding:6px 8px}
+.hud{height:44px;background:#1a2330;color:#fff;display:flex;align-items:center;gap:8px;padding:0 12px;font:12px/1 var(--mono)}
+.hud b{border:2px solid #fff;padding:6px 8px;font-weight:600}
+.grid9{position:absolute;top:52px;right:10px;width:150px;height:150px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.grid9 i{background:#fff;border:1px solid var(--line)}
+.grid9 i.a{background:var(--accent)}
+.grid9 i.n{background:var(--on)}
+.grid9 i.k{background:var(--text)}
+.grid9 i.c{border-radius:50%}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>六张方向，完整版做三张</h1>
+  <div class="grid">
+    <div class="cell">
+      <div class="frame">
+        <div class="bar">设备调试工具</div>
+        <div class="tabs"><div class="tb">传感器</div><div class="tb">模组</div></div>
+        <div class="row">
+          <div class="side"></div>
+          <div class="log"><div class="g">[20:12:04]# RECV HEX&gt;</div>A5 5A 03 00 F5 01 2C</div>
+        </div>
+        <div class="drawer">
+          <div class="sw">本机 MCP 开着</div>
+          <div class="sw">只读</div>
+          <div class="sw on">可以发一帧</div>
+          <div class="sw">还可以写草稿</div>
+        </div>
+        <div class="st"><i class="dot"></i>COM3 OPENED</div>
+      </div>
+      <p class="cap"><b>1 抽屉里的三档</b> <span>完整版。Rams，一档一件事。</span></p>
+    </div>
+    <div class="cell">
+      <div class="frame">
+        <div class="bar">设备调试工具</div>
+        <div class="tabs"><div class="tb">纳入 传感器 7/0</div><div class="tb">模组 2/0</div></div>
+        <div class="row"><div class="side"></div><div class="log"><div class="g">字节贴在页签上</div>A5 5A 03<br>00 F5 01 2C</div></div>
+        <div class="st">数据墨，不另做指标卡</div>
+      </div>
+      <p class="cap"><b>2 页签上的计数</b> <span>备选。和批准条太近。</span></p>
+    </div>
+    <div class="cell">
+      <div class="frame">
+        <div class="bar">设备调试工具</div>
+        <div class="tabs"><div class="tb">传感器</div></div>
+        <div class="row">
+          <div class="log" style="border-right:1px solid var(--line)"><div class="g">日志仍在中间</div></div>
+          <div class="wide">
+            <div class="tog"><span>看现场</span><b>开</b></div>
+            <div class="tog"><span>单次发送</span><b>开</b></div>
+            <div class="tog"><span>写草稿</span><b>开</b></div>
+            <pre>function on_receive(frame)
+  -- 待启用</pre>
+          </div>
+        </div>
+        <div class="st">右栏是助手</div>
+      </div>
+      <p class="cap"><b>3 右栏草稿</b> <span>完整版。源码等人启用。</span></p>
+    </div>
+    <div class="cell">
+      <div class="frame">
+        <div class="bar">设备调试工具</div>
+        <div class="tabs"><div class="tb">纳入 传感器</div><div class="tb">模组</div><div class="tb">遥测 未纳入</div></div>
+        <div class="strip">
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">发往传感器，还没写入日志</div>
+            <div class="hex">A5 5A 01</div>
+          </div>
+          <div class="btns"><i>发这一帧</i><i class="g">不发</i></div>
+        </div>
+        <div class="log" style="height:154px">日志先不动</div>
+        <div class="st"><i class="dot"></i>COM3 OPENED</div>
+      </div>
+      <p class="cap"><b>4 发出前的批准条</b> <span>完整版。先看见字节，再点。</span></p>
+    </div>
+    <div class="cell">
+      <div class="frame">
+        <div class="hud"><b>MCP 开</b><b>RX 7</b><b>TX 0</b><b>拒绝循环</b></div>
+        <div class="log" style="height:242px">
+          <div class="g">HUD 盖在日志上</div>
+          <div class="s">去掉这条，状态栏里已经有 RX TX</div>
+        </div>
+        <div class="st">备选，手法过头</div>
+      </div>
+      <p class="cap"><b>5 像素 HUD</b> <span>备选。轮盘 9，无像素字体。</span></p>
+    </div>
+    <div class="cell">
+      <div class="frame">
+        <div class="bar">设备调试工具</div>
+        <div class="log" style="height:250px">日志被压到左下<br><br>开、关、待启用<br>变成右边的格子</div>
+        <div class="grid9">
+          <i class="a"></i><i class="n c"></i><i></i>
+          <i class="k"></i><i class="a"></i><i class="n"></i>
+          <i></i><i class="k c"></i><i></i>
+        </div>
+        <div class="st">备选，格子不如开关好读</div>
+      </div>
+      <p class="cap"><b>6 几何状态盘</b> <span>备选。田中一光，只借方和圆。</span></p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

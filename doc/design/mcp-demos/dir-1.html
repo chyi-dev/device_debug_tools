@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>MCP 方向 1 · 抽屉里的三档</title>
+<style>
+:root{
+  --win:#e6e9ed;--panel:#f4f6f8;--field:#fff;--line:#b4bec8;--line2:#d8dee5;
+  --text:#1a2330;--muted:#4a5562;--accent:#1666bc;--accent-border:#135a9e;
+  --hover:#dde7f2;--head:#eef1f4;--on:#1f9d55;--off:#c8392f;--log:#fff;
+  --rx:#18222c;--tx:#135db0;--sys:#8f5400;--prompt:#65707d;--lamp:#b9c1ca;
+  --font:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  --mono:"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--win);color:var(--text);font:14px/1.45 var(--font);overflow:hidden}
+button,input,select,textarea{font:14px/1.4 var(--font);color:var(--text)}
+button{cursor:pointer}
+.stage{height:100%;display:flex;flex-direction:column;position:relative}
+.menubar{height:34px;display:flex;align-items:center;gap:2px;padding:0 8px 0 10px;background:var(--panel);border-bottom:1px solid var(--line);flex:0 0 auto}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;margin-right:8px}
+.ico{width:16px;height:16px;border-radius:2px;background:var(--accent);border:1px solid var(--accent-border)}
+.menubar .m{border:0;background:transparent;padding:4px 10px;border-radius:4px}
+.menubar .m:hover,.menubar .m.on{background:var(--hover)}
+.sp{flex:1}
+.winbtns span{display:inline-grid;place-items:center;width:34px;height:26px;color:var(--muted)}
+.menu{position:absolute;top:34px;left:168px;z-index:6;background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px;min-width:180px;box-shadow:0 8px 24px rgba(26,35,48,.12)}
+.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:4px}
+.menu button:hover{background:var(--hover)}
+.tabs{height:36px;display:flex;align-items:flex-end;gap:4px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line);flex:0 0 auto}
+.tab{border:1px solid transparent;border-bottom:0;background:transparent;padding:6px 12px;border-radius:6px 6px 0 0;color:var(--muted)}
+.tab.on{background:var(--win);color:var(--text);border-color:var(--line);font-weight:600;position:relative;top:1px}
+.body{flex:1;min-height:0;display:flex;padding:8px;gap:8px}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:6px;min-width:0;min-height:0;display:flex;flex-direction:column}
+.left{width:272px;background:var(--win);border:0;gap:8px;overflow:auto}
+.grp{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px 12px}
+.grp h3{margin:0 0 8px;font-size:12px;font-weight:600;color:var(--muted)}
+.row{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.row label{font-size:12px;color:var(--muted)}
+.row input,.row select{height:28px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 8px;width:100%}
+.pins{display:flex;gap:12px;padding-top:8px;border-top:1px solid var(--line2);font-size:12px;color:var(--muted)}
+.pin{display:flex;align-items:center;gap:6px}
+.lamp{width:8px;height:8px;border-radius:50%;background:var(--lamp);display:inline-block}
+.lamp.on{background:var(--on)}
+.lamp.off{background:var(--off)}
+.block{width:100%;height:36px;border-radius:4px;border:1px solid var(--accent-border);background:var(--accent);color:#fff;font-weight:600}
+.block.plain{background:var(--field);color:var(--text);border-color:var(--line);font-weight:500}
+.center{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.log{flex:1}
+.logh{height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--head);border-bottom:1px solid var(--line)}
+.logh strong{font-size:14px}
+.cnt{font-size:12px;color:var(--muted)}
+.search{margin-left:auto;width:200px;height:26px;border:1px solid var(--line);border-radius:4px;padding:0 8px;background:var(--field)}
+.logb{flex:1;overflow:auto;background:var(--log);padding:12px 16px;font:15px/1.6 var(--mono)}
+.entry{margin:0 0 10px}
+.p{color:var(--prompt)}.rx{color:var(--rx)}.tx{color:var(--tx)}.sys{color:var(--sys)}
+.send{height:112px;display:grid;grid-template-columns:1fr 120px;gap:8px;padding:8px}
+.send textarea{width:100%;height:64px;border:1px solid var(--line);border-radius:4px;padding:8px;resize:none;font:15px/1.5 var(--mono)}
+.hint{font-size:12px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act{display:flex;flex-direction:column;gap:8px}
+.act button{flex:1;border-radius:4px;border:1px solid var(--line);background:var(--field)}
+.act .go{background:var(--accent);border-color:var(--accent-border);color:#fff;font-weight:600}
+.right{width:300px}
+.ttabs{display:flex;border-bottom:1px solid var(--line);background:var(--head)}
+.ttabs button{border:0;background:transparent;padding:10px 12px;color:var(--muted);border-bottom:2px solid transparent}
+.ttabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tlist{flex:1;overflow:auto;padding:8px}
+.item{padding:8px;border-radius:4px}
+.item:hover{background:var(--hover)}
+.item b{font-weight:600}
+.item .d{display:block;margin-top:2px;font:15px/1.4 var(--mono);color:var(--tx)}
+.status{height:30px;display:flex;align-items:center;gap:14px;padding:0 12px;border-top:1px solid var(--line);background:var(--panel);font-size:12px;color:var(--muted);flex:0 0 auto}
+.status .c{color:var(--text);font-weight:600;display:flex;align-items:center;gap:8px}
+.status .note{margin-left:auto;color:var(--sys)}
+.drawer{position:absolute;top:70px;right:0;bottom:30px;width:400px;background:var(--panel);border-left:1px solid var(--line);z-index:5;display:flex;flex-direction:column;padding:16px;gap:12px;overflow:auto}
+.drawer h2{margin:0;font-size:22px;font-weight:600}
+.sub{margin:0;font-size:14px;color:var(--text)}
+.master{height:44px;border-radius:4px;border:1px solid var(--line);background:var(--field);display:flex;align-items:center;gap:10px;padding:0 12px;font-weight:600;text-align:left}
+.gear{display:flex;flex-direction:column;gap:8px}
+.gear button{text-align:left;border:1px solid var(--line);background:var(--field);border-radius:4px;padding:12px 14px;min-height:64px}
+.gear button.on{border-color:var(--accent);background:#fff;box-shadow:inset 0 0 0 1px var(--accent)}
+.gear button b{display:block;font-size:16px}
+.gear button span{display:block;margin-top:4px;font-size:14px;color:var(--muted);font-weight:400}
+.gear button:disabled{color:var(--muted)}
+.draft{border:1px solid var(--line);background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.draft head,.draft .top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.draft pre{margin:0;font:15px/1.45 var(--mono);white-space:pre-wrap}
+.rowbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rowbtns button,.draft button,.crc button{height:44px;padding:0 12px;border-radius:4px;border:1px solid var(--line);background:var(--field)}
+.rowbtns .go,.draft .go{background:var(--accent);border-color:var(--accent-border);color:#fff;font-weight:600}
+.crc{font-size:14px}
+.crc b{font:15px var(--mono);font-weight:600;margin-right:10px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="stage" id="app"></div>
+<script>
+const LUA = `function on_receive(frame)
+  if #frame < 7 then return end
+  if frame:byte(1) ~= 0xA5 then return end
+  if frame:byte(2) ~= 0x5A then return end
+  if frame:byte(3) ~= 0x03 then return end
+  local hi = frame:byte(4) * 256 + frame:byte(5)
+  local hu = frame:byte(6) * 256 + frame:byte(7)
+  log(string.format("温度 %.1f  湿度 %.1f", hi / 10, hu / 10))
+end`;
+const state = {
+  tab: "sensor",
+  mcp: true,
+  mode: 1,
+  drawer: true,
+  menu: false,
+  tool: "script",
+  draftOn: false,
+  extra: false,
+  crc: false,
+  q: "",
+  note: "",
+  open: { sensor: true, ble: true, mqtt: true },
+  rx: { sensor: 7, ble: 2, mqtt: 7 },
+  tx: { sensor: 0, ble: 0, mqtt: 0 },
+  txText: { sensor: "A5 5A 01", ble: "01", mqtt: "A5 5A 03" },
+  logs: {
+    sensor: [{ k: "rx", t: "2026-11-10 20:12:04.118", body: "A5 5A 03 00 F5 01 2C" }],
+    ble: [{ k: "rx", t: "2026-11-10 20:11:40.552", body: "01" }],
+    mqtt: [{ k: "rx", t: "2026-11-10 20:11:12.004", body: "A5 5A 03 00 F5 01 2C" }]
+  }
+};
+let clock = Date.parse("2026-11-10T20:12:18");
+function now() {
+  clock += 48;
+  const d = new Date(clock);
+  const p = (n, l = 2) => String(n).padStart(l, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
+}
+function bytesOf(hex) {
+  const parts = hex.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length || parts.some((x) => !/^[0-9a-fA-F]{2}$/.test(x))) return null;
+  return parts;
+}
+function push(id, k, body) {
+  state.logs[id].push({ k, t: now(), body });
+}
+function esc(s) {
+  return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+}
+function entryHtml(row) {
+  if (state.q && !`${row.t} ${row.body}`.toLowerCase().includes(state.q.toLowerCase())) return "";
+  if (row.k === "sys") return `<div class="entry"><div class="sys">[${esc(row.t)}]# ${esc(row.body)}</div></div>`;
+  const tag = row.k === "rx" ? "RECV" : "SEND";
+  return `<div class="entry"><div class="p">[${esc(row.t)}]# ${tag} HEX&gt;</div><div class="${row.k}">${esc(row.body)}</div></div>`;
+}
+function leftHtml() {
+  const id = state.tab;
+  const open = state.open[id];
+  if (id === "sensor") {
+    return `<section class="grp"><h3>串口设置</h3>
+      <div class="row"><label>串口</label><input value="COM3" readonly></div>
+      <div class="row"><label>波特率</label><input value="115200" readonly></div>
+      <div class="row"><label>校验位</label><input value="NONE" readonly></div>
+      <button type="button" class="block ${open ? "plain" : ""}" data-act="port"><span class="lamp ${open ? "on" : "off"}"></span> ${open ? "关闭" : "打开"}</button>
+      <div class="pins"><span class="pin"><i class="lamp ${open ? "on" : ""}"></i>DCD</span><span class="pin"><i class="lamp"></i>DSR</span><span class="pin"><i class="lamp ${open ? "on" : ""}"></i>CTS</span><span class="pin"><i class="lamp"></i>RI</span></div>
+    </section>
+    <section class="grp"><h3>接收设置</h3><div class="row"><label>分包</label><input value="20 ms" readonly></div></section>`;
+  }
+  if (id === "ble") {
+    return `<section class="grp"><h3>蓝牙</h3>
+      <div class="row"><label>设备</label><input value="模组" readonly></div>
+      <div class="row"><label>Notify</label><input value="${open ? "已钉住" : "未连接"}" readonly></div>
+      <div class="row"><label>Write</label><input value="${open ? "已钉住" : "未连接"}" readonly></div>
+      <button type="button" class="block ${open ? "plain" : ""}" data-act="port">${open ? "断开" : "连接"}</button>
+    </section>`;
+  }
+  return `<section class="grp"><h3>MQTT</h3>
+    <div class="row"><label>状态</label><input value="${open ? "已连接" : "未连接"}" readonly></div>
+    <div class="row"><label>主题</label><input value="sensor" readonly></div>
+    <div class="row"><label>密码</label><input value="已保存，不向客户端展示" readonly></div>
+    <button type="button" class="block ${open ? "plain" : ""}" data-act="port">${open ? "断开" : "连接"}</button>
+  </section>`;
+}
+function toolsHtml() {
+  if (state.tool === "quick") {
+    return `<div class="item"><b>读一帧</b><span class="d">A5 5A 01</span></div>`;
+  }
+  const on = state.draftOn ? "已启用" : "待启用";
+  let extra = "";
+  if (state.extra) extra = `<div class="item"><b>add_checksum.lua</b><span class="d">能编译，停用</span></div>`;
+  return `<div class="item"><b>parse_sensor.lua</b><span class="d">能编译，${on}</span></div>${extra}`;
+}
+function statusText() {
+  const id = state.tab;
+  const open = state.open[id];
+  if (id === "sensor") return `COM3 ${open ? "OPENED" : "CLOSED"}, 115200, N, 8, 1, NONE`;
+  if (id === "ble") return open ? "已连接，Notify 与 Write 已钉" : "未连接";
+  return open ? "已连接，主题 sensor" : "未连接";
+}
+function drawerHtml() {
+  if (!state.drawer) return "";
+  const modes = [
+    ["只读", "可以看页签、日志和计数。发送和写草稿都不做。"],
+    ["可以发一帧", "在只读之外，允许向写明的连接发一帧并等回包。"],
+    ["还可以写草稿", "在上一档之外，允许把脚本放进列表。启用仍由人来。"]
+  ];
+  const gear = modes.map((m, i) => `<button type="button" data-act="mode" data-i="${i}" class="${state.mode === i ? "on" : ""}" ${state.mcp ? "" : "disabled"}><b>${m[0]}</b><span>${m[1]}</span></button>`).join("");
+  const crc = state.crc
+    ? `<div class="crc">SUM8 <b>24</b> XOR <b>24</b> LRC <b>DC</b> CRC8 <b>AF</b> CRC16 <b>B6 8F</b> CRC32 <b>FA 86 9E 6F</b><div class="hint">对 A5 5A 03 00 F5 01 2C，没有写入端口。</div></div>`
+    : "";
+  return `<aside class="drawer">
+    <h2>本机 MCP</h2>
+    <p class="sub">${state.mcp ? "Cursor 已连上这块工作台。发送会写明目标，这一帧的目标是传感器。" : "关着。Cursor 进不来。"}</p>
+    <button type="button" class="master" data-act="mcp"><i class="lamp ${state.mcp ? "on" : "off"}"></i>${state.mcp ? "开着" : "关着"}</button>
+    <div class="gear">${gear}</div>
+    <div class="draft">
+      <div class="top"><b>parse_sensor.lua</b><span>${state.draftOn ? "已启用" : "能编译，待启用"}</span></div>
+      <pre>${esc(LUA)}</pre>
+      <button type="button" class="go" data-act="enable">${state.draftOn ? "停用" : "启用"}</button>
+    </div>
+    <div class="rowbtns">
+      <button type="button" class="go" data-act="agent">发一帧到传感器</button>
+      <button type="button" data-act="loop">请求循环发送</button>
+      <button type="button" data-act="crc">校验这一帧</button>
+      <button type="button" data-act="write">写入另一条草稿</button>
+    </div>
+    ${crc}
+    <button type="button" data-act="drawer">收起</button>
+  </aside>`;
+}
+function render() {
+  const rows = state.logs[state.tab];
+  const shown = rows.filter((r) => !state.q || `${r.t} ${r.body}`.toLowerCase().includes(state.q.toLowerCase()));
+  document.getElementById("app").innerHTML = `
+    <header class="menubar">
+      <div class="brand"><span class="ico"></span>设备调试工具</div>
+      <button type="button" class="m" data-act="file">文件</button>
+      <button type="button" class="m ${state.menu ? "on" : ""}" data-act="menu">设置</button>
+      <button type="button" class="m">工具</button>
+      <button type="button" class="m">帮助</button>
+      <div class="sp"></div>
+      <div class="winbtns"><span>─</span><span>□</span><span>✕</span></div>
+    </header>
+    ${state.menu ? `<div class="menu"><button type="button" data-act="drawer">${state.drawer ? "收起本机 MCP" : "本机 MCP"}</button></div>` : ""}
+    <nav class="tabs">
+      ${["sensor", "ble", "mqtt"].map((id) => {
+        const name = { sensor: "传感器", ble: "模组", mqtt: "遥测" }[id];
+        const kind = { sensor: "串口", ble: "蓝牙", mqtt: "MQTT" }[id];
+        return `<button type="button" class="tab ${state.tab === id ? "on" : ""}" data-act="tab" data-id="${id}">${name} ${kind}</button>`;
+      }).join("")}
+    </nav>
+    <div class="body">
+      <aside class="pane left">${leftHtml()}</aside>
+      <main class="center">
+        <section class="pane log">
+          <div class="logh"><strong>数据日志</strong><span class="cnt">${shown.length} 条，画面最多 500 条</span>
+            <input class="search" data-field="q" value="${esc(state.q)}" placeholder="搜索日志"></div>
+          <div class="logb" id="logb">${shown.map(entryHtml).join("") || `<div class="sys">没有匹配的行</div>`}</div>
+        </section>
+        <section class="pane send">
+          <div>
+            <textarea data-field="tx">${esc(state.txText[state.tab])}</textarea>
+            <div class="hint">人在发送框里发出的，记在当前这条连接。</div>
+          </div>
+          <div class="act">
+            <button type="button" class="go" data-act="human">发送</button>
+            <button type="button" data-act="clear">清除</button>
+          </div>
+        </section>
+      </main>
+      <aside class="pane right">
+        <div class="ttabs">
+          <button type="button" class="${state.tool === "quick" ? "on" : ""}" data-act="tool" data-id="quick">快捷指令</button>
+          <button type="button" class="${state.tool === "script" ? "on" : ""}" data-act="tool" data-id="script">脚本</button>
+        </div>
+        <div class="tlist">${toolsHtml()}</div>
+      </aside>
+    </div>
+    <footer class="status"><span class="c"><i class="lamp ${state.open[state.tab] ? "on" : "off"}"></i>${statusText()}</span><span>RX ${state.rx[state.tab]}</span><span>TX ${state.tx[state.tab]}</span><span class="note">${esc(state.note)}</span></footer>
+    ${drawerHtml()}`;
+  const logb = document.getElementById("logb");
+  if (logb) logb.scrollTop = logb.scrollHeight;
+}
+function agentSend() {
+  state.note = "";
+  if (!state.mcp) { push("sensor", "sys", "本机 MCP 关着，这一帧没有发出。"); state.note = "记在传感器"; return; }
+  if (state.mode < 1) { push("sensor", "sys", "当前是只读，这一帧没有发出。"); state.note = "记在传感器"; return; }
+  if (!state.open.sensor) { push("sensor", "sys", "串口未打开，发送已拦截"); state.note = "记在传感器"; return; }
+  push("sensor", "tx", "A5 5A 01");
+  push("sensor", "rx", "A5 5A 03 00 F6 01 2E");
+  push("sensor", "sys", "助手发往传感器。演示回包沿用传感器帧的格式，不是现场抓包。");
+  state.tx.sensor += 3;
+  state.rx.sensor += 7;
+  if (state.tab !== "sensor") state.note = "这帧记在传感器，不在当前页";
+}
+function humanSend() {
+  const id = state.tab;
+  const parts = bytesOf(state.txText[id]);
+  if (!parts) { push(id, "sys", "HEX 须成对，这一帧没有发出。"); return; }
+  if (!state.open[id]) {
+    push(id, "sys", id === "sensor" ? "串口未打开，发送已拦截" : "未连接，发送已拦截");
+    return;
+  }
+  push(id, "tx", parts.join(" ").toUpperCase());
+  state.tx[id] += parts.length;
+}
+document.getElementById("app").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-act]");
+  if (!b) {
+    if (state.menu && !e.target.closest(".menu")) { state.menu = false; render(); }
+    return;
+  }
+  const act = b.dataset.act;
+  if (act === "menu") state.menu = !state.menu;
+  else state.menu = false;
+  if (act === "tab") state.tab = b.dataset.id;
+  if (act === "tool") state.tool = b.dataset.id;
+  if (act === "drawer") state.drawer = !state.drawer;
+  if (act === "mcp") state.mcp = !state.mcp;
+  if (act === "mode") state.mode = Number(b.dataset.i);
+  if (act === "port") state.open[state.tab] = !state.open[state.tab];
+  if (act === "enable") state.draftOn = !state.draftOn;
+  if (act === "clear") state.txText[state.tab] = "";
+  if (act === "crc") state.crc = !state.crc;
+  if (act === "agent") agentSend();
+  if (act === "human") humanSend();
+  if (act === "loop") {
+    push("sensor", "sys", "已拒绝循环发送。MCP 不持续打出。");
+    if (state.tab !== "sensor") state.note = "拒绝记在传感器";
+  }
+  if (act === "write") {
+    if (!state.mcp || state.mode < 2) push("sensor", "sys", "写草稿未授权，add_checksum.lua 没有放进列表。");
+    else state.extra = true;
+    if (state.tab !== "sensor" && (state.mode < 2 || !state.mcp)) state.note = "记在传感器";
+  }
+  render();
+});
+document.getElementById("app").addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.dataset.field === "tx") state.txText[state.tab] = t.value;
+  if (t.dataset.field === "q") {
+    state.q = t.value;
+    const rows = state.logs[state.tab].filter((r) => !state.q || `${r.t} ${r.body}`.toLowerCase().includes(state.q.toLowerCase()));
+    const logb = document.getElementById("logb");
+    if (logb) logb.innerHTML = rows.map(entryHtml).join("") || `<div class="sys">没有匹配的行</div>`;
+    const cnt = document.querySelector(".cnt");
+    if (cnt) cnt.textContent = `${rows.length} 条，画面最多 500 条`;
+  }
+});
+render();
+</script>
+</body>
+</html>

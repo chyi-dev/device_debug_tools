@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>方案 3 · MCP 设置与日志</title>
+<style>
+:root{
+  --win:#e6e9ed;--panel:#f4f6f8;--field:#fff;--line:#b4bec8;--line2:#d8dee5;
+  --text:#1a2330;--muted:#4a5562;--accent:#1666bc;--accent-border:#135a9e;
+  --hover:#dde7f2;--head:#eef1f4;--on:#1f9d55;--off:#c8392f;--log:#fff;
+  --rx:#18222c;--tx:#135db0;--sys:#8f5400;--prompt:#65707d;--lamp:#b9c1ca;
+  --font:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  --mono:"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--win);color:var(--text);font:14px/1.45 var(--font);overflow:hidden}
+button,input,textarea,select{font:14px/1.4 var(--font);color:var(--text)}
+button{cursor:pointer}
+.stage{height:100%;display:flex;flex-direction:column;position:relative}
+.menubar{height:34px;display:flex;align-items:center;gap:2px;padding:0 8px 0 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;margin-right:8px}
+.ico{width:16px;height:16px;border-radius:2px;background:var(--accent);border:1px solid var(--accent-border)}
+.sp{flex:1}
+.menubar .m{border:0;background:transparent;padding:4px 10px;border-radius:4px}
+.menubar .m:hover,.menubar .m.on{background:var(--hover)}
+.menuwrap{position:relative}
+.menu{position:absolute;top:28px;left:0;z-index:6;min-width:160px;background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px}
+.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:4px}
+.menu button:hover{background:var(--hover)}
+.winbtns span{display:inline-grid;place-items:center;width:34px;height:26px;color:var(--muted)}
+.tabs{height:36px;display:flex;align-items:flex-end;gap:4px;padding:0 8px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tab{border:1px solid transparent;border-bottom:0;background:transparent;padding:6px 12px;border-radius:6px 6px 0 0;color:var(--muted)}
+.tab.on{background:var(--win);color:var(--text);border-color:var(--line);font-weight:600;position:relative;top:1px}
+.body{flex:1;min-height:0;display:flex;padding:8px;gap:8px}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:6px;min-width:0;min-height:0;display:flex;flex-direction:column}
+.left{width:272px;background:var(--win);border:0;overflow:auto;gap:8px}
+.grp{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px 12px}
+.grp h3{margin:0 0 8px;font-size:12px;font-weight:600;color:var(--muted)}
+.row{display:grid;grid-template-columns:132px 1fr;gap:8px;align-items:center;margin-top:8px}
+.row label{font-size:12px;color:var(--muted)}
+.row input,.row select{height:26px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 8px;width:100%}
+.side-row{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.side-row label{font-size:12px;color:var(--muted)}
+.side-row input{height:26px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 8px;width:100%}
+.block{height:32px;padding:0 14px;border-radius:4px;border:1px solid var(--accent-border);background:var(--accent);color:#fff;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.block.wide{width:100%;margin-top:8px}
+.block.plain{background:var(--field);color:var(--text);border-color:var(--line);font-weight:500}
+.lamp{width:8px;height:8px;border-radius:50%;background:var(--lamp);display:inline-block;flex:0 0 auto}
+.lamp.on{background:var(--on)}.lamp.off{background:var(--off)}
+.center{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.log{flex:1}
+.logh{height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--head);border-bottom:1px solid var(--line);flex:0 0 36px}
+.cnt{font-size:12px;color:var(--muted);white-space:nowrap}
+.logb{flex:1;overflow:auto;background:#fff;padding:12px 16px;font:14px/1.6 var(--mono)}
+.entry{margin:0 0 10px}
+.p{color:var(--prompt)}.rx{color:var(--rx)}.tx{color:var(--tx)}.sys{color:var(--sys)}
+.send{height:104px;display:grid;grid-template-columns:1fr 120px;gap:8px;padding:8px}
+.send textarea{width:100%;height:58px;border:1px solid var(--line);border-radius:4px;padding:8px;resize:none;font:15px/1.5 var(--mono)}
+.act button{width:100%;height:100%;border-radius:4px;border:1px solid var(--accent-border);background:var(--accent);color:#fff;font-weight:600}
+.right{width:352px}
+.ttabs{height:38px;display:flex;align-items:stretch;background:var(--head);border-bottom:1px solid var(--line);flex:0 0 auto;overflow-x:auto}
+.ttabs button{flex:1 0 auto;border:0;background:transparent;padding:0 6px;color:var(--muted);border-bottom:2px solid transparent;font-size:12px;white-space:nowrap}
+.ttabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.sep{width:1px;background:var(--line);margin:10px 2px;flex:0 0 auto}
+.minor{height:28px;padding:0 10px;border-radius:4px;border:1px solid var(--line);background:var(--field);white-space:nowrap}
+.stay{margin:8px 0 0;font-size:14px;color:var(--text)}
+.mlog{flex:1;min-height:0;display:flex;flex-direction:column;background:#fff}
+.search{margin-left:auto;width:128px;height:26px;border:1px solid var(--line);border-radius:4px;background:var(--field);padding:0 8px}
+.pad{flex:1;overflow:auto;padding:12px;background:var(--win)}
+.pad pre,.dlg pre{margin:8px 0 0;padding:12px;background:#fff;border:1px solid var(--line);border-radius:6px;font:14px/1.6 var(--mono);white-space:pre-wrap}
+.item{padding:8px 0}
+.item b{font-weight:600}
+.item .d{display:block;margin-top:4px;font-size:14px;color:var(--text)}
+.status{height:30px;display:flex;align-items:center;gap:14px;padding:0 12px;border-top:1px solid var(--line);background:var(--panel);font-size:12px;color:var(--muted)}
+.status .c{color:var(--text);font-weight:600;display:flex;align-items:center;gap:8px}
+.status .note{margin-left:auto;color:var(--sys)}
+.check{display:flex;align-items:center;gap:8px;min-height:32px;font-size:14px}
+.check input{width:16px;height:16px;margin:0}
+.mask{position:absolute;inset:0;background:rgba(10,14,20,.38);display:flex;align-items:center;justify-content:center;z-index:8}
+.dlg{width:640px;max-height:86%;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.dlg-h{padding:14px 18px;font-size:15px;font-weight:600;border-bottom:1px solid var(--line2)}
+.dlg-b{padding:18px;overflow:auto}
+.dlg-f{padding:12px;border-top:1px solid var(--line2);display:flex;justify-content:flex-end;gap:8px}
+.hint{margin:8px 0 0;font-size:14px;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="stage" id="app"></div>
+<script>
+const LUA = `function on_receive(frame)
+  if #frame < 7 then return end
+  if frame:byte(1) ~= 0xA5 then return end
+  if frame:byte(2) ~= 0x5A then return end
+  if frame:byte(3) ~= 0x03 then return end
+  local hi = frame:byte(4) * 256 + frame:byte(5)
+  local hu = frame:byte(6) * 256 + frame:byte(7)
+  log(string.format("温度 %.1f  湿度 %.1f", hi / 10, hu / 10))
+end`;
+const SCRIPT = { name: "parse_sensor.lua", body: LUA };
+const REPLY = { name: "确认帧", body: "匹配  A5 5A 03\n应答  A5 5A 01" };
+const flagName = { mcp: "MCP", send: "发送数据", read: "读取数据", reply: "自动应答", script: "实现脚本" };
+const policyName = { on: "默认启用", off: "默认禁用", ask: "询问" };
+const policyLabel = { reply: "自动应答启用策略", script: "脚本启用策略" };
+const state = {
+  tab: "sensor",
+  tool: "mcp",
+  menu: false,
+  dialog: null,
+  pending: null,
+  flag: { mcp: true, send: true, read: true, reply: true, script: true },
+  policy: { reply: "ask", script: "ask" },
+  scripts: [],
+  replies: [],
+  q: "",
+  open: { sensor: true, ble: true, mqtt: true },
+  rx: { sensor: 7, ble: 2, mqtt: 7 },
+  tx: { sensor: 0, ble: 0, mqtt: 0 },
+  txText: { sensor: "A5 5A 01", ble: "01", mqtt: "A5 5A 03" },
+  note: "",
+  mcpLog: [
+    { t: "2026-11-10 20:12:01.004", body: "打开 MCP" },
+    { t: "2026-11-10 20:12:01.080", body: "允许读取数据" },
+    { t: "2026-11-10 20:12:01.120", body: "允许发送数据" }
+  ],
+  logs: {
+    sensor: [{ k: "rx", t: "2026-11-10 20:12:04.118", body: "A5 5A 03 00 F5 01 2C" }],
+    ble: [{ k: "rx", t: "2026-11-10 20:11:40.552", body: "01" }],
+    mqtt: [{ k: "rx", t: "2026-11-10 20:11:12.004", body: "A5 5A 03 00 F5 01 2C" }]
+  }
+};
+let clock = Date.parse("2026-11-10T20:12:18");
+const nameOf = { sensor: "传感器", ble: "模组", mqtt: "遥测" };
+const tools = [
+  ["quick", "快捷指令"],
+  ["batch", "批量发送"],
+  ["reply", "自动应答"],
+  ["history", "历史发送"],
+  ["calc", "校验计算"]
+];
+function now() {
+  clock += 48;
+  const d = new Date(clock);
+  const p = (n, l = 2) => String(n).padStart(l, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
+}
+function bytesOf(hex) {
+  const parts = hex.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length || parts.some((x) => !/^[0-9a-fA-F]{2}$/.test(x))) return null;
+  return parts;
+}
+function push(id, k, body) { state.logs[id].push({ k, t: now(), body }); }
+function pushMcp(body) { state.mcpLog.push({ t: now(), body }); }
+function esc(s) { return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+function entryHtml(row) {
+  if (row.k === "sys") return `<div class="entry"><div class="sys">[${esc(row.t)}]# ${esc(row.body)}</div></div>`;
+  const tag = row.k === "rx" ? "RECV" : "SEND";
+  return `<div class="entry"><div class="p">[${esc(row.t)}]# ${tag} HEX&gt;</div><div class="${row.k}">${esc(row.body)}</div></div>`;
+}
+function mcpLine(row) {
+  return `<div class="entry"><div class="sys">[${esc(row.t)}]# ${esc(row.body)}</div></div>`;
+}
+function mcpShown() {
+  const q = state.q.trim().toLowerCase();
+  if (!q) return state.mcpLog;
+  return state.mcpLog.filter((r) => `${r.t} ${r.body}`.toLowerCase().includes(q));
+}
+function box(key, label) {
+  return `<label class="check"><input type="checkbox" data-flag="${key}" ${state.flag[key] ? "checked" : ""}>${label}</label>`;
+}
+function policySel(key) {
+  const v = state.policy[key];
+  const opt = (id) => `<option value="${id}" ${v === id ? "selected" : ""}>${policyName[id]}</option>`;
+  return `<select data-policy="${key}">${opt("on")}${opt("off")}${opt("ask")}</select>`;
+}
+function leftHtml() {
+  const id = state.tab;
+  const open = state.open[id];
+  if (id === "sensor") {
+    return `<section class="grp"><h3>串口设置</h3>
+      <div class="side-row"><label>串口</label><input value="COM3" readonly></div>
+      <div class="side-row"><label>波特率</label><input value="115200" readonly></div>
+      <div class="side-row"><label>校验位</label><input value="NONE" readonly></div>
+      <button type="button" class="block wide ${open ? "plain" : ""}" data-act="port"><i class="lamp ${open ? "on" : "off"}"></i>${open ? "关闭" : "打开"}</button>
+    </section>
+    <section class="grp"><h3>接收设置</h3><div class="side-row"><label>分包</label><input value="20 ms" readonly></div></section>`;
+  }
+  if (id === "ble") {
+    return `<section class="grp"><h3>蓝牙</h3>
+      <div class="side-row"><label>Notify</label><input value="${open ? "已钉住" : "未连接"}" readonly></div>
+      <div class="side-row"><label>Write</label><input value="${open ? "已钉住" : "未连接"}" readonly></div>
+      <button type="button" class="block wide ${open ? "plain" : ""}" data-act="port">${open ? "断开" : "连接"}</button>
+    </section>`;
+  }
+  return `<section class="grp"><h3>MQTT</h3>
+    <div class="side-row"><label>主题</label><input value="sensor" readonly></div>
+    <div class="side-row"><label>密码</label><input value="已保存，不向客户端展示" readonly></div>
+    <button type="button" class="block wide ${open ? "plain" : ""}" data-act="port">${open ? "断开" : "连接"}</button>
+  </section>`;
+}
+function mcpLogHtml() {
+  const rows = mcpShown();
+  const body = rows.map(mcpLine).join("") || `<div class="entry"><div class="sys">没有匹配的行</div></div>`;
+  return `<section class="mlog">
+    <div class="logh"><strong>MCP 日志</strong><span class="cnt" id="mcpc">${rows.length} 条</span>
+      <input class="search" data-field="mq" value="${esc(state.q)}" placeholder="搜索"></div>
+    <div class="logb" id="mcpb">${body}</div>
+  </section>`;
+}
+function listHtml(items, empty) {
+  if (!items.length) return `<p class="stay">${empty}</p>`;
+  return items.map((item) => `<div class="item"><b>${esc(item.name)}</b><span class="d">${item.on ? "已启用" : "未启用"}</span><pre>${esc(item.body)}</pre></div>`).join("");
+}
+function scriptHtml() {
+  return `<div class="pad"><button type="button" class="minor" data-act="import-script">助手写入</button>${listHtml(state.scripts, "还没有通过 MCP 导入的脚本。")}</div>`;
+}
+function replyHtml() {
+  return `<div class="pad"><button type="button" class="minor" data-act="import-reply">助手写入</button>${listHtml(state.replies, "还没有通过 MCP 导入的自动应答。")}</div>`;
+}
+function otherHtml() {
+  if (state.tool === "quick") return `<div class="pad"><div class="item"><b>读一帧</b><span class="d">A5 5A 01</span></div></div>`;
+  if (state.tool === "calc") return `<div class="pad"><div class="item"><b>A5 5A 03 00 F5 01 2C</b><span class="d">SUM8 24  XOR 24  LRC DC  CRC8 AF  CRC16 B6 8F  CRC32 FA 86 9E 6F</span></div></div>`;
+  if (state.tool === "history") return `<div class="pad"><p class="stay">历史发送仍在这一页。</p></div>`;
+  if (state.tool === "batch") return `<div class="pad"><p class="stay">批量发送仍在这一页。</p></div>`;
+  return "";
+}
+function rightHtml() {
+  const outer = tools.map(([id, label]) => `<button type="button" class="${state.tool === id ? "on" : ""}" data-act="tool" data-id="${id}">${label}</button>`).join("");
+  let body = otherHtml();
+  if (state.tool === "script") body = scriptHtml();
+  if (state.tool === "reply") body = replyHtml();
+  if (state.tool === "mcp") body = mcpLogHtml();
+  return `<aside class="pane right">
+    <div class="ttabs">${outer}<span class="sep"></span>
+      <button type="button" class="${state.tool === "script" ? "on" : ""}" data-act="tool" data-id="script">脚本</button>
+      <button type="button" class="${state.tool === "mcp" ? "on" : ""}" data-act="tool" data-id="mcp">MCP</button>
+    </div>
+    ${body}
+  </aside>`;
+}
+function settingsDialog() {
+  return `<div class="dlg" role="dialog" aria-label="MCP 设置">
+    <div class="dlg-h">MCP 设置</div>
+    <div class="dlg-b">
+      ${box("mcp", "启用 MCP")}
+      ${state.flag.mcp ? `<p class="hint">Cursor 已连上</p>` : ""}
+      <section class="grp" style="margin-top:12px">
+        <h3>授权</h3>
+        ${box("send", "发送数据")}
+        ${box("read", "读取数据")}
+        ${box("reply", "自动应答")}
+        ${box("script", "实现脚本")}
+        <div class="row"><label>自动应答启用策略</label>${policySel("reply")}</div>
+        <div class="row"><label>脚本启用策略</label>${policySel("script")}</div>
+      </section>
+    </div>
+    <div class="dlg-f"><button type="button" class="minor" data-act="close-dialog">关闭</button></div>
+  </div>`;
+}
+function askDialog() {
+  const item = state.pending;
+  const title = item.kind === "script" ? item.name : `自动应答 ${item.name}`;
+  return `<div class="dlg" role="dialog" aria-label="${esc(title)}">
+    <div class="dlg-h">${esc(title)}</div>
+    <div class="dlg-b"><pre>${esc(item.body)}</pre></div>
+    <div class="dlg-f">
+      <button type="button" class="minor" data-act="ask-cancel">取消</button>
+      <button type="button" class="block" data-act="ask-ok">启用</button>
+    </div>
+  </div>`;
+}
+function dialogHtml() {
+  if (state.dialog === "mcp" || state.dialog === "ask") return `<div class="mask">${state.dialog === "mcp" ? settingsDialog() : askDialog()}</div>`;
+  return "";
+}
+function statusText() {
+  const id = state.tab;
+  const open = state.open[id];
+  if (id === "sensor") return `COM3 ${open ? "OPENED" : "CLOSED"}, 115200, N, 8, 1, NONE`;
+  if (id === "ble") return open ? "已连接，Notify 与 Write 已钉" : "未连接";
+  return open ? "已连接，主题 sensor" : "未连接";
+}
+function finishImport(enabled) {
+  const item = state.pending;
+  const list = item.kind === "script" ? state.scripts : state.replies;
+  list.push({ name: item.name, body: item.body, on: enabled });
+  const what = item.kind === "script" ? "脚本" : "自动应答";
+  pushMcp(`导入${what} ${item.name}，${enabled ? "已启用" : "未启用"}。`);
+  state.tool = item.kind === "script" ? "script" : "reply";
+  state.note = "已记入 MCP 日志";
+  state.pending = null;
+  state.dialog = null;
+}
+function tryImport(kind) {
+  const item = kind === "script" ? SCRIPT : REPLY;
+  const list = kind === "script" ? state.scripts : state.replies;
+  const allowed = kind === "script" ? state.flag.script : state.flag.reply;
+  if (!state.flag.mcp) {
+    pushMcp(`MCP 关着，${item.name} 没有导入。`);
+    state.note = "已记入 MCP 日志";
+    return;
+  }
+  if (!allowed) {
+    const gate = kind === "script" ? "实现脚本" : "自动应答";
+    pushMcp(`${gate}未允许，${item.name} 没有导入。`);
+    state.note = "已记入 MCP 日志";
+    return;
+  }
+  if (list.some((row) => row.name === item.name)) {
+    pushMcp(`${item.name} 已在列表中，没有重复导入。`);
+    state.note = "已记入 MCP 日志";
+    return;
+  }
+  const policy = state.policy[kind];
+  if (policy === "ask") {
+    state.pending = { kind, name: item.name, body: item.body };
+    state.dialog = "ask";
+    return;
+  }
+  state.pending = { kind, name: item.name, body: item.body };
+  finishImport(policy === "on");
+}
+function render() {
+  const rows = state.logs[state.tab];
+  const tabs = ["sensor", "ble", "mqtt"].map((id) => {
+    const kind = { sensor: "串口", ble: "蓝牙", mqtt: "MQTT" }[id];
+    return `<button type="button" class="tab ${state.tab === id ? "on" : ""}" data-act="tab" data-id="${id}">${nameOf[id]} ${kind}</button>`;
+  }).join("");
+  document.getElementById("app").innerHTML = `
+    <header class="menubar">
+      <div class="brand"><span class="ico"></span>设备调试工具</div>
+      <button type="button" class="m">文件</button>
+      <div class="menuwrap">
+        <button type="button" class="m ${state.menu ? "on" : ""}" data-act="menu">设置</button>
+        ${state.menu ? `<div class="menu"><button type="button" data-act="open-mcp">MCP</button></div>` : ""}
+      </div>
+      <button type="button" class="m">工具</button>
+      <button type="button" class="m">帮助</button>
+      <div class="sp"></div>
+      <div class="winbtns"><span>─</span><span>□</span><span>✕</span></div>
+    </header>
+    <nav class="tabs">${tabs}</nav>
+    <div class="body">
+      <aside class="pane left">${leftHtml()}</aside>
+      <main class="center">
+        <section class="pane log">
+          <div class="logh"><strong>数据日志</strong><span class="cnt">${rows.length} 条，画面最多 500 条</span></div>
+          <div class="logb" id="logb">${rows.map(entryHtml).join("")}</div>
+        </section>
+        <section class="pane send">
+          <div><textarea data-field="tx">${esc(state.txText[state.tab])}</textarea></div>
+          <div class="act"><button type="button" data-act="human">发送</button></div>
+        </section>
+      </main>
+      ${rightHtml()}
+    </div>
+    <footer class="status"><span class="c"><i class="lamp ${state.open[state.tab] ? "on" : "off"}"></i>${statusText()}</span><span>RX ${state.rx[state.tab]}</span><span>TX ${state.tx[state.tab]}</span><span class="note">${esc(state.note)}</span></footer>
+    ${dialogHtml()}`;
+  const logb = document.getElementById("logb");
+  if (logb) logb.scrollTop = logb.scrollHeight;
+  const mcpb = document.getElementById("mcpb");
+  if (mcpb) mcpb.scrollTop = mcpb.scrollHeight;
+}
+document.getElementById("app").addEventListener("click", (e) => {
+  if (e.target.classList && e.target.classList.contains("mask")) {
+    if (state.dialog === "ask") finishImport(false);
+    else state.dialog = null;
+    state.menu = false;
+    render();
+    return;
+  }
+  const b = e.target.closest("[data-act]");
+  if (!b) {
+    if (state.menu) { state.menu = false; render(); }
+    return;
+  }
+  const act = b.dataset.act;
+  if (act !== "menu") state.menu = false;
+  if (act === "menu") state.menu = !state.menu;
+  if (act === "open-mcp") state.dialog = "mcp";
+  if (act === "close-dialog") state.dialog = null;
+  if (act === "tab") state.tab = b.dataset.id;
+  if (act === "tool") state.tool = b.dataset.id;
+  if (act === "port") state.open[state.tab] = !state.open[state.tab];
+  if (act === "import-script") tryImport("script");
+  if (act === "import-reply") tryImport("reply");
+  if (act === "ask-ok") finishImport(true);
+  if (act === "ask-cancel") finishImport(false);
+  if (act === "human") {
+    const id = state.tab;
+    const parts = bytesOf(state.txText[id]);
+    if (!parts) push(id, "sys", "HEX 须成对，这一帧没有发出。");
+    else if (!state.open[id]) push(id, "sys", id === "sensor" ? "串口未打开，发送已拦截" : "未连接，发送已拦截");
+    else {
+      push(id, "tx", parts.join(" ").toUpperCase());
+      state.tx[id] += parts.length;
+    }
+  }
+  render();
+});
+document.getElementById("app").addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.dataset.flag) {
+    const key = t.dataset.flag;
+    const on = t.checked;
+    if (state.flag[key] !== on) {
+      state.flag[key] = on;
+      pushMcp(key === "mcp" ? (on ? "打开 MCP" : "关闭 MCP") : (on ? `允许${flagName[key]}` : `关闭${flagName[key]}`));
+      state.note = "已记入 MCP 日志";
+    }
+  }
+  if (t.dataset.policy) {
+    const key = t.dataset.policy;
+    if (state.policy[key] !== t.value) {
+      state.policy[key] = t.value;
+      pushMcp(`${policyLabel[key]}改为${policyName[t.value]}`);
+      state.note = "已记入 MCP 日志";
+    }
+  }
+  render();
+});
+document.getElementById("app").addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.dataset.field === "tx") state.txText[state.tab] = t.value;
+  if (t.dataset.field === "mq") {
+    state.q = t.value;
+    const boxEl = document.getElementById("mcpb");
+    const cnt = document.getElementById("mcpc");
+    const rows = mcpShown();
+    if (boxEl) boxEl.innerHTML = rows.map(mcpLine).join("") || `<div class="entry"><div class="sys">没有匹配的行</div></div>`;
+    if (cnt) cnt.textContent = `${rows.length} 条`;
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (state.dialog === "ask") finishImport(false);
+  else if (state.dialog) state.dialog = null;
+  else if (state.menu) state.menu = false;
+  else return;
+  render();
+});
+render();
+</script>
+</body>
+</html>
