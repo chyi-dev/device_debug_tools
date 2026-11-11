@@ -65,7 +65,9 @@
     "logCount": "$count 条",
     "logSearch": "搜索",
     "logEmpty": "还没有 MCP 动作记录",
-    "tab": "MCP"
+    "tab": "MCP",
+    "requiresLicense": "未激活不能使用 MCP",
+    "openSupport": "查看激活方式"
   },
   "common": {
     "confirm": "确认",
@@ -82,9 +84,10 @@
     "duplicate": "复制",
     "github": "项目地址",
     "githubUrl": "https://github.com/chyi-dev/device_debug_tools",
-    "email": "邮箱",
-    "emailAddress": "757120553@qq.com",
-    "appreciateHint": "使用微信扫一扫"
+    "appreciateHint": "使用微信扫一扫",
+    "officialAccount": "公众号",
+    "rewardCode": "赞赏码",
+    "aboutSupportHint": "欢迎关注公众号获取激活码，开源不易，请支持作者！"
   },
   "serial": {
     "menu": {
@@ -1024,8 +1027,11 @@
     "activationCode": "激活码",
     "activationHint": "请将设备码发给授权方，获取激活码后粘贴到此处。",
     "activate": "激活",
+    "activateEllipsis": "激活…",
     "invalid": "激活码无效，请检查后重试",
     "expired": "激活码已过期",
-    "success": "激活成功"
+    "success": "激活成功",
+    "supportBody": "请关注公众号，私信获取激活码；开源不易，请支持作者！",
+    "supportPathHint": "复制下方设备码，通过公众号私信发给作者换取激活码，拿到后点「激活…」粘贴。"
   }
 }

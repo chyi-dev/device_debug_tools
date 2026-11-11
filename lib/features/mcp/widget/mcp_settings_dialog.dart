@@ -11,8 +11,11 @@ import '../../serial/widget/serial_dialog.dart';
 import '../cubit/mcp_cubit.dart';
 import '../cubit/mcp_state.dart';
 import '../model/mcp_models.dart';
+import 'mcp_license_gate.dart';
 
-Future<void> showMcpSettingsDialog(BuildContext context) {
+Future<void> showMcpSettingsDialog(BuildContext context) async {
+  if (!await ensureMcpLicensed(context)) return;
+  if (!context.mounted) return;
   final cubit = context.read<McpCubit>();
   return showSerialDialog<void>(
     context: context,

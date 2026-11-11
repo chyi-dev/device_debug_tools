@@ -31,6 +31,8 @@ import 'package:device_debug_tools/features/socket/data/socket_workspace_store.d
 import 'package:device_debug_tools/features/socket/model/socket_models.dart';
 import 'package:device_debug_tools/features/socket/repository/socket_console_repository.dart';
 import 'package:device_debug_tools/features/license/cubit/license_cubit.dart';
+import 'package:device_debug_tools/features/license/cubit/license_state.dart';
+import 'package:device_debug_tools/features/license/data/device_code_source.dart';
 import 'package:device_debug_tools/features/license/repository/license_repository.dart';
 import 'package:device_debug_tools/features/mcp/cubit/mcp_cubit.dart';
 import 'package:device_debug_tools/features/mcp/data/mcp_settings_store.dart';
@@ -70,6 +72,16 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final box = Hive.box<dynamic>(StorageKeys.settingsBox);
+    final licenseRepo = LicenseRepository(
+      settings: box,
+      deviceCodes: _FixedDeviceCode('ABCD-EFGH-IJKL-MNOP'),
+    );
+    // 已激活：不弹支持窗，聚焦页签命中测试。
+    final licenseCubit = _ActivatedLicenseCubit(repository: licenseRepo);
+    await licenseCubit.start();
+    addTearDown(licenseCubit.close);
+
     await tester.pumpWidget(
       TranslationProvider(
         child: MaterialApp(
@@ -89,16 +101,10 @@ void main() {
               RepositoryProvider<UpdateRepository>(
                 create: (_) => UpdateRepository(prefs: prefs),
               ),
-              RepositoryProvider<LicenseRepository>(
-                create: (_) => LicenseRepository(
-                  settings: Hive.box<dynamic>(StorageKeys.settingsBox),
-                ),
-              ),
+              RepositoryProvider<LicenseRepository>.value(value: licenseRepo),
               RepositoryProvider<McpRepository>(
                 create: (_) => McpRepository(
-                  store: McpSettingsStore(
-                    Hive.box<dynamic>(StorageKeys.settingsBox),
-                  ),
+                  store: McpSettingsStore(box),
                 ),
               ),
             ],
@@ -109,11 +115,7 @@ void main() {
                     repository: context.read<UpdateRepository>(),
                   ),
                 ),
-                BlocProvider(
-                  create: (context) => LicenseCubit(
-                    repository: context.read<LicenseRepository>(),
-                  )..start(),
-                ),
+                BlocProvider<LicenseCubit>.value(value: licenseCubit),
                 BlocProvider(
                   create: (context) => McpCubit(
                     repository: context.read<McpRepository>(),
@@ -147,6 +149,33 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('扫描'), findsWidgets);
   });
+}
+
+class _FixedDeviceCode extends DeviceCodeSource {
+  _FixedDeviceCode(this.code) : super();
+
+  final String code;
+
+  @override
+  Future<String> resolve() async => code;
+}
+
+class _ActivatedLicenseCubit extends LicenseCubit {
+  _ActivatedLicenseCubit({required super.repository});
+
+  @override
+  Future<void> start() async {
+    emit(
+      LicenseState(
+        deviceCode: 'ABCD-EFGH-IJKL-MNOP',
+        showUnlicensedBanner: false,
+        inTrial: false,
+        trialEndsOn: DateTime.utc(2030, 1, 1),
+        licenseExpiresOn: DateTime.utc(2030, 1, 1),
+        ready: true,
+      ),
+    );
+  }
 }
 
 class _MemoryTabs implements HomeTabStore {

@@ -59,6 +59,17 @@ class McpRepository {
     }
   }
 
+  /// 因未激活停掉监听，不改写已保存的 [McpSettings.enabled]。
+  Future<void> suspendListening() async {
+    final wasListening = listening;
+    await _stopServer();
+    _queue.clearAll(outcome: McpAskOutcome.revoked);
+    if (wasListening) {
+      _log('未激活，已暂停 MCP');
+    }
+    _notify();
+  }
+
   Future<void> setEnabled(bool enabled) async {
     _settings = _settings.copyWith(enabled: enabled);
     await _persist();

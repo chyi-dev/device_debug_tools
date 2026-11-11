@@ -4,8 +4,9 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
+import 'support_codes.dart';
 
-/// 关于弹窗共用的项目地址与邮箱。
+/// 关于弹窗共用的项目地址与公众号 / 赞赏码。
 class AboutContact extends StatelessWidget {
   const AboutContact({super.key});
 
@@ -17,45 +18,25 @@ class AboutContact extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Row(
-          label: t.common.github,
-          value: t.common.githubUrl,
-          labelStyle: AppTextStyles.caption(cs).copyWith(color: palette.muted),
-          valueStyle: AppTextStyles.mono(cs, fontSize: 13, color: palette.text),
+        Text(
+          t.common.github,
+          style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        _Row(
-          label: t.common.email,
-          value: t.common.emailAddress,
-          labelStyle: AppTextStyles.caption(cs).copyWith(color: palette.muted),
-          valueStyle: AppTextStyles.mono(cs, fontSize: 13, color: palette.text),
-        ),
-      ],
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({
-    required this.label,
-    required this.value,
-    required this.labelStyle,
-    required this.valueStyle,
-  });
-
-  final String label;
-  final String value;
-  final TextStyle labelStyle;
-  final TextStyle valueStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: labelStyle),
         const SizedBox(height: AppSpacing.xs),
-        SelectableText(value, style: valueStyle),
+        SelectableText(
+          t.common.githubUrl,
+          style: AppTextStyles.mono(cs, fontSize: 13, color: palette.text),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          t.common.aboutSupportHint,
+          style: AppTextStyles.caption(cs).copyWith(
+            color: palette.muted,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        const SupportCodes(qrWidth: 140),
       ],
     );
   }

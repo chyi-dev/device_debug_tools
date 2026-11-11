@@ -8,6 +8,7 @@ import '../../../i18n/i18n.dart';
 import '../../serial/serial_metrics.dart';
 import '../cubit/mcp_cubit.dart';
 import '../cubit/mcp_state.dart';
+import 'mcp_license_gate.dart';
 import 'mcp_messages_dialog.dart';
 
 /// 顶栏右上角消息入口；有待处理项时显示条数。
@@ -26,7 +27,11 @@ class McpMessagesButton extends StatelessWidget {
         return Tooltip(
           message: t.mcp.messagesTip,
           child: InkWell(
-            onTap: () => showMcpMessagesDialog(context),
+            onTap: () async {
+              if (!await ensureMcpLicensed(context)) return;
+              if (!context.mounted) return;
+              await showMcpMessagesDialog(context);
+            },
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             child: SizedBox(
               height: SerialMetrics.menuBar,

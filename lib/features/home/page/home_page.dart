@@ -7,6 +7,10 @@ import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../../ble/data/ble_session_factory.dart';
 import '../../ble/page/ble_console_page.dart';
+import '../../license/cubit/license_cubit.dart';
+import '../../license/cubit/license_state.dart';
+import '../../license/widget/license_banner.dart';
+import '../../license/widget/license_support_dialog.dart';
 import '../../mcp/cubit/mcp_cubit.dart';
 import '../../mqtt/data/mqtt_session_factory.dart';
 import '../../mqtt/page/mqtt_console_page.dart';
@@ -14,7 +18,6 @@ import '../../serial/data/serial_session_factory.dart';
 import '../../serial/page/serial_console_page.dart';
 import '../../socket/data/socket_session_factory.dart';
 import '../../socket/page/socket_console_page.dart';
-import '../../license/widget/license_banner.dart';
 import '../../update/widget/update_dialogs.dart';
 import '../cubit/home_tabs_cubit.dart';
 import '../data/home_mcp_bridge.dart';
@@ -37,22 +40,24 @@ class HomePage extends StatelessWidget {
         sockets: context.read<SocketSessionFactory>(),
         tabs: context.read<HomeTabStore>(),
       )..start(),
-      child: const UpdateHost(child: _HomeMcpBinder(child: _HomeView())),
+      child: const UpdateHost(child: _HomeLicenseMcpGate(child: _HomeView())),
     );
   }
 }
 
-class _HomeMcpBinder extends StatefulWidget {
-  const _HomeMcpBinder({required this.child});
+/// 绑定 MCP 工作台，并按授权状态启停本机监听；未激活时启动弹一次支持窗。
+class _HomeLicenseMcpGate extends StatefulWidget {
+  const _HomeLicenseMcpGate({required this.child});
 
   final Widget child;
 
   @override
-  State<_HomeMcpBinder> createState() => _HomeMcpBinderState();
+  State<_HomeLicenseMcpGate> createState() => _HomeLicenseMcpGateState();
 }
 
-class _HomeMcpBinderState extends State<_HomeMcpBinder> {
+class _HomeLicenseMcpGateState extends State<_HomeLicenseMcpGate> {
   McpCubit? _mcp;
+  var _supportPrompted = false;
 
   @override
   void initState() {
@@ -62,6 +67,7 @@ class _HomeMcpBinderState extends State<_HomeMcpBinder> {
       _mcp = context.read<McpCubit>();
       final home = context.read<HomeTabsCubit>();
       _mcp!.bindWorkbench(HomeMcpBridge(home));
+      _syncLicense(context.read<LicenseCubit>().state);
     });
   }
 
@@ -71,8 +77,40 @@ class _HomeMcpBinderState extends State<_HomeMcpBinder> {
     super.dispose();
   }
 
+  Future<void> _syncLicense(LicenseState license) async {
+    if (!license.ready || !mounted) return;
+    final mcp = _mcp ?? context.read<McpCubit>();
+    await mcp.setLicenseActive(license.isActivated);
+    if (!mounted) return;
+    if (license.isActivated) {
+      _supportPrompted = true;
+    }
+    // 加载失败时 deviceCode 为空：不弹窗，也不启动 MCP。
+    if (!license.isActivated &&
+        license.deviceCode.isNotEmpty &&
+        !_supportPrompted) {
+      _supportPrompted = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await showLicenseSupportDialog(context);
+      });
+    }
+  }
+
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    return BlocListener<LicenseCubit, LicenseState>(
+      listenWhen: (a, b) =>
+          a.ready != b.ready ||
+          a.isActivated != b.isActivated ||
+          a.inTrial != b.inTrial ||
+          a.showUnlicensedBanner != b.showUnlicensedBanner,
+      listener: (context, state) {
+        _syncLicense(state);
+      },
+      child: widget.child,
+    );
+  }
 }
 
 class _HomeView extends StatelessWidget {

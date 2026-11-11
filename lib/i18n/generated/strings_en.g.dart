@@ -146,6 +146,8 @@ class _Translations$mcp$en extends Translations$mcp$zh {
 	@override String get logSearch => 'Search';
 	@override String get logEmpty => 'No MCP actions yet';
 	@override String get tab => 'MCP';
+	@override String get requiresLicense => 'Activate the app to use MCP';
+	@override String get openSupport => 'How to activate';
 }
 
 // Path: common
@@ -169,9 +171,10 @@ class _Translations$common$en extends Translations$common$zh {
 	@override String get duplicate => 'Duplicate';
 	@override String get github => 'Project';
 	@override String get githubUrl => 'https://github.com/chyi-dev/device_debug_tools';
-	@override String get email => 'Email';
-	@override String get emailAddress => '757120553@qq.com';
 	@override String get appreciateHint => 'Scan with WeChat';
+	@override String get officialAccount => 'Official account';
+	@override String get rewardCode => 'Tip QR code';
+	@override String get aboutSupportHint => 'Follow the official account for an activation code. Support the author if you can!';
 }
 
 // Path: serial
@@ -360,9 +363,12 @@ class _Translations$license$en extends Translations$license$zh {
 	@override String get activationCode => 'Activation code';
 	@override String get activationHint => 'Send the device code to the issuer, then paste the activation code here.';
 	@override String get activate => 'Activate';
+	@override String get activateEllipsis => 'Activate…';
 	@override String get invalid => 'Invalid activation code. Please check and try again.';
 	@override String get expired => 'This activation code has expired';
 	@override String get success => 'Activated successfully';
+	@override String get supportBody => 'Follow the official account and message us for an activation code. Open source takes work — please support the author!';
+	@override String get supportPathHint => 'Copy the device code below, send it via the official account DM, then tap Activate… and paste the code you receive.';
 }
 
 // Path: serial.menu
@@ -1778,6 +1784,8 @@ extension on TranslationsEn {
 			'mcp.logSearch' => 'Search',
 			'mcp.logEmpty' => 'No MCP actions yet',
 			'mcp.tab' => 'MCP',
+			'mcp.requiresLicense' => 'Activate the app to use MCP',
+			'mcp.openSupport' => 'How to activate',
 			'common.confirm' => 'Confirm',
 			'common.cancel' => 'Cancel',
 			'common.retry' => 'Retry',
@@ -1792,9 +1800,10 @@ extension on TranslationsEn {
 			'common.duplicate' => 'Duplicate',
 			'common.github' => 'Project',
 			'common.githubUrl' => 'https://github.com/chyi-dev/device_debug_tools',
-			'common.email' => 'Email',
-			'common.emailAddress' => '757120553@qq.com',
 			'common.appreciateHint' => 'Scan with WeChat',
+			'common.officialAccount' => 'Official account',
+			'common.rewardCode' => 'Tip QR code',
+			'common.aboutSupportHint' => 'Follow the official account for an activation code. Support the author if you can!',
 			'serial.menu.file' => 'File',
 			'serial.menu.settings' => 'Settings',
 			'serial.menu.tools' => 'Tools',
@@ -2227,11 +2236,11 @@ extension on TranslationsEn {
 			'ble.scan.scanning' => 'Scanning',
 			'ble.scan.empty' => 'No matching devices',
 			'ble.scan.notScanned' => 'Not scanned yet',
+			_ => null,
+		} ?? switch (path) {
 			'ble.scan.adapterOff' => 'Bluetooth adapter unavailable',
 			'ble.connect' => 'Connect',
 			'ble.disconnect' => 'Disconnect',
-			_ => null,
-		} ?? switch (path) {
 			'ble.connecting' => 'Connecting…',
 			'ble.pin.title' => 'Pinned channels',
 			'ble.pin.notify' => 'Notify',
@@ -2586,9 +2595,12 @@ extension on TranslationsEn {
 			'license.activationCode' => 'Activation code',
 			'license.activationHint' => 'Send the device code to the issuer, then paste the activation code here.',
 			'license.activate' => 'Activate',
+			'license.activateEllipsis' => 'Activate…',
 			'license.invalid' => 'Invalid activation code. Please check and try again.',
 			'license.expired' => 'This activation code has expired',
 			'license.success' => 'Activated successfully',
+			'license.supportBody' => 'Follow the official account and message us for an activation code. Open source takes work — please support the author!',
+			'license.supportPathHint' => 'Copy the device code below, send it via the official account DM, then tap Activate… and paste the code you receive.',
 			_ => null,
 		};
 	}

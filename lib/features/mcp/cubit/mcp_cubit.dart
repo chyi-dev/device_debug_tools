@@ -15,27 +15,39 @@ class McpCubit extends Cubit<McpState> {
   }
 
   final McpRepository _repo;
+  var _licenseActive = false;
+
+  bool get licenseActive => _licenseActive;
 
   void bindWorkbench(McpWorkbench workbench) => _repo.bindWorkbench(workbench);
 
   void unbindWorkbench() => _repo.unbindWorkbench();
 
-  Future<void> start() async {
+  /// 授权就绪后调用；未激活时不监听本机端口，激活后按已存开关拉起。
+  Future<void> setLicenseActive(bool active) async {
+    _licenseActive = active;
     try {
-      await _repo.startIfNeeded();
-      _sync();
+      if (!active) {
+        await _repo.suspendListening();
+      } else {
+        await _repo.startIfNeeded();
+      }
     } catch (e, s) {
       AppLogger.i.error(
-        'MCP cubit start failed',
+        'MCP license gate failed',
         category: LogCategory.app,
         error: e,
         stackTrace: s,
       );
-      _sync();
     }
+    _sync();
   }
 
   Future<void> setEnabled(bool enabled) async {
+    if (enabled && !_licenseActive) {
+      _sync();
+      return;
+    }
     try {
       await _repo.setEnabled(enabled);
     } catch (e, s) {
@@ -50,6 +62,9 @@ class McpCubit extends Cubit<McpState> {
   }
 
   Future<void> saveSettings(McpSettings settings) async {
+    if (settings.enabled && !_licenseActive) {
+      settings = settings.copyWith(enabled: false);
+    }
     try {
       await _repo.updateSettings(settings);
     } catch (e, s) {

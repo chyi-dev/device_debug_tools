@@ -111,7 +111,7 @@ Widget buildAppRoot({required UserPrefsStorage userPrefsStorage}) {
             BlocProvider(
               create: (context) => McpCubit(
                 repository: context.read<McpRepository>(),
-              )..start(),
+              ),
             ),
           ],
           child: TranslationProvider(child: const MyApp()),

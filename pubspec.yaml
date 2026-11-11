@@ -84,6 +84,7 @@ flutter:
 
   assets:
     - assets/appreciate/wechat_reward.jpg
+    - assets/appreciate/wechat_official.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

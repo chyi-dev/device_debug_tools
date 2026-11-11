@@ -1,8 +1,45 @@
+import 'package:device_debug_tools/features/license/cubit/license_state.dart';
 import 'package:device_debug_tools/features/license/model/license_evaluation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final trialStart = DateTime.utc(2025, 11, 5);
+
+  group('LicenseState.isActivated', () {
+    test('试用中不算已激活', () {
+      final s = LicenseState(
+        deviceCode: 'ABC',
+        showUnlicensedBanner: false,
+        inTrial: true,
+        trialEndsOn: DateTime.utc(2026, 11, 5),
+        ready: true,
+      );
+      expect(s.isActivated, isFalse);
+    });
+
+    test('试用结束未激活不算已激活', () {
+      final s = LicenseState(
+        deviceCode: 'ABC',
+        showUnlicensedBanner: true,
+        inTrial: false,
+        trialEndsOn: DateTime.utc(2026, 11, 5),
+        ready: true,
+      );
+      expect(s.isActivated, isFalse);
+    });
+
+    test('有效激活码为已激活', () {
+      final s = LicenseState(
+        deviceCode: 'ABC',
+        showUnlicensedBanner: false,
+        inTrial: false,
+        trialEndsOn: DateTime.utc(2026, 11, 5),
+        licenseExpiresOn: DateTime.utc(2027, 11, 5),
+        ready: true,
+      );
+      expect(s.isActivated, isTrue);
+    });
+  });
 
   group('evaluateLicense', () {
     test('试用第 365 天仍无提示', () {

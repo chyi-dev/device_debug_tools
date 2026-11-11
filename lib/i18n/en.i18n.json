@@ -65,7 +65,9 @@
     "logCount": "$count entries",
     "logSearch": "Search",
     "logEmpty": "No MCP actions yet",
-    "tab": "MCP"
+    "tab": "MCP",
+    "requiresLicense": "Activate the app to use MCP",
+    "openSupport": "How to activate"
   },
   "common": {
     "confirm": "Confirm",
@@ -82,9 +84,10 @@
     "duplicate": "Duplicate",
     "github": "Project",
     "githubUrl": "https://github.com/chyi-dev/device_debug_tools",
-    "email": "Email",
-    "emailAddress": "757120553@qq.com",
-    "appreciateHint": "Scan with WeChat"
+    "appreciateHint": "Scan with WeChat",
+    "officialAccount": "Official account",
+    "rewardCode": "Tip QR code",
+    "aboutSupportHint": "Follow the official account for an activation code. Support the author if you can!"
   },
   "serial": {
     "menu": {
@@ -1024,8 +1027,11 @@
     "activationCode": "Activation code",
     "activationHint": "Send the device code to the issuer, then paste the activation code here.",
     "activate": "Activate",
+    "activateEllipsis": "Activate…",
     "invalid": "Invalid activation code. Please check and try again.",
     "expired": "This activation code has expired",
-    "success": "Activated successfully"
+    "success": "Activated successfully",
+    "supportBody": "Follow the official account and message us for an activation code. Open source takes work — please support the author!",
+    "supportPathHint": "Copy the device code below, send it via the official account DM, then tap Activate… and paste the code you receive."
   }
 }

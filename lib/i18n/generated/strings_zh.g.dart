@@ -268,6 +268,12 @@ class Translations$mcp$zh {
 
 	/// zh: 'MCP'
 	String get tab => 'MCP';
+
+	/// zh: '未激活不能使用 MCP'
+	String get requiresLicense => '未激活不能使用 MCP';
+
+	/// zh: '查看激活方式'
+	String get openSupport => '查看激活方式';
 }
 
 // Path: common
@@ -320,14 +326,17 @@ class Translations$common$zh {
 	/// zh: 'https://github.com/chyi-dev/device_debug_tools'
 	String get githubUrl => 'https://github.com/chyi-dev/device_debug_tools';
 
-	/// zh: '邮箱'
-	String get email => '邮箱';
-
-	/// zh: '757120553@qq.com'
-	String get emailAddress => '757120553@qq.com';
-
 	/// zh: '使用微信扫一扫'
 	String get appreciateHint => '使用微信扫一扫';
+
+	/// zh: '公众号'
+	String get officialAccount => '公众号';
+
+	/// zh: '赞赏码'
+	String get rewardCode => '赞赏码';
+
+	/// zh: '欢迎关注公众号获取激活码，开源不易，请支持作者！'
+	String get aboutSupportHint => '欢迎关注公众号获取激活码，开源不易，请支持作者！';
 }
 
 // Path: serial
@@ -693,6 +702,9 @@ class Translations$license$zh {
 	/// zh: '激活'
 	String get activate => '激活';
 
+	/// zh: '激活…'
+	String get activateEllipsis => '激活…';
+
 	/// zh: '激活码无效，请检查后重试'
 	String get invalid => '激活码无效，请检查后重试';
 
@@ -701,6 +713,12 @@ class Translations$license$zh {
 
 	/// zh: '激活成功'
 	String get success => '激活成功';
+
+	/// zh: '请关注公众号，私信获取激活码；开源不易，请支持作者！'
+	String get supportBody => '请关注公众号，私信获取激活码；开源不易，请支持作者！';
+
+	/// zh: '复制下方设备码，通过公众号私信发给作者换取激活码，拿到后点「激活…」粘贴。'
+	String get supportPathHint => '复制下方设备码，通过公众号私信发给作者换取激活码，拿到后点「激活…」粘贴。';
 }
 
 // Path: serial.menu
@@ -3529,6 +3547,8 @@ extension on Translations {
 			'mcp.logSearch' => '搜索',
 			'mcp.logEmpty' => '还没有 MCP 动作记录',
 			'mcp.tab' => 'MCP',
+			'mcp.requiresLicense' => '未激活不能使用 MCP',
+			'mcp.openSupport' => '查看激活方式',
 			'common.confirm' => '确认',
 			'common.cancel' => '取消',
 			'common.retry' => '重试',
@@ -3543,9 +3563,10 @@ extension on Translations {
 			'common.duplicate' => '复制',
 			'common.github' => '项目地址',
 			'common.githubUrl' => 'https://github.com/chyi-dev/device_debug_tools',
-			'common.email' => '邮箱',
-			'common.emailAddress' => '757120553@qq.com',
 			'common.appreciateHint' => '使用微信扫一扫',
+			'common.officialAccount' => '公众号',
+			'common.rewardCode' => '赞赏码',
+			'common.aboutSupportHint' => '欢迎关注公众号获取激活码，开源不易，请支持作者！',
 			'serial.menu.file' => '文件',
 			'serial.menu.settings' => '设置',
 			'serial.menu.tools' => '工具',
@@ -3978,11 +3999,11 @@ extension on Translations {
 			'ble.scan.scanning' => '扫描中',
 			'ble.scan.empty' => '没有匹配的设备',
 			'ble.scan.notScanned' => '尚未扫描',
+			_ => null,
+		} ?? switch (path) {
 			'ble.scan.adapterOff' => '蓝牙适配器不可用',
 			'ble.connect' => '连接',
 			'ble.disconnect' => '断开',
-			_ => null,
-		} ?? switch (path) {
 			'ble.connecting' => '连接中…',
 			'ble.pin.title' => '钉选通道',
 			'ble.pin.notify' => 'Notify',
@@ -4337,9 +4358,12 @@ extension on Translations {
 			'license.activationCode' => '激活码',
 			'license.activationHint' => '请将设备码发给授权方，获取激活码后粘贴到此处。',
 			'license.activate' => '激活',
+			'license.activateEllipsis' => '激活…',
 			'license.invalid' => '激活码无效，请检查后重试',
 			'license.expired' => '激活码已过期',
 			'license.success' => '激活成功',
+			'license.supportBody' => '请关注公众号，私信获取激活码；开源不易，请支持作者！',
+			'license.supportPathHint' => '复制下方设备码，通过公众号私信发给作者换取激活码，拿到后点「激活…」粘贴。',
 			_ => null,
 		};
 	}

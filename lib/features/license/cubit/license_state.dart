@@ -20,6 +20,9 @@ class LicenseState {
   final String? activateError;
   final bool activating;
 
+  /// 已有有效激活码（试用中 / 试用结束 / 激活码过期均为 false）。
+  bool get isActivated => ready && !inTrial && !showUnlicensedBanner;
+
   static final initial = LicenseState(
     deviceCode: '',
     showUnlicensedBanner: false,
