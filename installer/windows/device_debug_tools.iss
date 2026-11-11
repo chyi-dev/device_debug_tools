@@ -4,7 +4,7 @@
 ; 版本号需与 pubspec.yaml 的 version 保持一致
 
 #define MyAppName "设备调试工具"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.1.0"
 #define MyAppExeName "device_debug_tools.exe"
 #define MyAppPublisher "device_debug_tools"
 #define ReleaseDir "..\..\build\windows\x64\runner\Release"
