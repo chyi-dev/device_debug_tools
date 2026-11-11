@@ -1,3 +1,5 @@
+import '../../../core/constants/app_constants.dart';
+
 /// 纯函数评估：试用 / 已激活 / 需提示。
 class LicenseEvaluation {
   const LicenseEvaluation({
@@ -22,7 +24,7 @@ LicenseEvaluation evaluateLicense({
   required DateTime now,
   required String? storedActivation,
   required DateTime? Function(String activationCode) verifyStored,
-  int trialDays = 365,
+  int trialDays = AppConstants.licenseTrialDays,
 }) {
   final effective = now.isBefore(lastSeenAt) ? lastSeenAt : now;
   final trialStartDay = DateTime.utc(

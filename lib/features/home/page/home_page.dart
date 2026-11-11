@@ -45,7 +45,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-/// 绑定 MCP 工作台，并按授权状态启停本机监听；未激活时启动弹一次支持窗。
+/// 绑定 MCP 工作台，并按授权状态启停本机监听；试用结束后启动弹一次支持窗。
 class _HomeLicenseMcpGate extends StatefulWidget {
   const _HomeLicenseMcpGate({required this.child});
 
@@ -85,8 +85,9 @@ class _HomeLicenseMcpGateState extends State<_HomeLicenseMcpGate> {
     if (license.isActivated) {
       _supportPrompted = true;
     }
-    // 加载失败时 deviceCode 为空：不弹窗，也不启动 MCP。
-    if (!license.isActivated &&
+    // 试用中不弹；加载失败时 deviceCode 为空也不弹。
+    if (!license.inTrial &&
+        !license.isActivated &&
         license.deviceCode.isNotEmpty &&
         !_supportPrompted) {
       _supportPrompted = true;

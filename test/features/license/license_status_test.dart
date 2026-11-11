@@ -42,11 +42,11 @@ void main() {
   });
 
   group('evaluateLicense', () {
-    test('试用第 365 天仍无提示', () {
+    test('试用第 30 天仍无提示', () {
       final r = evaluateLicense(
         trialStartedAt: trialStart,
-        lastSeenAt: DateTime.utc(2026, 11, 4),
-        now: DateTime.utc(2026, 11, 5),
+        lastSeenAt: DateTime.utc(2025, 12, 4),
+        now: DateTime.utc(2025, 12, 5),
         storedActivation: null,
         verifyStored: (_) => null,
       );
@@ -54,11 +54,11 @@ void main() {
       expect(r.inTrial, isTrue);
     });
 
-    test('试用第 366 天出现提示', () {
+    test('试用第 31 天出现提示', () {
       final r = evaluateLicense(
         trialStartedAt: trialStart,
-        lastSeenAt: DateTime.utc(2026, 11, 5),
-        now: DateTime.utc(2026, 11, 6),
+        lastSeenAt: DateTime.utc(2025, 12, 5),
+        now: DateTime.utc(2025, 12, 6),
         storedActivation: null,
         verifyStored: (_) => null,
       );
@@ -69,13 +69,13 @@ void main() {
     test('时钟回拨不延长试用', () {
       final r = evaluateLicense(
         trialStartedAt: trialStart,
-        lastSeenAt: DateTime.utc(2026, 11, 6),
-        now: DateTime.utc(2025, 12, 1),
+        lastSeenAt: DateTime.utc(2025, 12, 6),
+        now: DateTime.utc(2025, 11, 20),
         storedActivation: null,
         verifyStored: (_) => null,
       );
       expect(r.showUnlicensedBanner, isTrue);
-      expect(r.effectiveNow, DateTime.utc(2026, 11, 6));
+      expect(r.effectiveNow, DateTime.utc(2025, 12, 6));
     });
 
     test('未过期激活码无提示', () {
