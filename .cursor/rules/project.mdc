@@ -10,7 +10,8 @@ alwaysApply: true
 - Flutter 桌面端设备调试工具（`device_debug_tools`），目标平台：**Windows / macOS / Linux**
 - SDK：`^3.10.8`；状态管理：**仅 Cubit**（不使用 Bloc 的 Event/State 模式）
 - 主要依赖：`flutter_bloc`、`go_router`、`hive`、`slang`、`logger`、`flutter_easyloading`、`package_info_plus`
-- 出站网络仅限 **GitHub Releases**（匿名检查更新与下载安装包），**无登录鉴权**；扩展其他网络能力前先评估并更新本规则与 `core.mdc`
+- 出站网络仅限 **GitHub Releases**（匿名检查更新与下载安装包），**无登录鉴权**
+- 入站仅本机 MCP：`127.0.0.1` JSON-RPC（feature `mcp/`）；扩展其他网络能力前先评估并更新本规则与 `core.mdc`
 
 ## 沟通与注释
 

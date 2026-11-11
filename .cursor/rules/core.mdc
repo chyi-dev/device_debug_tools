@@ -14,11 +14,12 @@ alwaysApply: false
 - Cubit / UI 层读取 `message`，不要到处 `e.toString()`
 - 新增异常子类加在同一文件，保持 sealed 便于 `switch` 穷举
 
-## 网络（更新检查）
+## 网络
 
-- 仅 `lib/features/update/` 访问外网：GitHub Releases API（`/releases/latest`）与附件下载
+- 出站：仅 `lib/features/update/` 访问外网：GitHub Releases API（`/releases/latest`）与附件下载
 - 匿名请求，User-Agent `device_debug_tools`；仓库常量见 `AppConstants.githubOwner` / `githubRepo`
 - Windows 安装包文件名约定：`device_debug_tools-<x.y.z>-setup.exe`
+- 入站：仅 `lib/features/mcp/` 在 `127.0.0.1` 提供 MCP JSON-RPC（默认端口见 `McpLimits.defaultPort`），不访问外网
 
 ## 存储
 

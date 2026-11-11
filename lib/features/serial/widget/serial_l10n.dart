@@ -131,6 +131,7 @@ String serialSysText(Translations t, LogLine line) {
     SysLogKind.batchStopped => log.batchStopped,
     SysLogKind.scriptBlocked => log.scriptBlocked(name: args['name'] ?? ''),
     SysLogKind.scriptFailed => log.scriptFailed(name: args['name'] ?? ''),
+    SysLogKind.mcpRejected => log.mcpRejected(detail: args['detail'] ?? ''),
     null => '',
   };
 }

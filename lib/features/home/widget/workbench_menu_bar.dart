@@ -9,6 +9,8 @@ import '../../../app/theme/serial_palette.dart';
 import '../../../core/widgets/app_window_caption.dart';
 import '../../../i18n/i18n.dart';
 import '../../license/widget/license_dialogs.dart';
+import '../../mcp/widget/mcp_messages_button.dart';
+import '../../mcp/widget/mcp_settings_dialog.dart';
 import '../../serial/serial_metrics.dart';
 import '../../update/cubit/update_cubit.dart';
 import 'appreciate_dialog.dart';
@@ -135,6 +137,10 @@ class WorkbenchMenuBar extends StatelessWidget {
                                 ],
                               ),
                               _Menu(label: menu.tools, items: toolItems),
+                              _MenuAction(
+                                label: t.mcp.menu,
+                                onPressed: () => showMcpSettingsDialog(context),
+                              ),
                               _Menu(
                                 label: menu.help,
                                 items: [
@@ -187,6 +193,7 @@ class WorkbenchMenuBar extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
               ],
+              const McpMessagesButton(),
               AppWindowButtons(
                 height: SerialMetrics.menuBar,
                 foreground: palette.text,
@@ -194,6 +201,32 @@ class WorkbenchMenuBar extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuAction extends StatelessWidget {
+  const _MenuAction({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
+      child: Container(
+        height: 28,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: AppTextStyles.body(cs).copyWith(color: palette.text),
         ),
       ),
     );

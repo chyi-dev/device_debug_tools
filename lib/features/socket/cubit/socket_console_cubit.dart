@@ -470,7 +470,7 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
 
   Future<void> sendQuick(String id) async {
     final command = state.quick.commandById(id);
-    if (command == null) return;
+    if (command == null || !command.enabled) return;
     await _transmit(
       command.data,
       format: command.format,
@@ -478,6 +478,29 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
       crlf: false,
       recordHistory: false,
     );
+  }
+
+  void toggleQuick(String id) {
+    final command = state.quick.commandById(id);
+    if (command == null) return;
+    _replaceQuick(command.copyWith(enabled: !command.enabled));
+  }
+
+  void _replaceQuick(QuickCommand command) {
+    final quick = <QuickNode>[
+      for (final node in state.quick)
+        switch (node) {
+          QuickCommand() => node.id == command.id ? command : node,
+          QuickFolder() => node.copyWith(
+            commands: [
+              for (final item in node.commands)
+                if (item.id == command.id) command else item,
+            ],
+          ),
+        },
+    ];
+    _emit(state.copyWith(quick: quick));
+    _persist();
   }
 
   Future<void> sendQuickByKey(String key) async {
@@ -963,6 +986,104 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
     );
     _persist();
     return script;
+  }
+
+  bool importScriptFromMcp({
+    required String name,
+    required String code,
+    required bool enabled,
+  }) {
+    if (state.scripts.any((s) => s.name == name)) return false;
+    final script = _addScript(name, code);
+    if (enabled) {
+      _replaceScript(script.id, (item) => item.copyWith(enabled: true));
+    }
+    return true;
+  }
+
+  bool importReplyFromMcp(ReplyRule rule) {
+    if (state.rules.any((r) => r.name == rule.name)) return false;
+    upsertRule(rule);
+    return true;
+  }
+
+  bool importQuickFromMcp({
+    required String name,
+    required String data,
+    required DataFormat format,
+    required bool enabled,
+  }) {
+    if (hasQuickNamed(name)) return false;
+    upsertQuick(
+      QuickCommand(
+        id: _freshId('q', {for (final c in state.quick.commands) c.id}),
+        name: name,
+        data: data,
+        format: format,
+        enabled: enabled,
+      ),
+    );
+    return true;
+  }
+
+  bool hasScriptNamed(String name) => state.scripts.any((s) => s.name == name);
+
+  bool hasReplyNamed(String name) => state.rules.any((r) => r.name == name);
+
+  bool hasQuickNamed(String name) =>
+      state.quick.commands.any((c) => c.name == name);
+
+  bool setScriptEnabledByName(String name, bool enabled) {
+    for (final script in state.scripts) {
+      if (script.name != name) continue;
+      if (script.enabled != enabled) {
+        _replaceScript(script.id, (item) => item.copyWith(enabled: enabled));
+      }
+      return true;
+    }
+    return false;
+  }
+
+  bool setReplyEnabledByName(String name, bool enabled) {
+    for (final rule in state.rules) {
+      if (rule.name != name) continue;
+      if (rule.enabled != enabled) {
+        _replaceRule(rule.id, (item) => item.copyWith(enabled: enabled));
+      }
+      return true;
+    }
+    return false;
+  }
+
+  bool setQuickEnabledByName(String name, bool enabled) {
+    final hits = state.quick.commands.where((c) => c.name == name);
+    if (hits.isEmpty) return false;
+    final hit = hits.first;
+    if (hit.enabled != enabled) {
+      _replaceQuick(hit.copyWith(enabled: enabled));
+    }
+    return true;
+  }
+
+  Future<bool> sendFromMcp(String text, {DataFormat format = DataFormat.hex}) {
+    return _transmit(text, format: format, recordHistory: true);
+  }
+
+  List<Map<String, String>> mcpLogSnapshot() {
+    return [
+      for (final line in state.lines)
+        {
+          'time': fullStamp(line.time),
+          'dir': line.dir.name,
+          'body': line.dir == LogDir.sys
+              ? '${line.sys?.name ?? ''}${line.args.isEmpty ? '' : ' ${line.args}'}'
+              : (line.bytes == null ? '' : SerialBytes.toHex(line.bytes!)),
+        },
+    ];
+  }
+
+  void noteMcpRejected(String detail) {
+    _sys(SysLogKind.mcpRejected, {'detail': detail});
   }
 
   void renameScript(String id, String name) {

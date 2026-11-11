@@ -99,6 +99,8 @@ String socketSysText(Translations t, SocketLogLine line) {
       name: args['name'] ?? '',
     ),
     SysLogKind.scriptFailed => serialLog.scriptFailed(name: args['name'] ?? ''),
+    SysLogKind.mcpRejected =>
+        serialLog.mcpRejected(detail: args['detail'] ?? ''),
     null => '',
   };
 }

@@ -46,10 +46,13 @@ const kBleToolTabs = <ToolTab>[
   ToolTab.reply,
   ToolTab.history,
   ToolTab.script,
+  ToolTab.mcp,
 ];
 
-ToolTab bleToolTab(ToolTab tab) =>
-    tab == ToolTab.calc ? ToolTab.quick : tab;
+ToolTab bleToolTab(ToolTab tab) => switch (tab) {
+  ToolTab.calc => ToolTab.quick,
+  _ => tab,
+};
 
 class BleNotice {
   const BleNotice({

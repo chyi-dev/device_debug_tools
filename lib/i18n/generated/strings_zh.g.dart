@@ -44,6 +44,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$app$zh app = Translations$app$zh.internal(_root);
 	late final Translations$nav$zh nav = Translations$nav$zh.internal(_root);
 	late final Translations$home$zh home = Translations$home$zh.internal(_root);
+	late final Translations$mcp$zh mcp = Translations$mcp$zh.internal(_root);
 	late final Translations$common$zh common = Translations$common$zh.internal(_root);
 	late final Translations$serial$zh serial = Translations$serial$zh.internal(_root);
 	late final Translations$ble$zh ble = Translations$ble$zh.internal(_root);
@@ -141,6 +142,132 @@ class Translations$home$zh {
 
 	/// zh: '名称'
 	String get renameName => '名称';
+
+	/// zh: '复制页签 ID'
+	String get copyTabId => '复制页签 ID';
+
+	/// zh: '页签 ID 已复制'
+	String get tabIdCopied => '页签 ID 已复制';
+}
+
+// Path: mcp
+class Translations$mcp$zh {
+	Translations$mcp$zh.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// zh: 'MCP'
+	String get menu => 'MCP';
+
+	/// zh: 'MCP 设置'
+	String get settingsTitle => 'MCP 设置';
+
+	/// zh: '启用 MCP'
+	String get enable => '启用 MCP';
+
+	/// zh: 'Cursor 已连上'
+	String get clientConnected => 'Cursor 已连上';
+
+	/// zh: '等待连接'
+	String get waitingClient => '等待连接';
+
+	/// zh: '地址 $url'
+	String endpoint({required Object url}) => '地址 ${url}';
+
+	/// zh: '复制 Cursor 配置'
+	String get copyConfig => '复制 Cursor 配置';
+
+	/// zh: '配置已复制'
+	String get configCopied => '配置已复制';
+
+	/// zh: '授权'
+	String get authTitle => '授权';
+
+	/// zh: '发送数据'
+	String get allowSend => '发送数据';
+
+	/// zh: '读取数据'
+	String get allowRead => '读取数据';
+
+	/// zh: '自动应答'
+	String get allowReply => '自动应答';
+
+	/// zh: '实现脚本'
+	String get allowScript => '实现脚本';
+
+	/// zh: '快捷指令'
+	String get allowQuick => '快捷指令';
+
+	/// zh: '自动应答启用策略'
+	String get replyPolicy => '自动应答启用策略';
+
+	/// zh: '脚本启用策略'
+	String get scriptPolicy => '脚本启用策略';
+
+	/// zh: '快捷指令启用策略'
+	String get quickPolicy => '快捷指令启用策略';
+
+	/// zh: '默认启用'
+	String get policyOn => '默认启用';
+
+	/// zh: '默认禁用'
+	String get policyOff => '默认禁用';
+
+	/// zh: '询问'
+	String get policyAsk => '询问';
+
+	/// zh: '关闭后还有 $count 条待确认'
+	String pendingHint({required Object count}) => '关闭后还有 ${count} 条待确认';
+
+	/// zh: '消息'
+	String get messages => '消息';
+
+	/// zh: '查看 MCP 待确认消息'
+	String get messagesTip => '查看 MCP 待确认消息';
+
+	/// zh: '消息'
+	String get messagesTitle => '消息';
+
+	/// zh: '没有待处理的消息'
+	String get messagesEmpty => '没有待处理的消息';
+
+	/// zh: '脚本'
+	String get kindScript => '脚本';
+
+	/// zh: '自动应答'
+	String get kindReply => '自动应答';
+
+	/// zh: '快捷指令'
+	String get kindQuick => '快捷指令';
+
+	/// zh: '自动应答 $name'
+	String replyTitle({required Object name}) => '自动应答 ${name}';
+
+	/// zh: '快捷指令 $name'
+	String quickTitle({required Object name}) => '快捷指令 ${name}';
+
+	/// zh: '目标页签：$name'
+	String targetTab({required Object name}) => '目标页签：${name}';
+
+	/// zh: '启用'
+	String get enableItem => '启用';
+
+	/// zh: 'MCP 日志'
+	String get logTitle => 'MCP 日志';
+
+	/// zh: '$count 条'
+	String logCount({required Object count}) => '${count} 条';
+
+	/// zh: '搜索'
+	String get logSearch => '搜索';
+
+	/// zh: '还没有 MCP 动作记录'
+	String get logEmpty => '还没有 MCP 动作记录';
+
+	/// zh: 'MCP'
+	String get tab => 'MCP';
 }
 
 // Path: common
@@ -928,6 +1055,9 @@ class Translations$serial$log$zh {
 
 	/// zh: '脚本「$name」出错，这一帧未发送，详见脚本运行日志'
 	String scriptFailed({required Object name}) => '脚本「${name}」出错，这一帧未发送，详见脚本运行日志';
+
+	/// zh: '$detail'
+	String mcpRejected({required Object detail}) => '${detail}';
 }
 
 // Path: serial.sendBox
@@ -985,6 +1115,9 @@ class Translations$serial$tab$zh {
 
 	/// zh: '脚本'
 	String get script => '脚本';
+
+	/// zh: 'MCP'
+	String get mcp => 'MCP';
 }
 
 // Path: serial.script
@@ -2378,6 +2511,9 @@ class Translations$mqtt$tab$zh {
 
 	/// zh: '脚本'
 	String get script => '脚本';
+
+	/// zh: 'MCP'
+	String get mcp => 'MCP';
 }
 
 // Path: mqtt.quick
@@ -3354,6 +3490,45 @@ extension on Translations {
 			'home.rename' => '重命名',
 			'home.renameTitle' => '重命名页签',
 			'home.renameName' => '名称',
+			'home.copyTabId' => '复制页签 ID',
+			'home.tabIdCopied' => '页签 ID 已复制',
+			'mcp.menu' => 'MCP',
+			'mcp.settingsTitle' => 'MCP 设置',
+			'mcp.enable' => '启用 MCP',
+			'mcp.clientConnected' => 'Cursor 已连上',
+			'mcp.waitingClient' => '等待连接',
+			'mcp.endpoint' => ({required Object url}) => '地址 ${url}',
+			'mcp.copyConfig' => '复制 Cursor 配置',
+			'mcp.configCopied' => '配置已复制',
+			'mcp.authTitle' => '授权',
+			'mcp.allowSend' => '发送数据',
+			'mcp.allowRead' => '读取数据',
+			'mcp.allowReply' => '自动应答',
+			'mcp.allowScript' => '实现脚本',
+			'mcp.allowQuick' => '快捷指令',
+			'mcp.replyPolicy' => '自动应答启用策略',
+			'mcp.scriptPolicy' => '脚本启用策略',
+			'mcp.quickPolicy' => '快捷指令启用策略',
+			'mcp.policyOn' => '默认启用',
+			'mcp.policyOff' => '默认禁用',
+			'mcp.policyAsk' => '询问',
+			'mcp.pendingHint' => ({required Object count}) => '关闭后还有 ${count} 条待确认',
+			'mcp.messages' => '消息',
+			'mcp.messagesTip' => '查看 MCP 待确认消息',
+			'mcp.messagesTitle' => '消息',
+			'mcp.messagesEmpty' => '没有待处理的消息',
+			'mcp.kindScript' => '脚本',
+			'mcp.kindReply' => '自动应答',
+			'mcp.kindQuick' => '快捷指令',
+			'mcp.replyTitle' => ({required Object name}) => '自动应答 ${name}',
+			'mcp.quickTitle' => ({required Object name}) => '快捷指令 ${name}',
+			'mcp.targetTab' => ({required Object name}) => '目标页签：${name}',
+			'mcp.enableItem' => '启用',
+			'mcp.logTitle' => 'MCP 日志',
+			'mcp.logCount' => ({required Object count}) => '${count} 条',
+			'mcp.logSearch' => '搜索',
+			'mcp.logEmpty' => '还没有 MCP 动作记录',
+			'mcp.tab' => 'MCP',
 			'common.confirm' => '确认',
 			'common.cancel' => '取消',
 			'common.retry' => '重试',
@@ -3463,6 +3638,7 @@ extension on Translations {
 			'serial.log.batchStopped' => '批量任务已手动停止',
 			'serial.log.scriptBlocked' => ({required Object name}) => '脚本「${name}」返回 nil，这一帧已拦截，未发送',
 			'serial.log.scriptFailed' => ({required Object name}) => '脚本「${name}」出错，这一帧未发送，详见脚本运行日志',
+			'serial.log.mcpRejected' => ({required Object detail}) => '${detail}',
 			'serial.sendBox.send' => '发送',
 			'serial.sendBox.stopLoop' => '停止循环',
 			'serial.sendBox.clear' => '清除',
@@ -3476,6 +3652,7 @@ extension on Translations {
 			'serial.tab.history' => '历史发送',
 			'serial.tab.calc' => '校验计算',
 			'serial.tab.script' => '脚本',
+			'serial.tab.mcp' => 'MCP',
 			'serial.script.note' => ({required Object enabled, required Object total}) => '已启用 ${enabled} / ${total}',
 			'serial.script.add' => '新建',
 			'serial.script.waiting' => '等待触发',
@@ -3804,6 +3981,8 @@ extension on Translations {
 			'ble.scan.adapterOff' => '蓝牙适配器不可用',
 			'ble.connect' => '连接',
 			'ble.disconnect' => '断开',
+			_ => null,
+		} ?? switch (path) {
 			'ble.connecting' => '连接中…',
 			'ble.pin.title' => '钉选通道',
 			'ble.pin.notify' => 'Notify',
@@ -3845,8 +4024,6 @@ extension on Translations {
 			'ble.script.explain' => '钩子读的是当前钉住的特征，换钉不用改脚本。',
 			'ble.dialog.quickTitle' => '快捷指令',
 			'ble.dialog.ruleTitle' => '应答规则',
-			_ => null,
-		} ?? switch (path) {
 			'ble.dialog.batchTitle' => '批量任务',
 			'ble.dialog.scriptTitle' => '脚本',
 			'ble.dialog.name' => '名称',
@@ -3961,6 +4138,7 @@ extension on Translations {
 			'mqtt.tab.quick' => '快捷发布',
 			'mqtt.tab.history' => '历史发送',
 			'mqtt.tab.script' => '脚本',
+			'mqtt.tab.mcp' => 'MCP',
 			'mqtt.quick.bar' => '可沿用或覆盖发布框',
 			'mqtt.quick.publish' => '发布',
 			'mqtt.quick.inherit' => '沿用发布框的 Topic、QoS、Retain',

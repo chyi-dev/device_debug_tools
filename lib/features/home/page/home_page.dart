@@ -7,6 +7,7 @@ import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../../ble/data/ble_session_factory.dart';
 import '../../ble/page/ble_console_page.dart';
+import '../../mcp/cubit/mcp_cubit.dart';
 import '../../mqtt/data/mqtt_session_factory.dart';
 import '../../mqtt/page/mqtt_console_page.dart';
 import '../../serial/data/serial_session_factory.dart';
@@ -16,6 +17,7 @@ import '../../socket/page/socket_console_page.dart';
 import '../../license/widget/license_banner.dart';
 import '../../update/widget/update_dialogs.dart';
 import '../cubit/home_tabs_cubit.dart';
+import '../data/home_mcp_bridge.dart';
 import '../data/home_tab_store.dart';
 import '../model/connection_kind.dart';
 import '../model/home_tab.dart';
@@ -35,9 +37,42 @@ class HomePage extends StatelessWidget {
         sockets: context.read<SocketSessionFactory>(),
         tabs: context.read<HomeTabStore>(),
       )..start(),
-      child: const UpdateHost(child: _HomeView()),
+      child: const UpdateHost(child: _HomeMcpBinder(child: _HomeView())),
     );
   }
+}
+
+class _HomeMcpBinder extends StatefulWidget {
+  const _HomeMcpBinder({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_HomeMcpBinder> createState() => _HomeMcpBinderState();
+}
+
+class _HomeMcpBinderState extends State<_HomeMcpBinder> {
+  McpCubit? _mcp;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _mcp = context.read<McpCubit>();
+      final home = context.read<HomeTabsCubit>();
+      _mcp!.bindWorkbench(HomeMcpBridge(home));
+    });
+  }
+
+  @override
+  void dispose() {
+    _mcp?.unbindWorkbench();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _HomeView extends StatelessWidget {

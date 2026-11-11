@@ -320,10 +320,23 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
   Future<void> sendQuick(String id) async {
     for (final item in state.quick) {
       if (item.id == id) {
+        if (!item.enabled) return;
         await _transmit(item.data, format: item.format);
         return;
       }
     }
+  }
+
+  void toggleQuick(String id) {
+    emit(
+      state.copyWith(
+        quick: [
+          for (final item in state.quick)
+            if (item.id == id) item.copyWith(enabled: !item.enabled) else item,
+        ],
+      ),
+    );
+    _persist();
   }
 
   void sendQuickByKey(String key) {
@@ -463,6 +476,140 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
     _persist();
     _notify(BleNoticeKind.scriptSaved, toast: true);
   }
+
+  bool importScriptFromMcp({
+    required String name,
+    required String code,
+    required bool enabled,
+  }) {
+    if (state.scripts.any((item) => item.name == name)) return false;
+    final script = LuaScript(
+      id: newSerialId('s'),
+      name: name,
+      code: code,
+      enabled: enabled,
+    );
+    saveScript(script);
+    return true;
+  }
+
+  bool importReplyFromMcp(ReplyRule rule) {
+    if (state.rules.any((item) => item.name == rule.name)) return false;
+    saveRule(rule);
+    return true;
+  }
+
+  bool importQuickFromMcp({
+    required String name,
+    required String data,
+    required DataFormat format,
+    required bool enabled,
+  }) {
+    if (hasQuickNamed(name)) return false;
+    saveQuick(
+      QuickCommand(
+        id: newSerialId('q'),
+        name: name,
+        data: data,
+        format: format,
+        enabled: enabled,
+      ),
+    );
+    return true;
+  }
+
+  bool hasScriptNamed(String name) =>
+      state.scripts.any((item) => item.name == name);
+
+  bool hasReplyNamed(String name) => state.rules.any((item) => item.name == name);
+
+  bool hasQuickNamed(String name) => state.quick.any((item) => item.name == name);
+
+  bool setScriptEnabledByName(String name, bool enabled) {
+    for (final script in state.scripts) {
+      if (script.name != name) continue;
+      if (script.enabled != enabled) {
+        emit(
+          state.copyWith(
+            scripts: [
+              for (final item in state.scripts)
+                if (item.id == script.id)
+                  item.copyWith(enabled: enabled)
+                else
+                  item,
+            ],
+          ),
+        );
+        _persist();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  bool setReplyEnabledByName(String name, bool enabled) {
+    for (final rule in state.rules) {
+      if (rule.name != name) continue;
+      if (rule.enabled != enabled) {
+        emit(
+          state.copyWith(
+            rules: [
+              for (final item in state.rules)
+                if (item.id == rule.id)
+                  item.copyWith(enabled: enabled)
+                else
+                  item,
+            ],
+          ),
+        );
+        _persist();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  bool setQuickEnabledByName(String name, bool enabled) {
+    for (final command in state.quick) {
+      if (command.name != name) continue;
+      if (command.enabled != enabled) {
+        emit(
+          state.copyWith(
+            quick: [
+              for (final item in state.quick)
+                if (item.id == command.id)
+                  item.copyWith(enabled: enabled)
+                else
+                  item,
+            ],
+          ),
+        );
+        _persist();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> sendFromMcp(String text, {DataFormat format = DataFormat.hex}) async {
+    await _transmit(text, format: format, recordHistory: true);
+    return true;
+  }
+
+  List<Map<String, String>> mcpLogSnapshot() {
+    return [
+      for (final line in state.lines)
+        {
+          'time': fullStamp(line.time),
+          'dir': line.dir.name,
+          'body': line.dir == LogDir.sys
+              ? line.text
+              : (line.bytes == null ? line.text : SerialBytes.toHex(line.bytes!)),
+        },
+    ];
+  }
+
+  void noteMcpRejected(String detail) => _sys(detail);
 
   void toggleScript(String id) {
     LuaScript? hit;

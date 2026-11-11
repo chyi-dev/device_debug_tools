@@ -24,7 +24,48 @@
     "emptyConnections": "还没有连接。点「新增」创建串口、蓝牙、MQTT 或 TCP/UDP 页签。",
     "rename": "重命名",
     "renameTitle": "重命名页签",
-    "renameName": "名称"
+    "renameName": "名称",
+    "copyTabId": "复制页签 ID",
+    "tabIdCopied": "页签 ID 已复制"
+  },
+  "mcp": {
+    "menu": "MCP",
+    "settingsTitle": "MCP 设置",
+    "enable": "启用 MCP",
+    "clientConnected": "Cursor 已连上",
+    "waitingClient": "等待连接",
+    "endpoint": "地址 $url",
+    "copyConfig": "复制 Cursor 配置",
+    "configCopied": "配置已复制",
+    "authTitle": "授权",
+    "allowSend": "发送数据",
+    "allowRead": "读取数据",
+    "allowReply": "自动应答",
+    "allowScript": "实现脚本",
+    "allowQuick": "快捷指令",
+    "replyPolicy": "自动应答启用策略",
+    "scriptPolicy": "脚本启用策略",
+    "quickPolicy": "快捷指令启用策略",
+    "policyOn": "默认启用",
+    "policyOff": "默认禁用",
+    "policyAsk": "询问",
+    "pendingHint": "关闭后还有 $count 条待确认",
+    "messages": "消息",
+    "messagesTip": "查看 MCP 待确认消息",
+    "messagesTitle": "消息",
+    "messagesEmpty": "没有待处理的消息",
+    "kindScript": "脚本",
+    "kindReply": "自动应答",
+    "kindQuick": "快捷指令",
+    "replyTitle": "自动应答 $name",
+    "quickTitle": "快捷指令 $name",
+    "targetTab": "目标页签：$name",
+    "enableItem": "启用",
+    "logTitle": "MCP 日志",
+    "logCount": "$count 条",
+    "logSearch": "搜索",
+    "logEmpty": "还没有 MCP 动作记录",
+    "tab": "MCP"
   },
   "common": {
     "confirm": "确认",
@@ -156,7 +197,8 @@
       "batchFail": "第 $step 步失败，任务停止",
       "batchStopped": "批量任务已手动停止",
       "scriptBlocked": "脚本「$name」返回 nil，这一帧已拦截，未发送",
-      "scriptFailed": "脚本「$name」出错，这一帧未发送，详见脚本运行日志"
+      "scriptFailed": "脚本「$name」出错，这一帧未发送，详见脚本运行日志",
+      "mcpRejected": "$detail"
     },
     "sendBox": {
       "send": "发送",
@@ -173,7 +215,8 @@
       "reply": "自动应答",
       "history": "历史发送",
       "calc": "校验计算",
-      "script": "脚本"
+      "script": "脚本",
+      "mcp": "MCP"
     },
     "script": {
       "note": "已启用 $enabled / $total",
@@ -744,7 +787,8 @@
       "subs": "订阅",
       "quick": "快捷发布",
       "history": "历史发送",
-      "script": "脚本"
+      "script": "脚本",
+      "mcp": "MCP"
     },
     "quick": {
       "bar": "可沿用或覆盖发布框",

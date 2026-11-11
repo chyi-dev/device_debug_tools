@@ -10,6 +10,8 @@ import '../../../core/widgets/app_window_caption.dart';
 import '../../../i18n/i18n.dart';
 import '../../home/widget/appreciate_dialog.dart';
 import '../../license/widget/license_dialogs.dart';
+import '../../mcp/widget/mcp_messages_button.dart';
+import '../../mcp/widget/mcp_settings_dialog.dart';
 import '../../update/cubit/update_cubit.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
@@ -142,6 +144,10 @@ class SerialMenuBar extends StatelessWidget {
                                     _Item(_tabLabel(t, tab), () => onTab(tab)),
                                 ],
                               ),
+                              _MenuAction(
+                                label: t.mcp.menu,
+                                onPressed: () => showMcpSettingsDialog(context),
+                              ),
                               _Menu(
                                 label: menu.help,
                                 items: [
@@ -192,6 +198,7 @@ class SerialMenuBar extends StatelessWidget {
                 onPressed: onTools,
               ),
               const SizedBox(width: AppSpacing.sm),
+              const McpMessagesButton(),
               AppWindowButtons(
                 height: SerialMetrics.menuBar,
                 foreground: palette.text,
@@ -205,6 +212,32 @@ class SerialMenuBar extends StatelessWidget {
   }
 }
 
+class _MenuAction extends StatelessWidget {
+  const _MenuAction({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
+      child: Container(
+        height: 28,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: AppTextStyles.body(cs).copyWith(color: palette.text),
+        ),
+      ),
+    );
+  }
+}
+
 String _tabLabel(Translations t, ToolTab tab) => switch (tab) {
   ToolTab.quick => t.serial.tab.quick,
   ToolTab.batch => t.serial.tab.batch,
@@ -212,6 +245,7 @@ String _tabLabel(Translations t, ToolTab tab) => switch (tab) {
   ToolTab.history => t.serial.tab.history,
   ToolTab.calc => t.serial.tab.calc,
   ToolTab.script => t.serial.tab.script,
+  ToolTab.mcp => t.mcp.tab,
 };
 
 class _Item {

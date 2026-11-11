@@ -79,6 +79,7 @@ class _QuickFormState extends State<_QuickForm> {
                 data: _data.text,
                 format: DataFormat.hex,
                 key: _key,
+                enabled: widget.initial?.enabled ?? true,
               ),
             );
           },

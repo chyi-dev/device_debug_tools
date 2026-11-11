@@ -1009,6 +1009,60 @@ class MqttConsoleCubit extends Cubit<MqttConsoleState> {
     return script;
   }
 
+  bool importScriptFromMcp({
+    required String name,
+    required String code,
+    required bool enabled,
+  }) {
+    if (state.scripts.any((item) => item.name == name)) return false;
+    final script = _addScript(name, code);
+    if (enabled) {
+      _replaceScript(script.id, (item) => item.copyWith(enabled: true));
+    }
+    return true;
+  }
+
+  bool hasScriptNamed(String name) =>
+      state.scripts.any((item) => item.name == name);
+
+  bool setScriptEnabledByName(String name, bool enabled) {
+    for (final script in state.scripts) {
+      if (script.name != name) continue;
+      if (script.enabled != enabled) {
+        _replaceScript(script.id, (item) => item.copyWith(enabled: enabled));
+      }
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> sendFromMcp(String payload, {String? topic}) async {
+    final pubTopic = (topic ?? state.pubTopic).trim();
+    await _publish(
+      topic: pubTopic,
+      payload: payload,
+      qos: state.pubQos,
+      retain: state.pubRetain,
+      recordHistory: true,
+    );
+    return true;
+  }
+
+  List<Map<String, String>> mcpLogSnapshot() {
+    return [
+      for (final line in state.lines)
+        {
+          'time': fullStamp(line.time),
+          'dir': line.dir.name,
+          'body': line.topic.isEmpty
+              ? line.payload
+              : '${line.topic} | ${line.payload}',
+        },
+    ];
+  }
+
+  void noteMcpRejected(String detail) => _sys(detail);
+
   void _replaceScript(String id, LuaScript Function(LuaScript item) update) {
     emit(
       state.copyWith(

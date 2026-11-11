@@ -307,7 +307,7 @@ class MqttLinkConfig {
       caFile.isNotEmpty || clientCert.isNotEmpty || clientKey.isNotEmpty;
 }
 
-enum MqttToolTab { subs, quick, history, script }
+enum MqttToolTab { subs, quick, history, script, mcp }
 
 /// 用「发布」按钮发出的一条记录。快捷发布不进入这里。
 class MqttHistoryEntry {

@@ -160,6 +160,7 @@ class _MqttConsoleViewState extends State<MqttConsoleView> {
                             MqttToolTab.quick => t.mqtt.tab.quick,
                             MqttToolTab.history => t.mqtt.tab.history,
                             MqttToolTab.script => t.mqtt.tab.script,
+                            MqttToolTab.mcp => t.mcp.tab,
                           }, () => cubit.setTab(tab)),
                       ],
                       onCompact: () =>

@@ -1,10 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
+import '../../../core/widgets/app_snack_bar.dart';
 import '../../../i18n/i18n.dart';
 import '../../ble/cubit/ble_console_cubit.dart';
 import '../../ble/cubit/ble_console_state.dart';
@@ -279,7 +281,7 @@ class _ConnectionTab extends StatelessWidget {
       Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 0, 0),
       Offset.zero & overlay.size,
     );
-    final label = Translations.of(context).home.rename;
+    final t = Translations.of(context);
     showMenu<void>(
       context: context,
       position: position,
@@ -296,7 +298,17 @@ class _ConnectionTab extends StatelessWidget {
               );
             });
           },
-          child: Text(label),
+          child: Text(t.home.rename),
+        ),
+        PopupMenuItem<void>(
+          onTap: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              await Clipboard.setData(ClipboardData(text: tab.id));
+              if (!context.mounted) return;
+              AppSnackBar.success(context, t.home.tabIdCopied);
+            });
+          },
+          child: Text(t.home.copyTabId),
         ),
       ],
     );

@@ -332,6 +332,7 @@ class _QuickEditorState extends State<_QuickEditor> {
         data: data,
         format: _format,
         key: _key,
+        enabled: widget.existing?.enabled ?? true,
       ),
       folderId: _folder.isEmpty ? null : _folder,
     );

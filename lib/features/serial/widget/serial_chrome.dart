@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -5,6 +6,71 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../serial_metrics.dart';
+
+/// 横向页签条：鼠标可拖、滚轮/触控板转为横向滑动（桌面默认滚轮是纵向）。
+class SerialTabScroller extends StatefulWidget {
+  const SerialTabScroller({super.key, required this.children});
+
+  final List<Widget> children;
+
+  @override
+  State<SerialTabScroller> createState() => _SerialTabScrollerState();
+}
+
+class _SerialTabScrollerState extends State<SerialTabScroller> {
+  final _controller = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onPointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent || !_controller.hasClients) return;
+    final scroll = event.scrollDelta;
+    final delta = scroll.dy.abs() >= scroll.dx.abs() ? scroll.dy : scroll.dx;
+    if (delta == 0) return;
+    GestureBinding.instance.pointerSignalResolver.register(event, (_) {
+      if (!_controller.hasClients) return;
+      _controller.position.pointerScroll(delta);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScrollConfiguration(
+      behavior: const _SerialTabScrollBehavior(),
+      child: Listener(
+        onPointerSignal: _onPointerSignal,
+        child: SingleChildScrollView(
+          controller: _controller,
+          scrollDirection: Axis.horizontal,
+          child: Row(children: widget.children),
+        ),
+      ),
+    );
+  }
+}
+
+class _SerialTabScrollBehavior extends MaterialScrollBehavior {
+  const _SerialTabScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => const {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+  };
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => child;
+}
 
 class SerialGroup extends StatelessWidget {
   const SerialGroup({

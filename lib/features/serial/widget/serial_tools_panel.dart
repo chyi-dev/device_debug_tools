@@ -14,6 +14,7 @@ import '../data/serial_stamp.dart';
 import '../model/script_lessons.dart';
 import '../model/serial_models.dart';
 import '../serial_metrics.dart';
+import '../../mcp/widget/mcp_log_panel.dart';
 import 'serial_chrome.dart';
 import 'serial_editors.dart';
 import 'serial_l10n.dart';
@@ -53,17 +54,10 @@ class _SerialToolsPanelState extends State<SerialToolsPanel> {
             children: [
               SizedBox(
                 height: 38,
-                child: Row(
+                child: SerialTabScroller(
                   children: [
                     for (final tab in ToolTab.values)
-                      if (tab == ToolTab.script) ...[
-                        // 脚本页会改动中间列，用竖线与其他页签隔开
-                        const SizedBox(width: AppSpacing.xs),
-                        Container(width: 1, height: 18, color: palette.line),
-                        const SizedBox(width: AppSpacing.xs),
-                        _tabButton(context, state, tab, padded: true),
-                      ] else
-                        Expanded(child: _tabButton(context, state, tab)),
+                      _tabButton(context, state, tab),
                   ],
                 ),
               ),
@@ -79,17 +73,14 @@ class _SerialToolsPanelState extends State<SerialToolsPanel> {
   Widget _tabButton(
     BuildContext context,
     SerialConsoleState state,
-    ToolTab tab, {
-    bool padded = false,
-  }) {
+    ToolTab tab,
+  ) {
     final palette = SerialPalette.of(context);
     final active = state.tab == tab;
     return InkWell(
       onTap: () => context.read<SerialConsoleCubit>().setTab(tab),
       child: Container(
-        padding: padded
-            ? const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4)
-            : EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -116,6 +107,7 @@ class _SerialToolsPanelState extends State<SerialToolsPanel> {
   Widget _body(BuildContext context, SerialConsoleState state) {
     return switch (state.tab) {
       ToolTab.script => _ScriptTab(state: state),
+      ToolTab.mcp => const McpLogPanel(),
       ToolTab.quick => _QuickTab(state: state),
       ToolTab.batch => _BatchTab(state: state),
       ToolTab.reply => _ReplyTab(state: state),
@@ -146,6 +138,7 @@ String _tabLabel(Translations t, ToolTab tab) => switch (tab) {
   ToolTab.history => t.serial.tab.history,
   ToolTab.calc => t.serial.tab.calc,
   ToolTab.script => t.serial.tab.script,
+  ToolTab.mcp => t.mcp.tab,
 };
 
 class _Bar extends StatelessWidget {
@@ -212,17 +205,23 @@ class _QuickTab extends StatelessWidget {
 
     Widget command(QuickCommand item, {bool indent = false}) => _ItemRow(
       indent: indent,
-      leading: SerialButton(
-        label: q.send,
-        small: true,
-        primary: true,
-        onPressed: () => cubit.sendQuick(item.id),
+      leading: SerialSwitch(
+        on: item.enabled,
+        onTap: () => cubit.toggleQuick(item.id),
       ),
       title: item.name,
       detail: item.format == DataFormat.ascii
           ? '${t.serial.mark.ascii} · ${item.data}'
           : item.data,
-      trailing: [if (item.key.isNotEmpty) _KeyChip(item.key)],
+      trailing: [
+        SerialButton(
+          label: q.send,
+          small: true,
+          primary: true,
+          onPressed: item.enabled ? () => cubit.sendQuick(item.id) : null,
+        ),
+        if (item.key.isNotEmpty) _KeyChip(item.key),
+      ],
       menu: [
         SerialMenuAction(
           label: t.common.edit,

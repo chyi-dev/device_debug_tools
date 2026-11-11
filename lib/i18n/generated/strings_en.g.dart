@@ -42,6 +42,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$app$en app = _Translations$app$en._(_root);
 	@override late final _Translations$nav$en nav = _Translations$nav$en._(_root);
 	@override late final _Translations$home$en home = _Translations$home$en._(_root);
+	@override late final _Translations$mcp$en mcp = _Translations$mcp$en._(_root);
 	@override late final _Translations$common$en common = _Translations$common$en._(_root);
 	@override late final _Translations$serial$en serial = _Translations$serial$en._(_root);
 	@override late final _Translations$ble$en ble = _Translations$ble$en._(_root);
@@ -97,6 +98,54 @@ class _Translations$home$en extends Translations$home$zh {
 	@override String get rename => 'Rename';
 	@override String get renameTitle => 'Rename tab';
 	@override String get renameName => 'Name';
+	@override String get copyTabId => 'Copy tab ID';
+	@override String get tabIdCopied => 'Tab ID copied';
+}
+
+// Path: mcp
+class _Translations$mcp$en extends Translations$mcp$zh {
+	_Translations$mcp$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get menu => 'MCP';
+	@override String get settingsTitle => 'MCP settings';
+	@override String get enable => 'Enable MCP';
+	@override String get clientConnected => 'Cursor connected';
+	@override String get waitingClient => 'Waiting for client';
+	@override String endpoint({required Object url}) => 'URL ${url}';
+	@override String get copyConfig => 'Copy Cursor config';
+	@override String get configCopied => 'Config copied';
+	@override String get authTitle => 'Permissions';
+	@override String get allowSend => 'Send data';
+	@override String get allowRead => 'Read data';
+	@override String get allowReply => 'Auto reply';
+	@override String get allowScript => 'Scripts';
+	@override String get allowQuick => 'Quick commands';
+	@override String get replyPolicy => 'Auto-reply enable policy';
+	@override String get scriptPolicy => 'Script enable policy';
+	@override String get quickPolicy => 'Quick-command enable policy';
+	@override String get policyOn => 'Enable by default';
+	@override String get policyOff => 'Disable by default';
+	@override String get policyAsk => 'Ask';
+	@override String pendingHint({required Object count}) => '${count} message(s) waiting after close';
+	@override String get messages => 'Messages';
+	@override String get messagesTip => 'Open pending MCP confirmations';
+	@override String get messagesTitle => 'Messages';
+	@override String get messagesEmpty => 'No pending messages';
+	@override String get kindScript => 'Script';
+	@override String get kindReply => 'Auto reply';
+	@override String get kindQuick => 'Quick command';
+	@override String replyTitle({required Object name}) => 'Auto reply ${name}';
+	@override String quickTitle({required Object name}) => 'Quick command ${name}';
+	@override String targetTab({required Object name}) => 'Target tab: ${name}';
+	@override String get enableItem => 'Enable';
+	@override String get logTitle => 'MCP log';
+	@override String logCount({required Object count}) => '${count} entries';
+	@override String get logSearch => 'Search';
+	@override String get logEmpty => 'No MCP actions yet';
+	@override String get tab => 'MCP';
 }
 
 // Path: common
@@ -492,6 +541,7 @@ class _Translations$serial$log$en extends Translations$serial$log$zh {
 	@override String get batchStopped => 'Batch stopped';
 	@override String scriptBlocked({required Object name}) => 'Script "${name}" returned nil; frame blocked, not sent';
 	@override String scriptFailed({required Object name}) => 'Script "${name}" failed; frame not sent, see the script run log';
+	@override String mcpRejected({required Object detail}) => '${detail}';
 }
 
 // Path: serial.sendBox
@@ -523,6 +573,7 @@ class _Translations$serial$tab$en extends Translations$serial$tab$zh {
 	@override String get history => 'History';
 	@override String get calc => 'Checksum';
 	@override String get script => 'Script';
+	@override String get mcp => 'MCP';
 }
 
 // Path: serial.script
@@ -1150,6 +1201,7 @@ class _Translations$mqtt$tab$en extends Translations$mqtt$tab$zh {
 	@override String get quick => 'Quick publish';
 	@override String get history => 'History';
 	@override String get script => 'Script';
+	@override String get mcp => 'MCP';
 }
 
 // Path: mqtt.quick
@@ -1687,6 +1739,45 @@ extension on TranslationsEn {
 			'home.rename' => 'Rename',
 			'home.renameTitle' => 'Rename tab',
 			'home.renameName' => 'Name',
+			'home.copyTabId' => 'Copy tab ID',
+			'home.tabIdCopied' => 'Tab ID copied',
+			'mcp.menu' => 'MCP',
+			'mcp.settingsTitle' => 'MCP settings',
+			'mcp.enable' => 'Enable MCP',
+			'mcp.clientConnected' => 'Cursor connected',
+			'mcp.waitingClient' => 'Waiting for client',
+			'mcp.endpoint' => ({required Object url}) => 'URL ${url}',
+			'mcp.copyConfig' => 'Copy Cursor config',
+			'mcp.configCopied' => 'Config copied',
+			'mcp.authTitle' => 'Permissions',
+			'mcp.allowSend' => 'Send data',
+			'mcp.allowRead' => 'Read data',
+			'mcp.allowReply' => 'Auto reply',
+			'mcp.allowScript' => 'Scripts',
+			'mcp.allowQuick' => 'Quick commands',
+			'mcp.replyPolicy' => 'Auto-reply enable policy',
+			'mcp.scriptPolicy' => 'Script enable policy',
+			'mcp.quickPolicy' => 'Quick-command enable policy',
+			'mcp.policyOn' => 'Enable by default',
+			'mcp.policyOff' => 'Disable by default',
+			'mcp.policyAsk' => 'Ask',
+			'mcp.pendingHint' => ({required Object count}) => '${count} message(s) waiting after close',
+			'mcp.messages' => 'Messages',
+			'mcp.messagesTip' => 'Open pending MCP confirmations',
+			'mcp.messagesTitle' => 'Messages',
+			'mcp.messagesEmpty' => 'No pending messages',
+			'mcp.kindScript' => 'Script',
+			'mcp.kindReply' => 'Auto reply',
+			'mcp.kindQuick' => 'Quick command',
+			'mcp.replyTitle' => ({required Object name}) => 'Auto reply ${name}',
+			'mcp.quickTitle' => ({required Object name}) => 'Quick command ${name}',
+			'mcp.targetTab' => ({required Object name}) => 'Target tab: ${name}',
+			'mcp.enableItem' => 'Enable',
+			'mcp.logTitle' => 'MCP log',
+			'mcp.logCount' => ({required Object count}) => '${count} entries',
+			'mcp.logSearch' => 'Search',
+			'mcp.logEmpty' => 'No MCP actions yet',
+			'mcp.tab' => 'MCP',
 			'common.confirm' => 'Confirm',
 			'common.cancel' => 'Cancel',
 			'common.retry' => 'Retry',
@@ -1796,6 +1887,7 @@ extension on TranslationsEn {
 			'serial.log.batchStopped' => 'Batch stopped',
 			'serial.log.scriptBlocked' => ({required Object name}) => 'Script "${name}" returned nil; frame blocked, not sent',
 			'serial.log.scriptFailed' => ({required Object name}) => 'Script "${name}" failed; frame not sent, see the script run log',
+			'serial.log.mcpRejected' => ({required Object detail}) => '${detail}',
 			'serial.sendBox.send' => 'Send',
 			'serial.sendBox.stopLoop' => 'Stop',
 			'serial.sendBox.clear' => 'Clear',
@@ -1809,6 +1901,7 @@ extension on TranslationsEn {
 			'serial.tab.history' => 'History',
 			'serial.tab.calc' => 'Checksum',
 			'serial.tab.script' => 'Script',
+			'serial.tab.mcp' => 'MCP',
 			'serial.script.note' => ({required Object enabled, required Object total}) => '${enabled} / ${total} enabled',
 			'serial.script.add' => 'New',
 			'serial.script.waiting' => 'Waiting',
@@ -2137,6 +2230,8 @@ extension on TranslationsEn {
 			'ble.scan.adapterOff' => 'Bluetooth adapter unavailable',
 			'ble.connect' => 'Connect',
 			'ble.disconnect' => 'Disconnect',
+			_ => null,
+		} ?? switch (path) {
 			'ble.connecting' => 'Connecting…',
 			'ble.pin.title' => 'Pinned channels',
 			'ble.pin.notify' => 'Notify',
@@ -2178,8 +2273,6 @@ extension on TranslationsEn {
 			'ble.script.explain' => 'Hooks read the currently pinned characteristics; re-pinning does not require script changes.',
 			'ble.dialog.quickTitle' => 'Quick command',
 			'ble.dialog.ruleTitle' => 'Reply rule',
-			_ => null,
-		} ?? switch (path) {
 			'ble.dialog.batchTitle' => 'Batch job',
 			'ble.dialog.scriptTitle' => 'Script',
 			'ble.dialog.name' => 'Name',
@@ -2294,6 +2387,7 @@ extension on TranslationsEn {
 			'mqtt.tab.quick' => 'Quick publish',
 			'mqtt.tab.history' => 'History',
 			'mqtt.tab.script' => 'Script',
+			'mqtt.tab.mcp' => 'MCP',
 			'mqtt.quick.bar' => 'Use the compose box, or override it',
 			'mqtt.quick.publish' => 'Publish',
 			'mqtt.quick.inherit' => 'Use the compose Topic, QoS, and Retain',

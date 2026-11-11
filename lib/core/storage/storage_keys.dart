@@ -19,4 +19,5 @@ abstract final class StorageKeys {
   static const String licenseTrialStartedMs = 'license_trial_started_ms';
   static const String licenseLastSeenMs = 'license_last_seen_ms';
   static const String licenseActivationCode = 'license_activation_code';
+  static const String mcpSettings = 'mcp_settings';
 }

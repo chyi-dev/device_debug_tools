@@ -5,6 +5,7 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
+import '../../mcp/widget/mcp_log_panel.dart';
 import '../../serial/data/serial_stamp.dart';
 import '../../serial/widget/serial_chrome.dart';
 import '../../serial/widget/serial_dialog.dart';
@@ -33,27 +34,13 @@ class MqttToolsPanel extends StatelessWidget {
             children: [
               SizedBox(
                 height: 38,
-                child: Row(
+                child: SerialTabScroller(
                   children: [
-                    for (final tab in const [
-                      MqttToolTab.subs,
-                      MqttToolTab.quick,
-                      MqttToolTab.history,
-                    ])
-                      Expanded(
-                        child: _TabButton(
-                          tab: tab,
-                          active: state.toolTab == tab,
-                        ),
+                    for (final tab in MqttToolTab.values)
+                      _TabButton(
+                        tab: tab,
+                        active: state.toolTab == tab,
                       ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Container(width: 1, height: 18, color: palette.line),
-                    const SizedBox(width: AppSpacing.xs),
-                    _TabButton(
-                      tab: MqttToolTab.script,
-                      active: state.toolTab == MqttToolTab.script,
-                      padded: true,
-                    ),
                   ],
                 ),
               ),
@@ -64,6 +51,7 @@ class MqttToolsPanel extends StatelessWidget {
                   MqttToolTab.quick => const _QuickTab(),
                   MqttToolTab.history => const _HistoryTab(),
                   MqttToolTab.script => const MqttScriptPanel(),
+                  MqttToolTab.mcp => const McpLogPanel(),
                 },
               ),
             ],
@@ -78,29 +66,26 @@ class _TabButton extends StatelessWidget {
   const _TabButton({
     required this.tab,
     required this.active,
-    this.padded = false,
   });
 
   final MqttToolTab tab;
   final bool active;
-  final bool padded;
 
   @override
   Widget build(BuildContext context) {
     final palette = SerialPalette.of(context);
-    final t = Translations.of(context).mqtt.tab;
+    final t = Translations.of(context);
     final label = switch (tab) {
-      MqttToolTab.subs => t.subs,
-      MqttToolTab.quick => t.quick,
-      MqttToolTab.history => t.history,
-      MqttToolTab.script => t.script,
+      MqttToolTab.subs => t.mqtt.tab.subs,
+      MqttToolTab.quick => t.mqtt.tab.quick,
+      MqttToolTab.history => t.mqtt.tab.history,
+      MqttToolTab.script => t.mqtt.tab.script,
+      MqttToolTab.mcp => t.mcp.tab,
     };
     return InkWell(
       onTap: () => context.read<MqttConsoleCubit>().setTab(tab),
       child: Container(
-        padding: padded
-            ? const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4)
-            : EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(

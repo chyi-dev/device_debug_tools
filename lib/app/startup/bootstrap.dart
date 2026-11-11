@@ -17,6 +17,8 @@ import '../../env/app_env.dart';
 import '../../i18n/i18n.dart';
 import '../../features/license/cubit/license_cubit.dart';
 import '../../features/license/repository/license_repository.dart';
+import '../../features/mcp/cubit/mcp_cubit.dart';
+import '../../features/mcp/repository/mcp_repository.dart';
 import '../../features/update/cubit/update_cubit.dart';
 import '../../features/update/repository/update_repository.dart';
 import '../app.dart';
@@ -104,6 +106,11 @@ Widget buildAppRoot({required UserPrefsStorage userPrefsStorage}) {
             BlocProvider(
               create: (context) => LicenseCubit(
                 repository: context.read<LicenseRepository>(),
+              )..start(),
+            ),
+            BlocProvider(
+              create: (context) => McpCubit(
+                repository: context.read<McpRepository>(),
               )..start(),
             ),
           ],

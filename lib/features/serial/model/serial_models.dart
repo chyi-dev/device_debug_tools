@@ -14,7 +14,7 @@ enum MatchMode { prefix, frame, contains, suffix }
 
 enum MatchKind { template, regex }
 
-enum ToolTab { quick, batch, reply, history, calc, script }
+enum ToolTab { quick, batch, reply, history, calc, script, mcp }
 
 /// 脚本钩子：收到一包数据后 / 数据发出前。
 enum ScriptHook { onReceive, beforeSend }
@@ -32,6 +32,7 @@ enum SysLogKind {
   batchStopped,
   scriptBlocked,
   scriptFailed,
+  mcpRejected,
 }
 
 enum EncodeError { empty, badHex }
@@ -199,6 +200,7 @@ class QuickCommand extends QuickNode {
     required this.data,
     required this.format,
     this.key = '',
+    this.enabled = true,
   });
 
   @override
@@ -208,12 +210,22 @@ class QuickCommand extends QuickNode {
   final DataFormat format;
   final String key;
 
-  QuickCommand copyWith({String? key}) => QuickCommand(
+  /// false 时不发送、不响应功能键；MCP 草稿默认可为待启用。
+  final bool enabled;
+
+  QuickCommand copyWith({
+    String? name,
+    String? data,
+    DataFormat? format,
+    String? key,
+    bool? enabled,
+  }) => QuickCommand(
     id: id,
-    name: name,
-    data: data,
-    format: format,
+    name: name ?? this.name,
+    data: data ?? this.data,
+    format: format ?? this.format,
     key: key ?? this.key,
+    enabled: enabled ?? this.enabled,
   );
 
   @override
@@ -224,6 +236,7 @@ class QuickCommand extends QuickNode {
     'data': data,
     'format': format.name,
     'key': key,
+    'enabled': enabled,
   };
 
   static QuickCommand? fromJson(Object? raw) {
@@ -239,6 +252,7 @@ class QuickCommand extends QuickNode {
           ? DataFormat.ascii
           : DataFormat.hex,
       key: _fnKey(raw['key']),
+      enabled: raw['enabled'] != false,
     );
   }
 }

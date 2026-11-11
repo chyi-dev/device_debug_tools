@@ -32,6 +32,9 @@ import 'package:device_debug_tools/features/socket/model/socket_models.dart';
 import 'package:device_debug_tools/features/socket/repository/socket_console_repository.dart';
 import 'package:device_debug_tools/features/license/cubit/license_cubit.dart';
 import 'package:device_debug_tools/features/license/repository/license_repository.dart';
+import 'package:device_debug_tools/features/mcp/cubit/mcp_cubit.dart';
+import 'package:device_debug_tools/features/mcp/data/mcp_settings_store.dart';
+import 'package:device_debug_tools/features/mcp/repository/mcp_repository.dart';
 import 'package:device_debug_tools/features/update/cubit/update_cubit.dart';
 import 'package:device_debug_tools/features/update/repository/update_repository.dart';
 import 'package:device_debug_tools/i18n/i18n.dart';
@@ -73,6 +76,7 @@ void main() {
           theme: AppTheme.light,
           home: MultiRepositoryProvider(
             providers: [
+              RepositoryProvider<UserPrefsStorage>.value(value: prefs),
               RepositoryProvider<SerialSessionFactory>.value(
                 value: _FakeSerial(),
               ),
@@ -90,6 +94,13 @@ void main() {
                   settings: Hive.box<dynamic>(StorageKeys.settingsBox),
                 ),
               ),
+              RepositoryProvider<McpRepository>(
+                create: (_) => McpRepository(
+                  store: McpSettingsStore(
+                    Hive.box<dynamic>(StorageKeys.settingsBox),
+                  ),
+                ),
+              ),
             ],
             child: MultiBlocProvider(
               providers: [
@@ -102,6 +113,11 @@ void main() {
                   create: (context) => LicenseCubit(
                     repository: context.read<LicenseRepository>(),
                   )..start(),
+                ),
+                BlocProvider(
+                  create: (context) => McpCubit(
+                    repository: context.read<McpRepository>(),
+                  ),
                 ),
               ],
               child: const HomePage(),

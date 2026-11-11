@@ -24,7 +24,48 @@
     "emptyConnections": "No connections yet. Use New to add a serial, BLE, MQTT or TCP/UDP tab.",
     "rename": "Rename",
     "renameTitle": "Rename tab",
-    "renameName": "Name"
+    "renameName": "Name",
+    "copyTabId": "Copy tab ID",
+    "tabIdCopied": "Tab ID copied"
+  },
+  "mcp": {
+    "menu": "MCP",
+    "settingsTitle": "MCP settings",
+    "enable": "Enable MCP",
+    "clientConnected": "Cursor connected",
+    "waitingClient": "Waiting for client",
+    "endpoint": "URL $url",
+    "copyConfig": "Copy Cursor config",
+    "configCopied": "Config copied",
+    "authTitle": "Permissions",
+    "allowSend": "Send data",
+    "allowRead": "Read data",
+    "allowReply": "Auto reply",
+    "allowScript": "Scripts",
+    "allowQuick": "Quick commands",
+    "replyPolicy": "Auto-reply enable policy",
+    "scriptPolicy": "Script enable policy",
+    "quickPolicy": "Quick-command enable policy",
+    "policyOn": "Enable by default",
+    "policyOff": "Disable by default",
+    "policyAsk": "Ask",
+    "pendingHint": "$count message(s) waiting after close",
+    "messages": "Messages",
+    "messagesTip": "Open pending MCP confirmations",
+    "messagesTitle": "Messages",
+    "messagesEmpty": "No pending messages",
+    "kindScript": "Script",
+    "kindReply": "Auto reply",
+    "kindQuick": "Quick command",
+    "replyTitle": "Auto reply $name",
+    "quickTitle": "Quick command $name",
+    "targetTab": "Target tab: $name",
+    "enableItem": "Enable",
+    "logTitle": "MCP log",
+    "logCount": "$count entries",
+    "logSearch": "Search",
+    "logEmpty": "No MCP actions yet",
+    "tab": "MCP"
   },
   "common": {
     "confirm": "Confirm",
@@ -156,7 +197,8 @@
       "batchFail": "Step $step failed, batch stopped",
       "batchStopped": "Batch stopped",
       "scriptBlocked": "Script \"$name\" returned nil; frame blocked, not sent",
-      "scriptFailed": "Script \"$name\" failed; frame not sent, see the script run log"
+      "scriptFailed": "Script \"$name\" failed; frame not sent, see the script run log",
+      "mcpRejected": "$detail"
     },
     "sendBox": {
       "send": "Send",
@@ -173,7 +215,8 @@
       "reply": "Auto-reply",
       "history": "History",
       "calc": "Checksum",
-      "script": "Script"
+      "script": "Script",
+      "mcp": "MCP"
     },
     "script": {
       "note": "$enabled / $total enabled",
@@ -744,7 +787,8 @@
       "subs": "Subscribe",
       "quick": "Quick publish",
       "history": "History",
-      "script": "Script"
+      "script": "Script",
+      "mcp": "MCP"
     },
     "quick": {
       "bar": "Use the compose box, or override it",

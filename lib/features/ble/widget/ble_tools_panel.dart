@@ -5,6 +5,7 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
+import '../../mcp/widget/mcp_log_panel.dart';
 import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
 import '../../serial/widget/serial_chrome.dart';
@@ -36,29 +37,15 @@ class BleToolsPanel extends StatelessWidget {
             children: [
               SizedBox(
                 height: 38,
-                child: Row(
+                child: SerialTabScroller(
                   children: [
                     for (final tab in tabs)
-                      if (tab == ToolTab.script) ...[
-                        const SizedBox(width: AppSpacing.xs),
-                        Container(width: 1, height: 18, color: palette.line),
-                        const SizedBox(width: AppSpacing.xs),
-                        _tabButton(
-                          context,
-                          label: _label(t, tab),
-                          active: state.tab == tab,
-                          onTap: () => cubit.setTab(tab),
-                          padded: true,
-                        ),
-                      ] else
-                        Expanded(
-                          child: _tabButton(
-                            context,
-                            label: _label(t, tab),
-                            active: state.tab == tab,
-                            onTap: () => cubit.setTab(tab),
-                          ),
-                        ),
+                      _tabButton(
+                        context,
+                        label: _label(t, tab),
+                        active: state.tab == tab,
+                        onTap: () => cubit.setTab(tab),
+                      ),
                   ],
                 ),
               ),
@@ -70,6 +57,7 @@ class BleToolsPanel extends StatelessWidget {
                   ToolTab.reply => const _ReplyTab(),
                   ToolTab.history => const _HistoryTab(),
                   ToolTab.script => const _ScriptTab(),
+                  ToolTab.mcp => const McpLogPanel(),
                   ToolTab.calc => const _QuickTab(),
                 },
               ),
@@ -87,6 +75,7 @@ String _label(Translations t, ToolTab tab) => switch (tab) {
   ToolTab.reply => t.serial.tab.reply,
   ToolTab.history => t.serial.tab.history,
   ToolTab.script => t.serial.tab.script,
+  ToolTab.mcp => t.mcp.tab,
   ToolTab.calc => t.serial.tab.quick,
 };
 
@@ -95,7 +84,6 @@ Widget _tabButton(
   required String label,
   required bool active,
   required VoidCallback onTap,
-  bool padded = false,
 }) {
   final palette = SerialPalette.of(context);
   return InkWell(
@@ -103,9 +91,7 @@ Widget _tabButton(
     child: AnimatedContainer(
       duration: SerialMetrics.motion,
       curve: SerialMetrics.motionCurve,
-      padding: padded
-          ? const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4)
-          : EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -161,15 +147,21 @@ class _QuickTab extends StatelessWidget {
                 children: [
                   for (final item in state.quick)
                     SerialItemRow(
-                      leading: SerialButton(
-                        label: t.ble.send,
-                        small: true,
-                        primary: true,
-                        onPressed: () => cubit.sendQuick(item.id),
+                      leading: SerialSwitch(
+                        on: item.enabled,
+                        onTap: () => cubit.toggleQuick(item.id),
                       ),
                       title: item.name,
                       detail: item.data,
                       trailing: [
+                        SerialButton(
+                          label: t.ble.send,
+                          small: true,
+                          primary: true,
+                          onPressed: item.enabled
+                              ? () => cubit.sendQuick(item.id)
+                              : null,
+                        ),
                         if (item.key.isNotEmpty) SerialKeyChip(item.key),
                       ],
                       menu: [
