@@ -38,12 +38,17 @@ class _HomeAddConnection extends StatelessWidget {
     final t = Translations.of(context);
     return SerialDialogFrame(
       title: t.home.addConnectionTitle,
-      maxWidth: 400,
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
+      maxWidth: 480,
+      body: GridView.count(
+        crossAxisCount: 3,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: AppSpacing.sm,
+        crossAxisSpacing: AppSpacing.sm,
+        childAspectRatio: 1.15,
         children: [
           for (final kind in ConnectionKind.values)
-            _KindRow(
+            _KindTile(
               kind: kind,
               onTap: () => _pick(context, kind),
             ),
@@ -59,58 +64,59 @@ class _HomeAddConnection extends StatelessWidget {
   }
 }
 
-class _KindRow extends StatelessWidget {
-  const _KindRow({required this.kind, required this.onTap});
+class _KindTile extends StatelessWidget {
+  const _KindTile({required this.kind, required this.onTap});
 
   final ConnectionKind kind;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final t = Translations.of(context);
     final palette = SerialPalette.of(context);
     final color = homeKindColor(context, kind);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(
-            children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border.all(color: color),
-                  borderRadius: BorderRadius.circular(AppSpacing.xs),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                  child: Text(
-                    homeKindBadge(t, kind),
-                    style: AppTextStyles.mono(
-                      Theme.of(context).colorScheme,
-                      fontSize: 12,
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(color: palette.line),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(homeKindIcon(kind), size: AppSpacing.xxl, color: color),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
                   homeKindName(context, kind),
-                  style: AppTextStyles.body(
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption(
                     Theme.of(context).colorScheme,
                   ).copyWith(color: palette.text),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+IconData homeKindIcon(ConnectionKind kind) {
+  return switch (kind) {
+    ConnectionKind.serial => Icons.usb,
+    ConnectionKind.ble => Icons.bluetooth,
+    ConnectionKind.mqtt => Icons.cloud_outlined,
+    ConnectionKind.tcp => Icons.settings_ethernet,
+    ConnectionKind.udp => Icons.wifi_tethering,
+  };
 }
 
 String homeKindName(BuildContext context, ConnectionKind kind) {

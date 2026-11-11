@@ -94,6 +94,46 @@ void main() {
       greaterThanOrEqualTo(position.pixels - 0.5),
     );
   });
+
+  testWidgets('新增连接弹窗为三列宫格，点串口会新增页签', (tester) async {
+    cubit.show(const [], '');
+
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: BlocProvider<HomeTabsCubit>.value(
+            value: cubit,
+            child: const Scaffold(body: HomeConnectionBar()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('＋ 新增'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('新增连接'), findsOneWidget);
+    expect(find.byType(GridView), findsOneWidget);
+    expect(find.text('串口'), findsOneWidget);
+    expect(find.text('蓝牙 BLE'), findsOneWidget);
+    expect(find.text('MQTT'), findsOneWidget);
+    expect(find.text('TCP'), findsOneWidget);
+    expect(find.text('UDP'), findsOneWidget);
+    expect(find.byIcon(Icons.usb), findsOneWidget);
+    expect(find.byIcon(Icons.bluetooth), findsOneWidget);
+    expect(find.byIcon(Icons.cloud_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.settings_ethernet), findsOneWidget);
+    expect(find.byIcon(Icons.wifi_tethering), findsOneWidget);
+
+    await tester.tap(find.text('串口'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('新增连接'), findsNothing);
+    expect(cubit.state.tabs, hasLength(1));
+    expect(cubit.state.tabs.single.kind, ConnectionKind.serial);
+  });
 }
 
 /// 只放页签记录，不打开串口会话，避免防抖计时器卡住组件测试。
@@ -109,6 +149,21 @@ class _BareTabs extends HomeTabsCubit {
 
   void show(List<HomeTab> tabs, String activeId) {
     emit(HomeTabsState(tabs: tabs, activeId: activeId));
+  }
+
+  @override
+  Future<HomeTabAddResult> add(ConnectionKind kind) async {
+    final id = 'tab-${kind.name}-${state.tabs.length}';
+    final next = [
+      ...state.tabs,
+      HomeTab(
+        id: id,
+        kind: kind,
+        storageKey: '${kind.name}_workspace_${state.tabs.length}',
+      ),
+    ];
+    emit(HomeTabsState(tabs: next, activeId: id));
+    return HomeTabAddResult.opened;
   }
 }
 
