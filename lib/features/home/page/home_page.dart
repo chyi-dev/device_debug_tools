@@ -10,7 +10,6 @@ import '../../ble/page/ble_console_page.dart';
 import '../../license/cubit/license_cubit.dart';
 import '../../license/cubit/license_state.dart';
 import '../../license/widget/license_banner.dart';
-import '../../license/widget/license_support_dialog.dart';
 import '../../mcp/cubit/mcp_cubit.dart';
 import '../../mqtt/data/mqtt_session_factory.dart';
 import '../../mqtt/page/mqtt_console_page.dart';
@@ -45,7 +44,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
-/// 绑定 MCP 工作台，并按授权状态启停本机监听；试用结束后启动弹一次支持窗。
+/// 绑定 MCP 工作台，并按授权状态启停本机监听。
 class _HomeLicenseMcpGate extends StatefulWidget {
   const _HomeLicenseMcpGate({required this.child});
 
@@ -57,7 +56,6 @@ class _HomeLicenseMcpGate extends StatefulWidget {
 
 class _HomeLicenseMcpGateState extends State<_HomeLicenseMcpGate> {
   McpCubit? _mcp;
-  var _supportPrompted = false;
 
   @override
   void initState() {
@@ -81,21 +79,6 @@ class _HomeLicenseMcpGateState extends State<_HomeLicenseMcpGate> {
     if (!license.ready || !mounted) return;
     final mcp = _mcp ?? context.read<McpCubit>();
     await mcp.setLicenseActive(license.isActivated);
-    if (!mounted) return;
-    if (license.isActivated) {
-      _supportPrompted = true;
-    }
-    // 试用中不弹；加载失败时 deviceCode 为空也不弹。
-    if (!license.inTrial &&
-        !license.isActivated &&
-        license.deviceCode.isNotEmpty &&
-        !_supportPrompted) {
-      _supportPrompted = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        await showLicenseSupportDialog(context);
-      });
-    }
   }
 
   @override

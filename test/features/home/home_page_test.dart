@@ -77,7 +77,7 @@ void main() {
       settings: box,
       deviceCodes: _FixedDeviceCode('ABCD-EFGH-IJKL-MNOP'),
     );
-    // 已激活：不弹支持窗，聚焦页签命中测试。
+    // 已激活：聚焦页签命中测试。
     final licenseCubit = _ActivatedLicenseCubit(repository: licenseRepo);
     await licenseCubit.start();
     addTearDown(licenseCubit.close);
