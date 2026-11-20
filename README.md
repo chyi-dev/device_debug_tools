@@ -1,5 +1,5 @@
 # device_debug_tools
-
+设备调试工具
 Flutter 桌面端串口调试台，支持 **Windows / macOS / Linux**。打开串口后可收发数据，并用快捷指令、批量发送、自动应答和 Lua 脚本处理重复操作。
 
 - [项目介绍](doc/项目介绍.md)：能力、数据流、工作区与平台差异
