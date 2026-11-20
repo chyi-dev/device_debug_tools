@@ -722,7 +722,8 @@ class _Translations$serial$reply$en extends Translations$serial$reply$zh {
 	@override String get newTitle => 'New auto-reply rule';
 	@override String get editTitle => 'Edit auto-reply rule';
 	@override String get name => 'Name';
-	@override String get match => 'Match';
+	@override String get sectionMatch => 'Match';
+	@override String get match => 'Match mode';
 	@override String get kind => 'Syntax';
 	@override String get template => 'Template';
 	@override String get regex => 'Regex';
@@ -738,6 +739,7 @@ class _Translations$serial$reply$en extends Translations$serial$reply$zh {
 	@override String get list => 'Replies';
 	@override String get addReply => 'Add reply';
 	@override String get enable => 'Enable this rule';
+	@override String get enableShort => 'Enabled';
 	@override String get delayHint => 'Delay ms';
 	@override String get dataHint => 'Reply HEX, \$1 allowed';
 	@override String get prefix => 'Prefix';
@@ -2051,7 +2053,8 @@ extension on TranslationsEn {
 			'serial.reply.newTitle' => 'New auto-reply rule',
 			'serial.reply.editTitle' => 'Edit auto-reply rule',
 			'serial.reply.name' => 'Name',
-			'serial.reply.match' => 'Match',
+			'serial.reply.sectionMatch' => 'Match',
+			'serial.reply.match' => 'Match mode',
 			'serial.reply.kind' => 'Syntax',
 			'serial.reply.template' => 'Template',
 			'serial.reply.regex' => 'Regex',
@@ -2067,6 +2070,7 @@ extension on TranslationsEn {
 			'serial.reply.list' => 'Replies',
 			'serial.reply.addReply' => 'Add reply',
 			'serial.reply.enable' => 'Enable this rule',
+			'serial.reply.enableShort' => 'Enabled',
 			'serial.reply.delayHint' => 'Delay ms',
 			'serial.reply.dataHint' => 'Reply HEX, \$1 allowed',
 			'serial.reply.prefix' => 'Prefix',
@@ -2251,10 +2255,10 @@ extension on TranslationsEn {
 			'serial.notice.duplicated' => 'Duplicated',
 			'serial.notice.quickSaved' => 'Quick command saved',
 			'serial.notice.folderSaved' => 'Folder saved',
-			'serial.notice.ruleSaved' => 'Rule saved',
-			'serial.notice.batchSaved' => 'Batch saved',
 			_ => null,
 		} ?? switch (path) {
+			'serial.notice.ruleSaved' => 'Rule saved',
+			'serial.notice.batchSaved' => 'Batch saved',
 			'serial.notice.scriptSaved' => 'Script renamed',
 			'serial.notice.lessonCreated' => ({required Object name, required Object title}) => 'Created ${name} from "${title}"',
 			'serial.notice.lessonTried' => 'Sample run written to the run log',

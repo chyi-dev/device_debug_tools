@@ -13,7 +13,7 @@ alwaysApply: false
 | 类型 | 写法 |
 |------|------|
 | 间距 | `AppSpacing.xs/sm/md/lg/xl/xxl`（4/8/12/16/24/32） |
-| 圆角 | `AppSpacing.radiusSm/Md/Lg`（6/8/12） |
+| 圆角 | `AppSpacing.radiusSm/Md/Lg/Ctrl`（3/4/6/2，Rams 表面 C） |
 | 字号/字重 | `AppTextStyles.titleLarge/titleMedium/body/caption/mono(cs)` |
 | 颜色 | `Theme.of(context).colorScheme`，语义色见 `AppColors` |
 

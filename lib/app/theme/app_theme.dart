@@ -23,7 +23,8 @@ abstract final class AppTheme {
       primary: palette.accent,
       brightness: brightness,
     );
-    final radius = BorderRadius.circular(AppSpacing.radiusLg);
+    final panelRadius = BorderRadius.circular(AppSpacing.radiusSm);
+    final controlRadius = BorderRadius.circular(AppSpacing.radiusCtrl);
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -38,12 +39,46 @@ abstract final class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         color: palette.panel,
-        shape: RoundedRectangleBorder(borderRadius: radius),
+        shape: RoundedRectangleBorder(
+          borderRadius: panelRadius,
+          side: BorderSide(color: palette.line),
+        ),
         clipBehavior: Clip.antiAlias,
       ),
+      // 只设 border，不要写 enabled/focused：SerialField 等外层已画线且
+      // decoration.border=none，主题若再带 enabled Outline 会叠成双框。
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: radius),
         isDense: true,
+        border: OutlineInputBorder(borderRadius: controlRadius),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: palette.accent,
+          foregroundColor: palette.accentInk,
+          disabledBackgroundColor: palette.accent.withValues(alpha: 0.6),
+          disabledForegroundColor: palette.accentInk.withValues(alpha: 0.8),
+          shape: RoundedRectangleBorder(
+            borderRadius: controlRadius,
+            side: BorderSide(color: palette.accentBorder),
+          ),
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: palette.text,
+          backgroundColor: palette.field,
+          side: BorderSide(color: palette.line),
+          shape: RoundedRectangleBorder(borderRadius: controlRadius),
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: palette.accent,
+          shape: RoundedRectangleBorder(borderRadius: controlRadius),
+          visualDensity: VisualDensity.compact,
+        ),
       ),
       checkboxTheme: CheckboxThemeData(
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

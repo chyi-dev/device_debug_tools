@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/theme/app_spacing.dart';
@@ -1859,7 +1859,7 @@ class _KeyChip extends StatelessWidget {
         border: Border.all(
           color: Color.lerp(palette.line, palette.accent, 0.35)!,
         ),
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
       ),
       child: Text(
         label,

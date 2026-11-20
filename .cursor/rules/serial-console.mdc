@@ -6,7 +6,7 @@ alwaysApply: false
 
 # 串口调试台界面约定
 
-唯一设计依据：`doc/shell-redesign/06-designer-console-evolved.html` + `doc/shell-redesign/direction-approved.md`。布局参照野人家园串口调试助手 V5.15；界面里不出现 UartAssist 名称或 logo。
+布局依据：`doc/shell-redesign/06-designer-console-evolved.html`（骨架 F）。表面依据：`doc/shell-redesign/surface-direction-approved.md`（Rams 仪器台 C）+ `surface-demos/03-designer-rams-lab.html`。布局参照野人家园串口调试助手 V5.15；界面里不出现 UartAssist 名称或 logo。
 
 ## 布局（骨架允许可拖分区）
 
@@ -19,10 +19,11 @@ alwaysApply: false
 
 ## 视觉
 
-- 颜色用 `direction-approved.md` Light token（及现有 dark twin），加到 `AppColors` / `SerialPalette`；主题切换走 `AppCubit`
-- 唯一强调色 `accent`（主按钮描边用 `accentBorder`）；绿 / 红只表示连接与引脚状态。禁止渐变、发光、左侧色条提示、emoji 图标
+- 颜色用 `surface-direction-approved.md` Rams token（及 dark twin），在 `AppColors` / `SerialPalette`；主题切换走 `AppCubit`
+- 唯一强调色 `accent`（钢蓝 `#3D5A80`，主按钮描边用 `accentBorder`）；绿 / 红只表示连接与引脚状态。禁止渐变、发光、左侧色条提示、emoji 图标
 - 正文 14、标签与说明 12，最小 12；日志等宽 14 / 行高 1.6，发送框等宽 15（`AppTextStyles.mono`）
-- 间距用 `AppSpacing`，圆角 `radiusSm`，不写裸数字
+- 间距用 `AppSpacing`；面板圆角 `radiusSm`（3）、控件 `radiusCtrl` / `SerialMetrics.controlRadius`（2）；分组内边距 `SerialMetrics.groupPadding`（12/14/12）；主体栏外边距 `AppSpacing.sm`（8），左栏不加额外 padding
+- 不写裸数字
 
 ## 行为（与设计稿一致）
 
@@ -40,5 +41,5 @@ alwaysApply: false
 
 ## 改设计稿
 
-- 外壳视觉以 `doc/shell-redesign/` 为准；不要为对齐 F 回改 `doc/design/` 旧稿
-- 行为或 token 变更同步更新 `doc/shell-redesign/direction-approved.md`
+- 布局以 F 骨架为准；表面以 `surface-direction-approved.md` / C 稿为准；不要为对齐旧稿回改 `doc/design/`
+- 表面 token 变更同步更新 `doc/shell-redesign/surface-direction-approved.md`；布局变更同步 `direction-approved.md`

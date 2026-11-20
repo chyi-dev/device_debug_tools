@@ -7,7 +7,15 @@ abstract final class AppSpacing {
   static const double xl = 24;
   static const double xxl = 32;
 
-  static const double radiusSm = 6;
-  static const double radiusMd = 8;
-  static const double radiusLg = 12;
+  /// 面板 / 分组框圆角（Rams 表面 C）
+  static const double radiusSm = 3;
+
+  /// 对话框等略大于面板
+  static const double radiusMd = 4;
+
+  /// 少用；与半径体系对齐，避免再出现 12 的大圆角
+  static const double radiusLg = 6;
+
+  /// 按钮 / 输入 / 下拉圆角
+  static const double radiusCtrl = 2;
 }

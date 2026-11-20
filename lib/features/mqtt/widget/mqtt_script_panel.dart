@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app/theme/app_spacing.dart';
@@ -266,7 +266,7 @@ class _Chip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         border: Border.all(color: color ?? palette.line),
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
       ),
       child: Text(
         label,

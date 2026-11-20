@@ -1490,6 +1490,9 @@ class Translations$serial$reply$zh {
 	/// zh: '规则名称'
 	String get name => '规则名称';
 
+	/// zh: '匹配条件'
+	String get sectionMatch => '匹配条件';
+
 	/// zh: '匹配方式'
 	String get match => '匹配方式';
 
@@ -1537,6 +1540,9 @@ class Translations$serial$reply$zh {
 
 	/// zh: '启用此规则'
 	String get enable => '启用此规则';
+
+	/// zh: '启用'
+	String get enableShort => '启用';
 
 	/// zh: '延时 ms'
 	String get delayHint => '延时 ms';
@@ -3848,6 +3854,7 @@ extension on Translations {
 			'serial.reply.newTitle' => '新增应答规则',
 			'serial.reply.editTitle' => '编辑应答规则',
 			'serial.reply.name' => '规则名称',
+			'serial.reply.sectionMatch' => '匹配条件',
 			'serial.reply.match' => '匹配方式',
 			'serial.reply.kind' => '语法',
 			'serial.reply.template' => '模板',
@@ -3864,6 +3871,7 @@ extension on Translations {
 			'serial.reply.list' => '应答列表',
 			'serial.reply.addReply' => '添加应答',
 			'serial.reply.enable' => '启用此规则',
+			'serial.reply.enableShort' => '启用',
 			'serial.reply.delayHint' => '延时 ms',
 			'serial.reply.dataHint' => '应答数据 HEX，可写 \$1',
 			'serial.reply.prefix' => '前缀',
@@ -4048,10 +4056,10 @@ extension on Translations {
 			'serial.notice.duplicated' => '已复制',
 			'serial.notice.quickSaved' => '快捷指令已保存',
 			'serial.notice.folderSaved' => '文件夹已保存',
-			'serial.notice.ruleSaved' => '应答规则已保存',
-			'serial.notice.batchSaved' => '批量任务已保存',
 			_ => null,
 		} ?? switch (path) {
+			'serial.notice.ruleSaved' => '应答规则已保存',
+			'serial.notice.batchSaved' => '批量任务已保存',
 			'serial.notice.scriptSaved' => '脚本已重命名',
 			'serial.notice.lessonCreated' => ({required Object title, required Object name}) => '已用「${title}」新建 ${name}',
 			'serial.notice.lessonTried' => '样例试跑结果已写入运行日志',

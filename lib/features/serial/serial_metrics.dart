@@ -29,13 +29,14 @@ abstract final class SerialMetrics {
   static const double dialogTutorWidth = 1040;
   static const double dialogTutorHeight = 800;
   static const double tutorRail = 372;
-  static const double controlRadius = 4;
+  /// 按钮 / 输入 / 下拉圆角（与 [AppSpacing.radiusCtrl] 同步）
+  static const double controlRadius = AppSpacing.radiusCtrl;
   static const double menuMaxWidth = 320;
   static const double menuMaxHeight = 320;
   static const double lamp = 12;
   static const double pin = 8;
   static const double statusLamp = 9;
-  static const double formGap = 5;
+  static const double formGap = 7;
   static const double scriptDock = 280;
   static const double scriptDockMin = 160;
   static const double scriptDockMax = 480;
@@ -67,10 +68,11 @@ abstract final class SerialMetrics {
     921600,
   ];
 
+  /// 分组框内边距 12 14 12（比 F 略松，外栏边距仍由 shell 的 8px 统一）
   static const groupPadding = EdgeInsets.fromLTRB(
+    AppSpacing.md + 2,
     AppSpacing.md,
-    7,
+    AppSpacing.md + 2,
     AppSpacing.md,
-    AppSpacing.sm,
   );
 }

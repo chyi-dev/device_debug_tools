@@ -709,115 +709,35 @@ class _RuleEditorState extends State<_RuleEditor> {
   Widget build(BuildContext context) {
     final t = Translations.of(context);
     final r = t.serial.reply;
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final hint = switch ((_kind, _format)) {
+      (MatchKind.template, DataFormat.hex) => r.hintTemplateHex,
+      (MatchKind.template, DataFormat.ascii) => r.hintTemplateAscii,
+      (MatchKind.regex, DataFormat.hex) => r.hintRegexHex,
+      (MatchKind.regex, DataFormat.ascii) => r.hintRegexAscii,
+    };
+    const contentInset = SerialMetrics.labelCol + AppSpacing.sm;
     return SerialDialogFrame(
       title: widget.existing == null ? r.newTitle : r.editTitle,
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Row(
+          SerialFieldRow(
             label: r.name,
-            child: SerialField(controller: _name),
-          ),
-          _Row(
-            label: r.kind,
-            child: SerialDropdown<MatchKind>(
-              value: _kind,
-              height: 28,
-              items: [
-                (value: MatchKind.template, label: r.template),
-                (value: MatchKind.regex, label: r.regex),
-              ],
-              onChanged: (value) => setState(() => _kind = value),
-            ),
-          ),
-          _Row(
-            label: r.format,
-            child: SerialDropdown<DataFormat>(
-              value: _format,
-              height: 28,
-              items: const [
-                (value: DataFormat.hex, label: 'HEX'),
-                (value: DataFormat.ascii, label: 'ASCII'),
-              ],
-              onChanged: (value) => setState(() => _format = value),
-            ),
-          ),
-          if (_kind == MatchKind.template)
-            _Row(
-              label: r.match,
-              child: SerialDropdown<MatchMode>(
-                value: _match,
-                height: 28,
-                items: [
-                  for (final mode in MatchMode.values)
-                    (value: mode, label: matchModeLabel(t, mode)),
-                ],
-                onChanged: (value) => setState(() => _match = value),
-              ),
-            ),
-          _Row(
-            label: r.pattern,
-            child: SerialField(
-              controller: _pattern,
-              mono: true,
-              hint: _format == DataFormat.hex ? r.patternHint : null,
-            ),
-          ),
-          _Row(
-            label: '',
-            child: Text(
-              switch ((_kind, _format)) {
-                (MatchKind.template, DataFormat.hex) => r.hintTemplateHex,
-                (MatchKind.template, DataFormat.ascii) => r.hintTemplateAscii,
-                (MatchKind.regex, DataFormat.hex) => r.hintRegexHex,
-                (MatchKind.regex, DataFormat.ascii) => r.hintRegexAscii,
-              },
-              style: AppTextStyles.body(
-                Theme.of(context).colorScheme,
-              ).copyWith(color: SerialPalette.of(context).muted, fontSize: 12),
-            ),
-          ),
-          if (_format == DataFormat.ascii)
-            SerialCheck(
-              label: r.ignoreCase,
-              value: _ignoreCase,
-              onChanged: (value) => setState(() => _ignoreCase = value),
-            ),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  r.list,
-                  style: AppTextStyles.body(Theme.of(context).colorScheme)
-                      .copyWith(
-                        color: SerialPalette.of(context).text,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
+            child: Row(
+              children: [
+                Expanded(child: SerialField(controller: _name)),
+                const SizedBox(width: AppSpacing.sm),
+                SerialCheck(
+                  label: r.enableShort,
+                  value: _enabled,
+                  onChanged: (value) => setState(() => _enabled = value),
                 ),
-              ),
-              SerialButton(
-                label: r.addReply,
-                small: true,
-                onPressed: () => setState(() => _rows.add(_Pair('50', ''))),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          for (var i = 0; i < _rows.length; i++)
-            _LineEditor(
-              index: i + 1,
-              delay: _rows[i].delay,
-              data: _rows[i].data,
-              onRemove: () => setState(() {
-                _rows.removeAt(i).dispose();
-              }),
+              ],
             ),
-          SerialCheck(
-            label: r.enable,
-            value: _enabled,
-            onChanged: (value) => setState(() => _enabled = value),
           ),
-          _Row(
+          SerialFieldRow(
             label: r.folder,
             child: SerialDropdown<String>(
               value: _folder,
@@ -830,6 +750,148 @@ class _RuleEditorState extends State<_RuleEditor> {
               onChanged: (value) => setState(() => _folder = value),
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          SerialFieldRow(
+            label: r.pattern,
+            bottomGap: false,
+            child: SerialField(
+              controller: _pattern,
+              mono: true,
+              height: 48,
+              maxLines: 2,
+              hint: _format == DataFormat.hex ? r.patternHint : null,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              left: contentInset,
+              top: AppSpacing.xs,
+              bottom: AppSpacing.sm,
+            ),
+            child: Text(
+              hint,
+              style: AppTextStyles.caption(
+                cs,
+              ).copyWith(color: palette.muted, height: 1.35),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              left: contentInset,
+              bottom: SerialMetrics.formGap,
+            ),
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SizedBox(
+                  width: 112,
+                  child: SerialDropdown<MatchKind>(
+                    value: _kind,
+                    height: 28,
+                    items: [
+                      (value: MatchKind.template, label: r.template),
+                      (value: MatchKind.regex, label: r.regex),
+                    ],
+                    onChanged: (value) => setState(() => _kind = value),
+                  ),
+                ),
+                SizedBox(
+                  width: 96,
+                  child: SerialDropdown<DataFormat>(
+                    value: _format,
+                    height: 28,
+                    items: const [
+                      (value: DataFormat.hex, label: 'HEX'),
+                      (value: DataFormat.ascii, label: 'ASCII'),
+                    ],
+                    onChanged: (value) => setState(() => _format = value),
+                  ),
+                ),
+                if (_kind == MatchKind.template)
+                  SizedBox(
+                    width: 112,
+                    child: SerialDropdown<MatchMode>(
+                      value: _match,
+                      height: 28,
+                      items: [
+                        for (final mode in MatchMode.values)
+                          (value: mode, label: matchModeLabel(t, mode)),
+                      ],
+                      onChanged: (value) => setState(() => _match = value),
+                    ),
+                  ),
+                if (_format == DataFormat.ascii)
+                  SerialCheck(
+                    label: r.ignoreCase,
+                    value: _ignoreCase,
+                    onChanged: (value) => setState(() => _ignoreCase = value),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    r.list,
+                    style: AppTextStyles.body(cs).copyWith(
+                      color: palette.text,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                SerialButton(
+                  label: r.addReply,
+                  small: true,
+                  onPressed: () => setState(() => _rows.add(_Pair('50', ''))),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              left: contentInset,
+              bottom: AppSpacing.xs,
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 72,
+                  child: Text(
+                    r.delayHint,
+                    style: AppTextStyles.caption(
+                      cs,
+                    ).copyWith(color: palette.muted, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    r.dataHint,
+                    style: AppTextStyles.caption(
+                      cs,
+                    ).copyWith(color: palette.muted, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(width: 48),
+              ],
+            ),
+          ),
+          for (var i = 0; i < _rows.length; i++)
+            _LineEditor(
+              index: i + 1,
+              delay: _rows[i].delay,
+              data: _rows[i].data,
+              onRemove: () => setState(() {
+                _rows.removeAt(i).dispose();
+              }),
+            ),
           SerialDialogError(message: _error),
         ],
       ),
@@ -1128,32 +1190,19 @@ class _LineEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs + 2),
+    return SerialFieldRow(
+      label: '$index',
       child: Row(
         children: [
           SizedBox(
-            width: 22,
-            child: Text(
-              '$index',
-              textAlign: TextAlign.right,
-              style: AppTextStyles.mono(
-                Theme.of(context).colorScheme,
-                fontSize: 12,
-                color: SerialPalette.of(context).muted,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.xs + 2),
-          SizedBox(
-            width: 92,
+            width: 72,
             child: SerialField(
               controller: delay,
               mono: true,
               hint: t.serial.reply.delayHint,
             ),
           ),
-          const SizedBox(width: AppSpacing.xs + 2),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: SerialField(
               controller: data,

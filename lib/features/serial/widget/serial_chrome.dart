@@ -1,4 +1,4 @@
-import 'package:flutter/gestures.dart';
+﻿import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -932,7 +932,7 @@ class SerialKeyChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         border: Border.all(color: palette.line),
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(SerialMetrics.controlRadius),
       ),
       child: Text(
         label,

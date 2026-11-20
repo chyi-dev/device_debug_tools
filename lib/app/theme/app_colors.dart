@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const Color primary = Color(0xFF409EFF);
-  static const Color primaryDark = Color(0xFF0060A9);
-  static const Color primaryLight = Color(0xFFECF5FF);
+  /// 与串口台 accent 对齐（Rams 表面 C）
+  static const Color primary = Color(0xFF3D5A80);
+  static const Color primaryDark = Color(0xFF2C425F);
+  static const Color primaryLight = Color(0xFFE4E8E6);
 
-  static const Color background = Color(0xFFF5F7FA);
+  static const Color background = Color(0xFFEBECEB);
   static const Color warning = Color(0xFFE6A23C);
-  static const Color error = Color(0xFFF56C6C);
+  static const Color error = Color(0xFFB33A32);
 
   // SnackBar · success
   static const Color snackSuccessBg = Color(0xFFD1FAE5);
@@ -27,49 +28,49 @@ abstract final class AppColors {
   static const Color snackInfoBgDark = Color(0xFF1E3A8A);
   static const Color snackInfoFgDark = Color(0xFF93C5FD);
 
-  // 串口调试台 · 白底（doc/shell-redesign F 稿）
-  static const Color serialWin = Color(0xFFE6E9ED);
-  static const Color serialPanel = Color(0xFFF4F6F8);
+  // 串口调试台 · Rams 仪器台浅色（doc/shell-redesign/surface-direction-approved.md）
+  static const Color serialWin = Color(0xFFEBECEB);
+  static const Color serialPanel = Color(0xFFF5F5F4);
   static const Color serialField = Color(0xFFFFFFFF);
-  static const Color serialLine = Color(0xFFB4BEC8);
-  static const Color serialLine2 = Color(0xFFD8DEE5);
-  static const Color serialText = Color(0xFF1A2330);
-  static const Color serialMuted = Color(0xFF4A5562);
-  static const Color serialAccent = Color(0xFF1666BC);
-  static const Color serialAccentBorder = Color(0xFF135A9E);
+  static const Color serialLine = Color(0xFF9A9E9C);
+  static const Color serialLine2 = Color(0xFFD4D6D4);
+  static const Color serialText = Color(0xFF1A1C1B);
+  static const Color serialMuted = Color(0xFF5C615E);
+  static const Color serialAccent = Color(0xFF3D5A80);
+  static const Color serialAccentBorder = Color(0xFF2C425F);
   static const Color serialAccentInk = Color(0xFFFFFFFF);
-  static const Color serialHover = Color(0xFFDDE7F2);
+  static const Color serialHover = Color(0xFFE4E8E6);
   static const Color serialLogBg = Color(0xFFFFFFFF);
-  static const Color serialLogPrompt = Color(0xFF65707D);
-  static const Color serialLogRx = Color(0xFF18222C);
-  static const Color serialLogTx = Color(0xFF135DB0);
-  static const Color serialLogSys = Color(0xFF8F5400);
-  static const Color serialMark = Color(0xFFFFE28A);
-  static const Color serialOn = Color(0xFF1F9D55);
-  static const Color serialOff = Color(0xFFC8392F);
-  static const Color serialLampIdle = Color(0xFFB9C1CA);
+  static const Color serialLogPrompt = Color(0xFF6A706C);
+  static const Color serialLogRx = Color(0xFF1A1C1B);
+  static const Color serialLogTx = Color(0xFF2C425F);
+  static const Color serialLogSys = Color(0xFF7A4E00);
+  static const Color serialMark = Color(0xFFF0E2A8);
+  static const Color serialOn = Color(0xFF1F7A45);
+  static const Color serialOff = Color(0xFFB33A32);
+  static const Color serialLampIdle = Color(0xFFB4B8B5);
 
-  // 串口调试台 · 黑底经典
-  static const Color serialWinDark = Color(0xFF16191D);
-  static const Color serialPanelDark = Color(0xFF1F2329);
-  static const Color serialFieldDark = Color(0xFF272C33);
-  static const Color serialLineDark = Color(0xFF3A414A);
-  static const Color serialLine2Dark = Color(0xFF2E343C);
-  static const Color serialTextDark = Color(0xFFE3E7EC);
-  static const Color serialMutedDark = Color(0xFFA1AAB5);
-  static const Color serialAccentDark = Color(0xFF4C9BF0);
-  static const Color serialAccentBorderDark = Color(0xFF6BB0F5);
-  static const Color serialAccentInkDark = Color(0xFF0C1624);
-  static const Color serialHoverDark = Color(0xFF2B323B);
-  static const Color serialLogBgDark = Color(0xFF0D1013);
-  static const Color serialLogPromptDark = Color(0xFF8B949E);
-  static const Color serialLogRxDark = Color(0xFF7FE0A6);
-  static const Color serialLogTxDark = Color(0xFF8CC2FF);
-  static const Color serialLogSysDark = Color(0xFFE5B54A);
-  static const Color serialMarkDark = Color(0xFF6B5A12);
+  // 串口调试台 · Rams 仪器台深色
+  static const Color serialWinDark = Color(0xFF141516);
+  static const Color serialPanelDark = Color(0xFF1C1E1F);
+  static const Color serialFieldDark = Color(0xFF262829);
+  static const Color serialLineDark = Color(0xFF3A3E40);
+  static const Color serialLine2Dark = Color(0xFF2A2E30);
+  static const Color serialTextDark = Color(0xFFE6E8E7);
+  static const Color serialMutedDark = Color(0xFFA3A8A5);
+  static const Color serialAccentDark = Color(0xFF7A9CC6);
+  static const Color serialAccentBorderDark = Color(0xFF9BB4D4);
+  static const Color serialAccentInkDark = Color(0xFFFFFFFF);
+  static const Color serialHoverDark = Color(0xFF2A2E30);
+  static const Color serialLogBgDark = Color(0xFF0E1010);
+  static const Color serialLogPromptDark = Color(0xFF8B9190);
+  static const Color serialLogRxDark = Color(0xFF9FD6B4);
+  static const Color serialLogTxDark = Color(0xFFA8C4E6);
+  static const Color serialLogSysDark = Color(0xFFE0B85A);
+  static const Color serialMarkDark = Color(0xFF5A4E18);
   static const Color serialOnDark = Color(0xFF3CCF7A);
   static const Color serialOffDark = Color(0xFFEF5B50);
-  static const Color serialLampIdleDark = Color(0xFF4A525C);
+  static const Color serialLampIdleDark = Color(0xFF4A4F4D);
 
   // 连接页签协议色（doc/design/option-a）
   static const Color protocolSerial = Color(0xFF1F9D55);
