@@ -203,90 +203,387 @@ class _QuickTab extends StatelessWidget {
     final q = t.serial.quick;
     final cubit = context.read<SerialConsoleCubit>();
 
-    Widget command(QuickCommand item, {bool indent = false}) => _ItemRow(
-      indent: indent,
-      leading: SerialSwitch(
-        on: item.enabled,
-        onTap: () => cubit.toggleQuick(item.id),
-      ),
-      title: item.name,
-      detail: item.format == DataFormat.ascii
-          ? '${t.serial.mark.ascii} · ${item.data}'
-          : item.data,
-      trailing: [
-        SerialButton(
-          label: q.send,
-          small: true,
-          primary: true,
-          onPressed: item.enabled ? () => cubit.sendQuick(item.id) : null,
+    Widget command(QuickCommand item, {bool indent = false}) {
+      final row = _ItemRow(
+        indent: indent,
+        leading: SerialSwitch(
+          on: item.enabled,
+          onTap: () => cubit.toggleQuick(item.id),
         ),
-        if (item.key.isNotEmpty) _KeyChip(item.key),
-      ],
-      menu: [
-        SerialMenuAction(
-          label: t.common.edit,
-          onTap: () => showQuickEditor(context, existing: item),
-        ),
-        SerialMenuAction(
-          label: t.common.duplicate,
-          onTap: () => cubit.duplicateQuick(item.id),
-        ),
-        SerialMenuAction(
-          label: t.common.delete,
-          danger: true,
-          onTap: () => showSerialDelete(
-            context,
-            message: t.serial.dialog.deleteQuick(name: item.name),
-            onDelete: () => cubit.deleteQuick(item.id),
+        title: item.name,
+        detail: item.format == DataFormat.ascii
+            ? '${t.serial.mark.ascii} · ${item.data}'
+            : item.data,
+        trailing: [
+          SerialButton(
+            label: q.send,
+            small: true,
+            primary: true,
+            onPressed: item.enabled ? () => cubit.sendQuick(item.id) : null,
           ),
+          if (item.key.isNotEmpty) _KeyChip(item.key),
+        ],
+        menu: [
+          SerialMenuAction(
+            label: t.common.edit,
+            onTap: () => showQuickEditor(context, existing: item),
+          ),
+          SerialMenuAction(
+            label: t.common.duplicate,
+            onTap: () => cubit.duplicateQuick(item.id),
+          ),
+          SerialMenuAction(
+            label: t.common.delete,
+            danger: true,
+            onTap: () => showSerialDelete(
+              context,
+              message: t.serial.dialog.deleteQuick(name: item.name),
+              onDelete: () => cubit.deleteQuick(item.id),
+            ),
+          ),
+        ],
+      );
+      return _QuickCommandDrag(command: item, child: row);
+    }
+
+    final bar = _Bar(
+      note: q.note,
+      actions: [
+        SerialButton(
+          label: q.newFolder,
+          small: true,
+          onPressed: () => showFolderEditor(context),
+        ),
+        SerialButton(
+          label: t.common.add,
+          small: true,
+          onPressed: () => showQuickEditor(context),
         ),
       ],
     );
 
+    if (state.quick.isEmpty) {
+      return Column(
+        children: [
+          bar,
+          Expanded(child: _Explain(q.empty)),
+        ],
+      );
+    }
+
     return Column(
       children: [
-        _Bar(
-          note: q.note,
-          actions: [
-            SerialButton(
-              label: q.newFolder,
-              small: true,
-              onPressed: () => showFolderEditor(context),
-            ),
-            SerialButton(
-              label: t.common.add,
-              small: true,
-              onPressed: () => showQuickEditor(context),
-            ),
-          ],
-        ),
+        _QuickRootDrop(child: bar),
         Expanded(
-          child: state.quick.isEmpty
-              ? _Explain(q.empty)
-              : ListView(
-                  children: [
-                    for (final node in state.quick)
-                      ...switch (node) {
-                        QuickCommand() => [command(node)],
-                        QuickFolder() => [
-                          _FolderRow(folder: node),
-                          if (node.expanded) ...[
-                            for (final item in node.commands)
-                              command(item, indent: true),
-                            if (node.commands.isEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  left: AppSpacing.lg,
-                                ),
-                                child: _Explain(q.folderEmpty),
-                              ),
-                          ],
-                        ],
-                      },
+          child: ListView(
+            children: [
+              for (final node in state.quick)
+                ...switch (node) {
+                  QuickCommand() => [
+                    _QuickBeforeDrop(
+                      beforeId: node.id,
+                      allowFolder: true,
+                      child: command(node),
+                    ),
                   ],
-                ),
+                  QuickFolder() => [
+                    // 标题：指令→移入夹；文件夹→插到此夹之前。夹内指令仅接受指令排序。
+                    _QuickFolderDrop(
+                      folder: node,
+                      child: _QuickFolderDrag(
+                        folder: node,
+                        child: _FolderRow(folder: node),
+                      ),
+                    ),
+                    if (node.expanded) ...[
+                      for (final item in node.commands)
+                        _QuickBeforeDrop(
+                          beforeId: item.id,
+                          child: command(item, indent: true),
+                        ),
+                      if (node.commands.isEmpty)
+                        _QuickFolderDrop(
+                          folder: node,
+                          commandsOnly: true,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              left: AppSpacing.lg,
+                            ),
+                            child: _Explain(q.folderEmpty),
+                          ),
+                        ),
+                    ],
+                  ],
+                },
+              _QuickRootDrop(child: const SizedBox(height: AppSpacing.lg)),
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _QuickRootDrop extends StatelessWidget {
+  const _QuickRootDrop({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<SerialConsoleCubit>();
+    final q = Translations.of(context).serial.quick;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        final quick = cubit.state.quick;
+        if (quick.folderById(id) != null) {
+          return !(quick.isNotEmpty && quick.last.id == id);
+        }
+        final command = quick.commandById(id);
+        if (command == null) return false;
+        if (quick.folderIdOf(command.id) == null &&
+            quick.isNotEmpty &&
+            quick.last.id == command.id) {
+          return false;
+        }
+        return true;
+      },
+      onAcceptWithDetails: (details) {
+        final id = details.data;
+        if (cubit.state.quick.folderById(id) != null) {
+          cubit.placeQuick(id);
+        } else {
+          cubit.moveQuick(id);
+        }
+      },
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        return _QuickDropHighlight(
+          hot: hot,
+          label: q.dropRoot,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+/// 拖到某条指令上：插到该条之前。[allowFolder] 为真时根级指令也可接文件夹。
+class _QuickBeforeDrop extends StatelessWidget {
+  const _QuickBeforeDrop({
+    required this.beforeId,
+    required this.child,
+    this.allowFolder = false,
+  });
+
+  final String beforeId;
+  final Widget child;
+  final bool allowFolder;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<SerialConsoleCubit>();
+    final q = Translations.of(context).serial.quick;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        if (id == beforeId) return false;
+        if (cubit.state.quick.commandById(id) != null) return true;
+        return allowFolder && cubit.state.quick.folderById(id) != null;
+      },
+      onAcceptWithDetails: (details) =>
+          cubit.placeQuick(details.data, beforeId: beforeId),
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        return _QuickDropHighlight(
+          hot: hot,
+          label: q.dropBefore,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _QuickDropHighlight extends StatelessWidget {
+  const _QuickDropHighlight({
+    required this.hot,
+    required this.label,
+    required this.child,
+  });
+
+  final bool hot;
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: hot ? palette.accent.withValues(alpha: 0.12) : null,
+        border: hot ? Border.all(color: palette.accent) : null,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hot)
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppSpacing.sm + 2,
+                top: AppSpacing.xs,
+              ),
+              child: Text(
+                label,
+                style: AppTextStyles.caption(
+                  Theme.of(context).colorScheme,
+                ).copyWith(color: palette.accent),
+              ),
+            ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickCommandDrag extends StatelessWidget {
+  const _QuickCommandDrag({required this.command, required this.child});
+
+  final QuickCommand command;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Draggable<String>(
+      data: command.id,
+      feedback: Material(
+        elevation: 3,
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 2,
+              vertical: AppSpacing.sm,
+            ),
+            child: Text(
+              command.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.body(cs).copyWith(
+                color: palette.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.35, child: child),
+      child: child,
+    );
+  }
+}
+
+class _QuickFolderDrag extends StatelessWidget {
+  const _QuickFolderDrag({required this.folder, required this.child});
+
+  final QuickFolder folder;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Draggable<String>(
+      data: folder.id,
+      feedback: Material(
+        elevation: 3,
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 2,
+              vertical: AppSpacing.sm,
+            ),
+            child: Text(
+              folder.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.body(cs).copyWith(
+                color: palette.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.35, child: child),
+      child: child,
+    );
+  }
+}
+
+class _QuickFolderDrop extends StatelessWidget {
+  const _QuickFolderDrop({
+    required this.folder,
+    required this.child,
+    this.commandsOnly = false,
+  });
+
+  final QuickFolder folder;
+  final Widget child;
+
+  /// 空夹提示区只收指令，不收文件夹。
+  final bool commandsOnly;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<SerialConsoleCubit>();
+    final q = Translations.of(context).serial.quick;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        final quick = cubit.state.quick;
+        if (quick.folderById(id) != null) {
+          if (commandsOnly || id == folder.id) return false;
+          return true;
+        }
+        final command = quick.commandById(id);
+        if (command == null) return false;
+        if (quick.folderIdOf(command.id) == folder.id) {
+          final list = folder.commands;
+          if (list.isNotEmpty && list.last.id == command.id) return false;
+        }
+        return true;
+      },
+      onAcceptWithDetails: (details) {
+        final id = details.data;
+        if (cubit.state.quick.folderById(id) != null) {
+          cubit.placeQuick(id, beforeId: folder.id);
+        } else {
+          cubit.moveQuick(id, folderId: folder.id);
+        }
+      },
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        final draggingId = candidate.whereType<String>().firstOrNull;
+        final draggingFolder =
+            draggingId != null &&
+            cubit.state.quick.folderById(draggingId) != null;
+        return _QuickDropHighlight(
+          hot: hot,
+          label: draggingFolder ? q.dropBefore : q.dropFolder,
+          child: child,
+        );
+      },
     );
   }
 }
@@ -566,74 +863,466 @@ class _ReplyTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final r = t.serial.reply;
     final cubit = context.read<SerialConsoleCubit>();
-    final enabled = state.rules.where((rule) => rule.enabled).length;
+    final palette = SerialPalette.of(context);
+    final enabled = state.rules.allRules.where((rule) => rule.enabled).length;
+    final total = state.rules.allRules.length;
+
+    Widget ruleRow(ReplyRule rule, {bool indent = false}) {
+      final row = _ItemRow(
+        indent: indent,
+        leading: SerialSwitch(
+          on: rule.enabled,
+          onTap: () => cubit.toggleRule(rule.id),
+        ),
+        title: rule.name,
+        detail:
+            '${ruleMatchLabel(t, rule)} → ${rule.replies.map((reply) => '+${reply.delayMs}ms ${reply.data}').join('，')}',
+        trailing: [
+          Text(
+            r.hits(count: rule.hits),
+            style: AppTextStyles.mono(
+              Theme.of(context).colorScheme,
+              fontSize: 12,
+              color: palette.muted,
+            ),
+          ),
+          SerialLinkButton(
+            label: r.fire,
+            onPressed: () => cubit.fireRule(rule.id),
+          ),
+        ],
+        menu: [
+          SerialMenuAction(
+            label: t.common.edit,
+            onTap: () => showRuleEditor(context, existing: rule),
+          ),
+          SerialMenuAction(
+            label: t.common.duplicate,
+            onTap: () => cubit.duplicateRule(rule.id),
+          ),
+          SerialMenuAction(
+            label: t.common.delete,
+            danger: true,
+            onTap: () => showSerialDelete(
+              context,
+              message: t.serial.dialog.deleteRule(name: rule.name),
+              onDelete: () => cubit.deleteRule(rule.id),
+            ),
+          ),
+        ],
+      );
+      return _ReplyRuleDrag(rule: rule, child: row);
+    }
+
     return Column(
       children: [
-        _Bar(
-          note: t.serial.reply.note(
-            enabled: enabled,
-            total: state.rules.length,
+        _ReplyRootDrop(
+          child: _Bar(
+            note: r.note(enabled: enabled, total: total),
+            actions: [
+              SerialButton(
+                label: r.newFolder,
+                small: true,
+                onPressed: () => showReplyFolderEditor(context),
+              ),
+              SerialButton(
+                label: r.add,
+                small: true,
+                onPressed: () => showRuleEditor(context),
+              ),
+            ],
           ),
-          actions: [
-            SerialButton(
-              label: t.serial.reply.add,
-              small: true,
-              onPressed: () => showRuleEditor(context),
-            ),
-          ],
         ),
         Expanded(
           child: ListView(
             children: [
-              for (final rule in state.rules)
-                _ItemRow(
-                  leading: SerialSwitch(
-                    on: rule.enabled,
-                    onTap: () => cubit.toggleRule(rule.id),
-                  ),
-                  title: rule.name,
-                  detail:
-                      '${ruleMatchLabel(t, rule)} → ${rule.replies.map((reply) => '+${reply.delayMs}ms ${reply.data}').join('，')}',
-                  trailing: [
-                    Text(
-                      t.serial.reply.hits(count: rule.hits),
-                      style: AppTextStyles.mono(
-                        Theme.of(context).colorScheme,
-                        fontSize: 12,
-                        color: SerialPalette.of(context).muted,
-                      ),
-                    ),
-                    SerialLinkButton(
-                      label: t.serial.reply.fire,
-                      onPressed: () => cubit.fireRule(rule.id),
+              for (final node in state.rules)
+                ...switch (node) {
+                  ReplyRule() => [
+                    _ReplyBeforeDrop(
+                      beforeId: node.id,
+                      allowFolder: true,
+                      child: ruleRow(node),
                     ),
                   ],
-                  menu: [
-                    SerialMenuAction(
-                      label: t.common.edit,
-                      onTap: () => showRuleEditor(context, existing: rule),
-                    ),
-                    SerialMenuAction(
-                      label: t.common.duplicate,
-                      onTap: () => cubit.duplicateRule(rule.id),
-                    ),
-                    SerialMenuAction(
-                      label: t.common.delete,
-                      danger: true,
-                      onTap: () => showSerialDelete(
-                        context,
-                        message: t.serial.dialog.deleteRule(name: rule.name),
-                        onDelete: () => cubit.deleteRule(rule.id),
+                  ReplyFolder() => [
+                    // 标题：规则→移入夹；文件夹→插到此夹之前。夹内规则仅接受规则排序。
+                    _ReplyFolderDrop(
+                      folder: node,
+                      child: _ReplyFolderDrag(
+                        folder: node,
+                        child: _ReplyFolderRow(folder: node),
                       ),
                     ),
+                    if (node.expanded) ...[
+                      for (final rule in node.rules)
+                        _ReplyBeforeDrop(
+                          beforeId: rule.id,
+                          child: ruleRow(rule, indent: true),
+                        ),
+                      if (node.rules.isEmpty)
+                        _ReplyFolderDrop(
+                          folder: node,
+                          rulesOnly: true,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: AppSpacing.lg),
+                            child: _Explain(r.folderEmpty),
+                          ),
+                        ),
+                    ],
                   ],
-                ),
-              _Explain(t.serial.reply.explain),
+                },
+              _ReplyRootDrop(child: _Explain(r.explain)),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ReplyRootDrop extends StatelessWidget {
+  const _ReplyRootDrop({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<SerialConsoleCubit>();
+    final r = Translations.of(context).serial.reply;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        final rules = cubit.state.rules;
+        if (rules.folderById(id) != null) {
+          return !(rules.isNotEmpty && rules.last.id == id);
+        }
+        final rule = rules.ruleById(id);
+        if (rule == null) return false;
+        if (rules.folderIdOf(rule.id) == null &&
+            rules.isNotEmpty &&
+            rules.last.id == rule.id) {
+          return false;
+        }
+        return true;
+      },
+      onAcceptWithDetails: (details) {
+        final id = details.data;
+        if (cubit.state.rules.folderById(id) != null) {
+          cubit.placeRule(id);
+        } else {
+          cubit.moveRule(id);
+        }
+      },
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        return _ReplyDropHighlight(
+          hot: hot,
+          label: r.dropRoot,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+/// 拖到某条规则上：插到该条之前。[allowFolder] 为真时根级规则也可接文件夹。
+class _ReplyBeforeDrop extends StatelessWidget {
+  const _ReplyBeforeDrop({
+    required this.beforeId,
+    required this.child,
+    this.allowFolder = false,
+  });
+
+  final String beforeId;
+  final Widget child;
+  final bool allowFolder;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<SerialConsoleCubit>();
+    final r = Translations.of(context).serial.reply;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        if (id == beforeId) return false;
+        if (cubit.state.rules.ruleById(id) != null) return true;
+        return allowFolder && cubit.state.rules.folderById(id) != null;
+      },
+      onAcceptWithDetails: (details) =>
+          cubit.placeRule(details.data, beforeId: beforeId),
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        return _ReplyDropHighlight(
+          hot: hot,
+          label: r.dropBefore,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _ReplyDropHighlight extends StatelessWidget {
+  const _ReplyDropHighlight({
+    required this.hot,
+    required this.label,
+    required this.child,
+  });
+
+  final bool hot;
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: hot ? palette.accent.withValues(alpha: 0.12) : null,
+        border: hot ? Border.all(color: palette.accent) : null,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hot)
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppSpacing.sm + 2,
+                top: AppSpacing.xs,
+              ),
+              child: Text(
+                label,
+                style: AppTextStyles.caption(
+                  Theme.of(context).colorScheme,
+                ).copyWith(color: palette.accent),
+              ),
+            ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _ReplyRuleDrag extends StatelessWidget {
+  const _ReplyRuleDrag({required this.rule, required this.child});
+
+  final ReplyRule rule;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Draggable<String>(
+      data: rule.id,
+      feedback: Material(
+        elevation: 3,
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 2,
+              vertical: AppSpacing.sm,
+            ),
+            child: Text(
+              rule.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.body(cs).copyWith(
+                color: palette.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.35, child: child),
+      child: child,
+    );
+  }
+}
+
+class _ReplyFolderDrag extends StatelessWidget {
+  const _ReplyFolderDrag({required this.folder, required this.child});
+
+  final ReplyFolder folder;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Draggable<String>(
+      data: folder.id,
+      feedback: Material(
+        elevation: 3,
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 2,
+              vertical: AppSpacing.sm,
+            ),
+            child: Text(
+              folder.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.body(cs).copyWith(
+                color: palette.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.35, child: child),
+      child: child,
+    );
+  }
+}
+
+class _ReplyFolderDrop extends StatelessWidget {
+  const _ReplyFolderDrop({
+    required this.folder,
+    required this.child,
+    this.rulesOnly = false,
+  });
+
+  final ReplyFolder folder;
+  final Widget child;
+
+  /// 空夹提示区只收规则，不收文件夹。
+  final bool rulesOnly;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<SerialConsoleCubit>();
+    final r = Translations.of(context).serial.reply;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        final rules = cubit.state.rules;
+        if (rules.folderById(id) != null) {
+          if (rulesOnly || id == folder.id) return false;
+          return true;
+        }
+        final rule = rules.ruleById(id);
+        if (rule == null) return false;
+        if (rules.folderIdOf(rule.id) == folder.id) {
+          final list = folder.rules;
+          if (list.isNotEmpty && list.last.id == rule.id) return false;
+        }
+        return true;
+      },
+      onAcceptWithDetails: (details) {
+        final id = details.data;
+        if (cubit.state.rules.folderById(id) != null) {
+          cubit.placeRule(id, beforeId: folder.id);
+        } else {
+          cubit.moveRule(id, folderId: folder.id);
+        }
+      },
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        final draggingId = candidate.whereType<String>().firstOrNull;
+        final draggingFolder =
+            draggingId != null &&
+            cubit.state.rules.folderById(draggingId) != null;
+        return _ReplyDropHighlight(
+          hot: hot,
+          label: draggingFolder ? r.dropBefore : r.dropFolder,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _ReplyFolderRow extends StatelessWidget {
+  const _ReplyFolderRow({required this.folder});
+
+  final ReplyFolder folder;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final r = t.serial.reply;
+    final cubit = context.read<SerialConsoleCubit>();
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final count = folder.rules.length;
+    return SerialContextMenu(
+      menu: [
+        SerialMenuAction(
+          label: r.rename,
+          onTap: () => showReplyFolderEditor(context, existing: folder),
+        ),
+        SerialMenuAction(
+          label: t.common.delete,
+          danger: true,
+          onTap: () => showSerialDelete(
+            context,
+            message: count == 0
+                ? t.serial.dialog.deleteFolder(name: folder.name)
+                : t.serial.dialog.deleteReplyFolderWith(
+                    name: folder.name,
+                    count: count,
+                  ),
+            onDelete: () => cubit.deleteReplyFolder(folder.id),
+          ),
+        ),
+      ],
+      child: HoverSurface(
+        onTap: () => cubit.toggleReplyFolder(folder.id),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm + 2,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: palette.line2)),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                folder.expanded ? Icons.expand_more : Icons.chevron_right,
+                size: 18,
+                color: palette.muted,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  folder.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.body(
+                    cs,
+                  ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
+                ),
+              ),
+              Text(
+                r.folderCount(count: count),
+                style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              SerialLinkButton(
+                label: r.add,
+                onPressed: () =>
+                    showRuleEditor(context, folderId: folder.id),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

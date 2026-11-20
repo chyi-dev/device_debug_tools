@@ -23,7 +23,8 @@ class SerialStatusBar extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return BlocBuilder<SerialConsoleCubit, SerialConsoleState>(
       builder: (context, state) {
-        final enabled = state.rules.where((rule) => rule.enabled).length;
+        final enabled =
+            state.rules.allRules.where((rule) => rule.enabled).length;
         final hint = serialNoticeText(t, state.hint);
         return DecoratedBox(
           decoration: BoxDecoration(
@@ -71,7 +72,7 @@ class SerialStatusBar extends StatelessWidget {
                   child: Text(
                     t.serial.status.reply(
                       enabled: enabled,
-                      total: state.rules.length,
+                      total: state.rules.allRules.length,
                     ),
                     style: AppTextStyles.caption(
                       cs,

@@ -272,64 +272,482 @@ class _ReplyTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final r = t.serial.reply;
     return BlocBuilder<BleConsoleCubit, BleConsoleState>(
       buildWhen: (a, b) => a.rules != b.rules,
       builder: (context, state) {
         final cubit = context.read<BleConsoleCubit>();
+        final palette = SerialPalette.of(context);
+        final folders = state.rules.folders;
+
+        Future<void> editRule(ReplyRule? initial, {String? folderId}) async {
+          final draft = await showBleRuleEditor(
+            context,
+            initial: initial,
+            folders: folders,
+            folderId: initial != null
+                ? state.rules.folderIdOf(initial.id)
+                : folderId,
+          );
+          if (draft != null) {
+            cubit.saveRule(draft.rule, folderId: draft.folderId);
+          }
+        }
+
+        Future<void> editFolder(ReplyFolder? existing) async {
+          final name = await showBleReplyFolderEditor(
+            context,
+            existing: existing,
+            folders: folders,
+          );
+          if (name != null) cubit.upsertReplyFolder(existing?.id, name);
+        }
+
+        Widget ruleRow(ReplyRule rule, {bool indent = false}) {
+          final row = SerialItemRow(
+            indent: indent,
+            leading: SerialSwitch(
+              on: rule.enabled,
+              onTap: () => cubit.toggleRule(rule.id),
+            ),
+            title: rule.name,
+            detail: '${rule.pattern} · ${rule.hits}',
+            menu: [
+              SerialMenuAction(
+                label: t.common.edit,
+                onTap: () => editRule(rule),
+              ),
+              SerialMenuAction(
+                label: t.common.delete,
+                danger: true,
+                onTap: () => showSerialDelete(
+                  context,
+                  message: t.ble.dialog.deleteRule,
+                  onDelete: () => cubit.deleteRule(rule.id),
+                ),
+              ),
+            ],
+          );
+          return _BleReplyRuleDrag(rule: rule, child: row);
+        }
+
         return Column(
           children: [
-            SerialToolBar(
-              note: t.ble.reply.explain,
-              actions: [
-                SerialButton(
-                  label: t.common.add,
-                  small: true,
-                  onPressed: () async {
-                    final rule = await showBleRuleEditor(context);
-                    if (rule != null) cubit.saveRule(rule);
-                  },
-                ),
-              ],
+            _BleReplyRootDrop(
+              child: SerialToolBar(
+                note: t.ble.reply.explain,
+                actions: [
+                  SerialButton(
+                    label: r.newFolder,
+                    small: true,
+                    onPressed: () => editFolder(null),
+                  ),
+                  SerialButton(
+                    label: t.common.add,
+                    small: true,
+                    onPressed: () => editRule(null),
+                  ),
+                ],
+              ),
             ),
             Expanded(
               child: ListView(
                 children: [
-                  for (final rule in state.rules)
-                    SerialItemRow(
-                      leading: SerialSwitch(
-                        on: rule.enabled,
-                        onTap: () => cubit.toggleRule(rule.id),
-                      ),
-                      title: rule.name,
-                      detail: '${rule.pattern} · ${rule.hits}',
-                      menu: [
-                        SerialMenuAction(
-                          label: t.common.edit,
-                          onTap: () async {
-                            final next = await showBleRuleEditor(
-                              context,
-                              initial: rule,
-                            );
-                            if (next != null) cubit.saveRule(next);
-                          },
-                        ),
-                        SerialMenuAction(
-                          label: t.common.delete,
-                          danger: true,
-                          onTap: () => showSerialDelete(
-                            context,
-                            message: t.ble.dialog.deleteRule,
-                            onDelete: () => cubit.deleteRule(rule.id),
-                          ),
+                  for (final node in state.rules)
+                    ...switch (node) {
+                      ReplyRule() => [
+                        _BleReplyBeforeDrop(
+                          beforeId: node.id,
+                          allowFolder: true,
+                          child: ruleRow(node),
                         ),
                       ],
-                    ),
+                      ReplyFolder() => [
+                        // 标题：规则→移入夹；文件夹→插到此夹之前。
+                        _BleReplyFolderDrop(
+                          folder: node,
+                          child: _BleReplyFolderDrag(
+                            folder: node,
+                            child: _BleReplyFolderRow(
+                              folder: node,
+                              onRename: () => editFolder(node),
+                              onAdd: () => editRule(null, folderId: node.id),
+                            ),
+                          ),
+                        ),
+                        if (node.expanded) ...[
+                          for (final rule in node.rules)
+                            _BleReplyBeforeDrop(
+                              beforeId: rule.id,
+                              child: ruleRow(rule, indent: true),
+                            ),
+                          if (node.rules.isEmpty)
+                            _BleReplyFolderDrop(
+                              folder: node,
+                              rulesOnly: true,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  left: AppSpacing.lg,
+                                  top: AppSpacing.sm,
+                                  bottom: AppSpacing.sm,
+                                ),
+                                child: Text(
+                                  r.folderEmpty,
+                                  style: AppTextStyles.caption(
+                                    Theme.of(context).colorScheme,
+                                  ).copyWith(color: palette.muted),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ],
+                    },
                 ],
               ),
             ),
           ],
         );
       },
+    );
+  }
+}
+
+class _BleReplyRootDrop extends StatelessWidget {
+  const _BleReplyRootDrop({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<BleConsoleCubit>();
+    final r = Translations.of(context).serial.reply;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        final rules = cubit.state.rules;
+        if (rules.folderById(id) != null) {
+          return !(rules.isNotEmpty && rules.last.id == id);
+        }
+        final rule = rules.ruleById(id);
+        if (rule == null) return false;
+        if (rules.folderIdOf(rule.id) == null &&
+            rules.isNotEmpty &&
+            rules.last.id == rule.id) {
+          return false;
+        }
+        return true;
+      },
+      onAcceptWithDetails: (details) {
+        final id = details.data;
+        if (cubit.state.rules.folderById(id) != null) {
+          cubit.placeRule(id);
+        } else {
+          cubit.moveRule(id);
+        }
+      },
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        return _BleReplyDropHighlight(
+          hot: hot,
+          label: r.dropRoot,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _BleReplyBeforeDrop extends StatelessWidget {
+  const _BleReplyBeforeDrop({
+    required this.beforeId,
+    required this.child,
+    this.allowFolder = false,
+  });
+
+  final String beforeId;
+  final Widget child;
+  final bool allowFolder;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<BleConsoleCubit>();
+    final r = Translations.of(context).serial.reply;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        if (id == beforeId) return false;
+        if (cubit.state.rules.ruleById(id) != null) return true;
+        return allowFolder && cubit.state.rules.folderById(id) != null;
+      },
+      onAcceptWithDetails: (details) =>
+          cubit.placeRule(details.data, beforeId: beforeId),
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        return _BleReplyDropHighlight(
+          hot: hot,
+          label: r.dropBefore,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _BleReplyDropHighlight extends StatelessWidget {
+  const _BleReplyDropHighlight({
+    required this.hot,
+    required this.label,
+    required this.child,
+  });
+
+  final bool hot;
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: hot ? palette.accent.withValues(alpha: 0.12) : null,
+        border: hot ? Border.all(color: palette.accent) : null,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hot)
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppSpacing.sm + 2,
+                top: AppSpacing.xs,
+              ),
+              child: Text(
+                label,
+                style: AppTextStyles.caption(
+                  Theme.of(context).colorScheme,
+                ).copyWith(color: palette.accent),
+              ),
+            ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _BleReplyRuleDrag extends StatelessWidget {
+  const _BleReplyRuleDrag({required this.rule, required this.child});
+
+  final ReplyRule rule;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Draggable<String>(
+      data: rule.id,
+      feedback: Material(
+        elevation: 3,
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 2,
+              vertical: AppSpacing.sm,
+            ),
+            child: Text(
+              rule.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.body(cs).copyWith(
+                color: palette.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.35, child: child),
+      child: child,
+    );
+  }
+}
+
+class _BleReplyFolderDrag extends StatelessWidget {
+  const _BleReplyFolderDrag({required this.folder, required this.child});
+
+  final ReplyFolder folder;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Draggable<String>(
+      data: folder.id,
+      feedback: Material(
+        elevation: 3,
+        color: palette.panel,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 280),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 2,
+              vertical: AppSpacing.sm,
+            ),
+            child: Text(
+              folder.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.body(cs).copyWith(
+                color: palette.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.35, child: child),
+      child: child,
+    );
+  }
+}
+
+class _BleReplyFolderDrop extends StatelessWidget {
+  const _BleReplyFolderDrop({
+    required this.folder,
+    required this.child,
+    this.rulesOnly = false,
+  });
+
+  final ReplyFolder folder;
+  final Widget child;
+  final bool rulesOnly;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<BleConsoleCubit>();
+    final r = Translations.of(context).serial.reply;
+    return DragTarget<String>(
+      onWillAcceptWithDetails: (details) {
+        final id = details.data;
+        final rules = cubit.state.rules;
+        if (rules.folderById(id) != null) {
+          if (rulesOnly || id == folder.id) return false;
+          return true;
+        }
+        final rule = rules.ruleById(id);
+        if (rule == null) return false;
+        if (rules.folderIdOf(rule.id) == folder.id) {
+          final list = folder.rules;
+          if (list.isNotEmpty && list.last.id == rule.id) return false;
+        }
+        return true;
+      },
+      onAcceptWithDetails: (details) {
+        final id = details.data;
+        if (cubit.state.rules.folderById(id) != null) {
+          cubit.placeRule(id, beforeId: folder.id);
+        } else {
+          cubit.moveRule(id, folderId: folder.id);
+        }
+      },
+      builder: (context, candidate, rejected) {
+        final hot = candidate.isNotEmpty;
+        final draggingId = candidate.whereType<String>().firstOrNull;
+        final draggingFolder =
+            draggingId != null &&
+            cubit.state.rules.folderById(draggingId) != null;
+        return _BleReplyDropHighlight(
+          hot: hot,
+          label: draggingFolder ? r.dropBefore : r.dropFolder,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _BleReplyFolderRow extends StatelessWidget {
+  const _BleReplyFolderRow({
+    required this.folder,
+    required this.onRename,
+    required this.onAdd,
+  });
+
+  final ReplyFolder folder;
+  final VoidCallback onRename;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final r = t.serial.reply;
+    final cubit = context.read<BleConsoleCubit>();
+    final palette = SerialPalette.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final count = folder.rules.length;
+    return SerialContextMenu(
+      menu: [
+        SerialMenuAction(label: r.rename, onTap: onRename),
+        SerialMenuAction(
+          label: t.common.delete,
+          danger: true,
+          onTap: () => showSerialDelete(
+            context,
+            message: count == 0
+                ? t.serial.dialog.deleteFolder(name: folder.name)
+                : t.serial.dialog.deleteReplyFolderWith(
+                    name: folder.name,
+                    count: count,
+                  ),
+            onDelete: () => cubit.deleteReplyFolder(folder.id),
+          ),
+        ),
+      ],
+      child: HoverSurface(
+        onTap: () => cubit.toggleReplyFolder(folder.id),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm + 2,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: palette.line2)),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                folder.expanded ? Icons.expand_more : Icons.chevron_right,
+                size: 18,
+                color: palette.muted,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  folder.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.body(
+                    cs,
+                  ).copyWith(color: palette.text, fontWeight: FontWeight.w600),
+                ),
+              ),
+              Text(
+                r.folderCount(count: count),
+                style: AppTextStyles.caption(cs).copyWith(color: palette.muted),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              SerialLinkButton(label: r.add, onPressed: onAdd),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

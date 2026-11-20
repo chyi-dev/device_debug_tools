@@ -105,7 +105,7 @@ class BleConsoleState {
   final bool toolsVisible;
   final ToolTab tab;
   final List<QuickCommand> quick;
-  final List<ReplyRule> rules;
+  final List<ReplyNode> rules;
   final List<BatchJob> batch;
   final String? selectedBatchId;
   final BatchProgress? batchRun;
@@ -161,7 +161,7 @@ class BleConsoleState {
     bool? toolsVisible,
     ToolTab? tab,
     List<QuickCommand>? quick,
-    List<ReplyRule>? rules,
+    List<ReplyNode>? rules,
     List<BatchJob>? batch,
     Object? selectedBatchId = _keep,
     Object? batchRun = _keep,

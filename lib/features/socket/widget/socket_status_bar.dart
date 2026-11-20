@@ -7,6 +7,7 @@ import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
 import '../cubit/socket_console_cubit.dart';
 import '../cubit/socket_console_state.dart';
+import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
 import '../../serial/widget/serial_chrome.dart';
 import '../../serial/widget/serial_status_widgets.dart';
@@ -23,7 +24,8 @@ class SocketStatusBar extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return BlocBuilder<SocketConsoleCubit, SocketConsoleState>(
       builder: (context, state) {
-        final enabled = state.rules.where((rule) => rule.enabled).length;
+        final enabled =
+            state.rules.allRules.where((rule) => rule.enabled).length;
         final hint = socketNoticeText(t, state.hint);
         return DecoratedBox(
           decoration: BoxDecoration(
@@ -71,7 +73,7 @@ class SocketStatusBar extends StatelessWidget {
                   child: Text(
                     t.serial.status.reply(
                       enabled: enabled,
-                      total: state.rules.length,
+                      total: state.rules.allRules.length,
                     ),
                     style: AppTextStyles.caption(
                       cs,

@@ -59,13 +59,37 @@ Future<void> showScriptRename(BuildContext context, LuaScript script) {
   );
 }
 
-Future<void> showRuleEditor(BuildContext context, {ReplyRule? existing}) {
+/// [folderId] 为新增规则时预选的文件夹；编辑已有规则时取其所在文件夹。
+Future<void> showRuleEditor(
+  BuildContext context, {
+  ReplyRule? existing,
+  String? folderId,
+}) {
+  final cubit = context.read<SerialConsoleCubit>();
+  final rules = cubit.state.rules;
+  return showSerialDialog<void>(
+    context: context,
+    builder: (dialogContext) => BlocProvider.value(
+      value: cubit,
+      child: _RuleEditor(
+        existing: existing,
+        folders: rules.folders,
+        folderId: existing != null ? rules.folderIdOf(existing.id) : folderId,
+      ),
+    ),
+  );
+}
+
+Future<void> showReplyFolderEditor(
+  BuildContext context, {
+  ReplyFolder? existing,
+}) {
   final cubit = context.read<SerialConsoleCubit>();
   return showSerialDialog<void>(
     context: context,
     builder: (dialogContext) => BlocProvider.value(
       value: cubit,
-      child: _RuleEditor(existing: existing),
+      child: _ReplyFolderEditor(existing: existing),
     ),
   );
 }
@@ -534,9 +558,15 @@ class _ScriptRenameState extends State<_ScriptRename> {
 }
 
 class _RuleEditor extends StatefulWidget {
-  const _RuleEditor({this.existing});
+  const _RuleEditor({
+    required this.folders,
+    this.existing,
+    this.folderId,
+  });
 
   final ReplyRule? existing;
+  final List<ReplyFolder> folders;
+  final String? folderId;
 
   @override
   State<_RuleEditor> createState() => _RuleEditorState();
@@ -554,6 +584,9 @@ class _RuleEditorState extends State<_RuleEditor> {
   late DataFormat _format = widget.existing?.format ?? DataFormat.hex;
   late bool _ignoreCase = widget.existing?.ignoreCase ?? false;
   late bool _enabled = widget.existing?.enabled ?? true;
+  late String _folder = widget.folders.any((f) => f.id == widget.folderId)
+      ? widget.folderId!
+      : '';
   bool _tutorOpen = false;
   String? _openLesson = 'wild';
   String? _wroteLesson;
@@ -642,6 +675,7 @@ class _RuleEditorState extends State<_RuleEditor> {
         hits: previous?.hits ?? 0,
         replies: replies,
       ),
+      folderId: _folder.isEmpty ? null : _folder,
     );
     Navigator.of(context).pop();
   }
@@ -783,6 +817,19 @@ class _RuleEditorState extends State<_RuleEditor> {
             value: _enabled,
             onChanged: (value) => setState(() => _enabled = value),
           ),
+          _Row(
+            label: r.folder,
+            child: SerialDropdown<String>(
+              value: _folder,
+              height: 28,
+              items: [
+                (value: '', label: r.root),
+                for (final folder in widget.folders)
+                  (value: folder.id, label: folder.name),
+              ],
+              onChanged: (value) => setState(() => _folder = value),
+            ),
+          ),
           SerialDialogError(message: _error),
         ],
       ),
@@ -809,6 +856,72 @@ class _RuleEditorState extends State<_RuleEditor> {
               onFill: _fillLesson,
             )
           : null,
+    );
+  }
+}
+
+class _ReplyFolderEditor extends StatefulWidget {
+  const _ReplyFolderEditor({this.existing});
+
+  final ReplyFolder? existing;
+
+  @override
+  State<_ReplyFolderEditor> createState() => _ReplyFolderEditorState();
+}
+
+class _ReplyFolderEditorState extends State<_ReplyFolderEditor> {
+  late final TextEditingController _name = TextEditingController(
+    text: widget.existing?.name ?? '',
+  );
+  String _error = '';
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final t = Translations.of(context);
+    final cubit = context.read<SerialConsoleCubit>();
+    final name = _name.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = t.serial.validate.needFolderName);
+      return;
+    }
+    final duplicate = cubit.state.rules.folders.any(
+      (f) => f.name == name && f.id != widget.existing?.id,
+    );
+    if (duplicate) {
+      setState(() => _error = t.serial.validate.dupFolder);
+      return;
+    }
+    cubit.upsertReplyFolder(widget.existing?.id, name);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final r = t.serial.reply;
+    return SerialDialogFrame(
+      title: widget.existing == null ? r.folderNewTitle : r.folderEditTitle,
+      body: Column(
+        children: [
+          _Row(
+            label: r.folderName,
+            child: SerialField(controller: _name, onSubmitted: (_) => _save()),
+          ),
+          SerialDialogError(message: _error),
+        ],
+      ),
+      actions: [
+        SerialButton(
+          label: t.common.cancel,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        SerialButton(label: t.common.save, primary: true, onPressed: _save),
+      ],
     );
   }
 }

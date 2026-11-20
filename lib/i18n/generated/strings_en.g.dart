@@ -657,6 +657,9 @@ class _Translations$serial$quick$en extends Translations$serial$quick$zh {
 	@override String get folderNewTitle => 'New folder';
 	@override String get folderEditTitle => 'Rename folder';
 	@override String get folderName => 'Name';
+	@override String get dropRoot => 'Drop to move to root';
+	@override String get dropFolder => 'Drop to move into folder';
+	@override String get dropBefore => 'Insert before this item';
 }
 
 // Path: serial.batch
@@ -701,6 +704,18 @@ class _Translations$serial$reply$en extends Translations$serial$reply$zh {
 	// Translations
 	@override String note({required Object enabled, required Object total}) => '${enabled} / ${total} enabled, matched in list order';
 	@override String get add => 'Add rule';
+	@override String get newFolder => 'New folder';
+	@override String get folder => 'Folder';
+	@override String get root => 'Root';
+	@override String get rename => 'Rename';
+	@override String folderCount({required Object count}) => '${count} items';
+	@override String get folderEmpty => 'Folder is empty. Tap Add to create a rule here.';
+	@override String get folderNewTitle => 'New folder';
+	@override String get folderEditTitle => 'Rename folder';
+	@override String get folderName => 'Name';
+	@override String get dropRoot => 'Drop to move to root';
+	@override String get dropFolder => 'Drop to move into folder';
+	@override String get dropBefore => 'Insert before this rule';
 	@override String get fire => 'Run';
 	@override String hits({required Object count}) => '${count} hits';
 	@override String get explain => 'When received data matches, replies are sent in order. Each delay starts after the previous reply.';
@@ -811,6 +826,7 @@ class _Translations$serial$dialog$en extends Translations$serial$dialog$zh {
 	@override String deleteQuick({required Object name}) => 'Delete quick command "${name}"? This cannot be undone.';
 	@override String deleteFolder({required Object name}) => 'Delete folder "${name}"? This cannot be undone.';
 	@override String deleteFolderWith({required Object name, required Object count}) => 'Delete folder "${name}" and the ${count} commands in it? This cannot be undone.';
+	@override String deleteReplyFolderWith({required Object name, required Object count}) => 'Delete folder "${name}" and the ${count} rules in it? This cannot be undone.';
 	@override String deleteRule({required Object name}) => 'Delete rule "${name}"? This cannot be undone.';
 	@override String deleteBatch({required Object name}) => 'Delete batch "${name}"? This cannot be undone.';
 	@override String deleteHistory({required Object count}) => 'Delete all ${count} history entries? This cannot be undone.';
@@ -1107,6 +1123,7 @@ class _Translations$ble$notice$en extends Translations$ble$notice$zh {
 	@override String get deleted => 'Deleted';
 	@override String get duplicated => 'Duplicated';
 	@override String get quickSaved => 'Quick command saved';
+	@override String get folderSaved => 'Folder saved';
 	@override String get ruleSaved => 'Reply rule saved';
 	@override String get batchSaved => 'Batch job saved';
 	@override String get scriptSaved => 'Script saved';
@@ -1987,6 +2004,9 @@ extension on TranslationsEn {
 			'serial.quick.folderNewTitle' => 'New folder',
 			'serial.quick.folderEditTitle' => 'Rename folder',
 			'serial.quick.folderName' => 'Name',
+			'serial.quick.dropRoot' => 'Drop to move to root',
+			'serial.quick.dropFolder' => 'Drop to move into folder',
+			'serial.quick.dropBefore' => 'Insert before this item',
 			'serial.batch.kNew' => 'New',
 			'serial.batch.edit' => 'Edit',
 			'serial.batch.delete' => 'Delete',
@@ -2013,6 +2033,18 @@ extension on TranslationsEn {
 			'serial.batch.noteHint' => 'Note',
 			'serial.reply.note' => ({required Object enabled, required Object total}) => '${enabled} / ${total} enabled, matched in list order',
 			'serial.reply.add' => 'Add rule',
+			'serial.reply.newFolder' => 'New folder',
+			'serial.reply.folder' => 'Folder',
+			'serial.reply.root' => 'Root',
+			'serial.reply.rename' => 'Rename',
+			'serial.reply.folderCount' => ({required Object count}) => '${count} items',
+			'serial.reply.folderEmpty' => 'Folder is empty. Tap Add to create a rule here.',
+			'serial.reply.folderNewTitle' => 'New folder',
+			'serial.reply.folderEditTitle' => 'Rename folder',
+			'serial.reply.folderName' => 'Name',
+			'serial.reply.dropRoot' => 'Drop to move to root',
+			'serial.reply.dropFolder' => 'Drop to move into folder',
+			'serial.reply.dropBefore' => 'Insert before this rule',
 			'serial.reply.fire' => 'Run',
 			'serial.reply.hits' => ({required Object count}) => '${count} hits',
 			'serial.reply.explain' => 'When received data matches, replies are sent in order. Each delay starts after the previous reply.',
@@ -2121,6 +2153,7 @@ extension on TranslationsEn {
 			'serial.dialog.deleteQuick' => ({required Object name}) => 'Delete quick command "${name}"? This cannot be undone.',
 			'serial.dialog.deleteFolder' => ({required Object name}) => 'Delete folder "${name}"? This cannot be undone.',
 			'serial.dialog.deleteFolderWith' => ({required Object name, required Object count}) => 'Delete folder "${name}" and the ${count} commands in it? This cannot be undone.',
+			'serial.dialog.deleteReplyFolderWith' => ({required Object name, required Object count}) => 'Delete folder "${name}" and the ${count} rules in it? This cannot be undone.',
 			'serial.dialog.deleteRule' => ({required Object name}) => 'Delete rule "${name}"? This cannot be undone.',
 			'serial.dialog.deleteBatch' => ({required Object name}) => 'Delete batch "${name}"? This cannot be undone.',
 			'serial.dialog.deleteHistory' => ({required Object count}) => 'Delete all ${count} history entries? This cannot be undone.',
@@ -2220,6 +2253,8 @@ extension on TranslationsEn {
 			'serial.notice.folderSaved' => 'Folder saved',
 			'serial.notice.ruleSaved' => 'Rule saved',
 			'serial.notice.batchSaved' => 'Batch saved',
+			_ => null,
+		} ?? switch (path) {
 			'serial.notice.scriptSaved' => 'Script renamed',
 			'serial.notice.lessonCreated' => ({required Object name, required Object title}) => 'Created ${name} from "${title}"',
 			'serial.notice.lessonTried' => 'Sample run written to the run log',
@@ -2236,8 +2271,6 @@ extension on TranslationsEn {
 			'ble.scan.scanning' => 'Scanning',
 			'ble.scan.empty' => 'No matching devices',
 			'ble.scan.notScanned' => 'Not scanned yet',
-			_ => null,
-		} ?? switch (path) {
 			'ble.scan.adapterOff' => 'Bluetooth adapter unavailable',
 			'ble.connect' => 'Connect',
 			'ble.disconnect' => 'Disconnect',
@@ -2323,6 +2356,7 @@ extension on TranslationsEn {
 			'ble.notice.deleted' => 'Deleted',
 			'ble.notice.duplicated' => 'Duplicated',
 			'ble.notice.quickSaved' => 'Quick command saved',
+			'ble.notice.folderSaved' => 'Folder saved',
 			'ble.notice.ruleSaved' => 'Reply rule saved',
 			'ble.notice.batchSaved' => 'Batch job saved',
 			'ble.notice.scriptSaved' => 'Script saved',

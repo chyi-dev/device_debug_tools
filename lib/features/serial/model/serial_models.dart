@@ -330,12 +330,141 @@ extension QuickTree on List<QuickNode> {
     return null;
   }
 
+  QuickFolder? folderById(String id) {
+    for (final folder in folders) {
+      if (folder.id == id) return folder;
+    }
+    return null;
+  }
+
   /// 指令所在文件夹 id；在根目录或不存在时为 null。
   String? folderIdOf(String commandId) {
     for (final folder in folders) {
       if (folder.commands.any((c) => c.id == commandId)) return folder.id;
     }
     return null;
+  }
+
+  List<QuickNode> deleteCommand(String id) => [
+    for (final node in this)
+      switch (node) {
+        QuickCommand() => node,
+        QuickFolder() => node.copyWith(
+          commands: node.commands.where((c) => c.id != id).toList(),
+        ),
+      },
+  ]..removeWhere((node) => node is QuickCommand && node.id == id);
+
+  /// 目标与当前位置相同则原样返回；[folderId] 无效时移到根目录末尾。
+  List<QuickNode> moveCommand(String id, {String? folderId}) =>
+      placeCommand(id, folderId: folderId);
+
+  /// 把指令放到新位置（语义同应答 [ReplyTree.placeRule]）。
+  List<QuickNode> placeCommand(
+    String id, {
+    String? beforeId,
+    String? folderId,
+  }) {
+    final command = commandById(id);
+    if (command == null) return this;
+    if (beforeId != null) {
+      if (beforeId == id) return this;
+      if (_isImmediatelyBefore(id, beforeId)) return this;
+      final beforeOk =
+          commandById(beforeId) != null || folderById(beforeId) != null;
+      if (!beforeOk) return this;
+      return deleteCommand(id)._insertCommand(command, beforeId: beforeId);
+    }
+    final target = folders.any((f) => f.id == folderId) ? folderId : null;
+    if (folderIdOf(id) == target) {
+      if (target == null) {
+        if (isNotEmpty && last is QuickCommand && last.id == id) return this;
+      } else {
+        final folder = folders.firstWhere((f) => f.id == target);
+        if (folder.commands.isNotEmpty && folder.commands.last.id == id) {
+          return this;
+        }
+      }
+    }
+    return deleteCommand(id)._insertCommand(command, folderId: target);
+  }
+
+  /// 根目录移动文件夹；[beforeId] 为根上节点，空则移到根末尾。
+  List<QuickNode> placeFolder(String id, {String? beforeId}) {
+    final folder = folderById(id);
+    if (folder == null) return this;
+    if (beforeId == id) return this;
+    if (beforeId != null) {
+      if (_isImmediatelyBefore(id, beforeId)) return this;
+      if (!any((node) => node.id == beforeId)) return this;
+    } else if (isNotEmpty && last.id == id) {
+      return this;
+    }
+    final without = where((node) => node.id != id).toList();
+    if (beforeId == null) return [...without, folder];
+    final index = without.indexWhere((node) => node.id == beforeId);
+    if (index < 0) return this;
+    return [
+      ...without.sublist(0, index),
+      folder,
+      ...without.sublist(index),
+    ];
+  }
+
+  bool _isImmediatelyBefore(String id, String beforeId) {
+    for (var i = 0; i < length - 1; i++) {
+      if (this[i].id == id && this[i + 1].id == beforeId) return true;
+    }
+    for (final folder in folders) {
+      for (var i = 0; i < folder.commands.length - 1; i++) {
+        if (folder.commands[i].id == id &&
+            folder.commands[i + 1].id == beforeId) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  List<QuickNode> _insertCommand(
+    QuickCommand command, {
+    String? beforeId,
+    String? folderId,
+  }) {
+    if (beforeId != null) {
+      final rootIndex = indexWhere((node) => node.id == beforeId);
+      if (rootIndex >= 0) {
+        return [
+          ...sublist(0, rootIndex),
+          command,
+          ...sublist(rootIndex),
+        ];
+      }
+      return [
+        for (final node in this)
+          if (node is QuickFolder &&
+              node.commands.any((item) => item.id == beforeId))
+            node.copyWith(
+              commands: [
+                for (final item in node.commands) ...[
+                  if (item.id == beforeId) command,
+                  item,
+                ],
+              ],
+            )
+          else
+            node,
+      ];
+    }
+    final target = folders.any((f) => f.id == folderId) ? folderId : null;
+    if (target == null) return [...this, command];
+    return [
+      for (final node in this)
+        if (node is QuickFolder && node.id == target)
+          node.copyWith(commands: [...node.commands, command])
+        else
+          node,
+    ];
   }
 
   /// 同一 F 键出现多次时保留先出现的那条。
@@ -375,7 +504,25 @@ class ReplyStep {
   }
 }
 
-class ReplyRule {
+/// 自动应答列表的根节点：规则或单层文件夹（文件夹内只放规则）。
+sealed class ReplyNode {
+  const ReplyNode();
+
+  String get id;
+
+  Map<String, Object> toJson();
+
+  /// 有 `type: folder` 或 `rules` 列表时按文件夹解析；无 `type` 的旧规则按根规则解析。
+  static ReplyNode? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    if (raw['type'] == 'folder' || raw['rules'] is List) {
+      return ReplyFolder.fromJson(raw);
+    }
+    return ReplyRule.fromJson(raw);
+  }
+}
+
+class ReplyRule extends ReplyNode {
   const ReplyRule({
     required this.id,
     required this.name,
@@ -389,6 +536,7 @@ class ReplyRule {
     this.ignoreCase = false,
   });
 
+  @override
   final String id;
   final String name;
   final MatchMode match;
@@ -417,7 +565,9 @@ class ReplyRule {
     );
   }
 
+  @override
   Map<String, Object> toJson() => {
+    'type': 'rule',
     'id': id,
     'name': name,
     'match': match.name,
@@ -432,6 +582,7 @@ class ReplyRule {
 
   static ReplyRule? fromJson(Object? raw) {
     if (raw is! Map) return null;
+    if (raw['type'] == 'folder') return null;
     final replies = <ReplyStep>[];
     final list = raw['replies'];
     if (list is List) {
@@ -453,6 +604,322 @@ class ReplyRule {
       replies: replies,
     );
   }
+}
+
+class ReplyFolder extends ReplyNode {
+  const ReplyFolder({
+    required this.id,
+    required this.name,
+    this.expanded = true,
+    this.rules = const [],
+  });
+
+  @override
+  final String id;
+  final String name;
+  final bool expanded;
+  final List<ReplyRule> rules;
+
+  ReplyFolder copyWith({
+    String? name,
+    bool? expanded,
+    List<ReplyRule>? rules,
+  }) => ReplyFolder(
+    id: id,
+    name: name ?? this.name,
+    expanded: expanded ?? this.expanded,
+    rules: rules ?? this.rules,
+  );
+
+  @override
+  Map<String, Object> toJson() => {
+    'type': 'folder',
+    'id': id,
+    'name': name,
+    'expanded': expanded,
+    'rules': rules.map((r) => r.toJson()).toList(),
+  };
+
+  static ReplyFolder? fromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final name = raw['name']?.toString().trim() ?? '';
+    if (name.isEmpty) return null;
+    final list = raw['rules'];
+    return ReplyFolder(
+      id: _id(raw['id'], 'rf'),
+      name: name,
+      expanded: raw['expanded'] != false,
+      rules: list is List
+          ? [
+              for (final item in list) ReplyRule.fromJson(item),
+            ].whereType<ReplyRule>().toList()
+          : const [],
+    );
+  }
+}
+
+extension ReplyTree on List<ReplyNode> {
+  Iterable<ReplyRule> get allRules sync* {
+    for (final node in this) {
+      switch (node) {
+        case ReplyRule():
+          yield node;
+        case ReplyFolder():
+          yield* node.rules;
+      }
+    }
+  }
+
+  List<ReplyFolder> get folders => whereType<ReplyFolder>().toList();
+
+  ReplyRule? ruleById(String id) {
+    for (final rule in allRules) {
+      if (rule.id == id) return rule;
+    }
+    return null;
+  }
+
+  ReplyFolder? folderById(String id) {
+    for (final folder in folders) {
+      if (folder.id == id) return folder;
+    }
+    return null;
+  }
+
+  /// 规则所在文件夹 id；在根目录或不存在时为 null。
+  String? folderIdOf(String ruleId) {
+    for (final folder in folders) {
+      if (folder.rules.any((r) => r.id == ruleId)) return folder.id;
+    }
+    return null;
+  }
+
+  /// 目标与当前位置相同则原样返回；[folderId] 无效时移到根目录末尾。
+  List<ReplyNode> moveRule(String id, {String? folderId}) =>
+      placeRule(id, folderId: folderId);
+
+  /// 把规则放到新位置。
+  /// - [beforeId]：插到该节点之前（根上可为规则或文件夹；夹内仅为规则；优先于 [folderId]）
+  /// - 仅 [folderId]：放到该文件夹末尾；无效则根目录末尾
+  /// - 皆空：根目录末尾
+  List<ReplyNode> placeRule(
+    String id, {
+    String? beforeId,
+    String? folderId,
+  }) {
+    final rule = ruleById(id);
+    if (rule == null) return this;
+    if (beforeId != null) {
+      if (beforeId == id) return this;
+      if (_isImmediatelyBefore(id, beforeId)) return this;
+      final beforeOk =
+          ruleById(beforeId) != null || folderById(beforeId) != null;
+      if (!beforeOk) return this;
+      return deleteRule(id)._insertRule(rule, beforeId: beforeId);
+    }
+    final target = folders.any((f) => f.id == folderId) ? folderId : null;
+    if (folderIdOf(id) == target) {
+      if (target == null) {
+        if (isNotEmpty && last is ReplyRule && last.id == id) return this;
+      } else {
+        final folder = folders.firstWhere((f) => f.id == target);
+        if (folder.rules.isNotEmpty && folder.rules.last.id == id) {
+          return this;
+        }
+      }
+    }
+    return deleteRule(id)._insertRule(rule, folderId: target);
+  }
+
+  /// 根目录移动文件夹；[beforeId] 为根上节点，空则移到根末尾。不支持嵌套。
+  List<ReplyNode> placeFolder(String id, {String? beforeId}) {
+    final folder = folderById(id);
+    if (folder == null) return this;
+    if (beforeId == id) return this;
+    if (beforeId != null) {
+      if (_isImmediatelyBefore(id, beforeId)) return this;
+      if (!any((node) => node.id == beforeId)) return this;
+    } else if (isNotEmpty && last.id == id) {
+      return this;
+    }
+    final without = where((node) => node.id != id).toList();
+    if (beforeId == null) return [...without, folder];
+    final index = without.indexWhere((node) => node.id == beforeId);
+    if (index < 0) return this;
+    return [
+      ...without.sublist(0, index),
+      folder,
+      ...without.sublist(index),
+    ];
+  }
+
+  bool _isImmediatelyBefore(String id, String beforeId) {
+    for (var i = 0; i < length - 1; i++) {
+      if (this[i].id == id && this[i + 1].id == beforeId) return true;
+    }
+    for (final folder in folders) {
+      for (var i = 0; i < folder.rules.length - 1; i++) {
+        if (folder.rules[i].id == id &&
+            folder.rules[i + 1].id == beforeId) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// 假定 [rule] 已不在树中；[beforeId] 优先（根上可为规则或文件夹 id）。
+  List<ReplyNode> _insertRule(
+    ReplyRule rule, {
+    String? beforeId,
+    String? folderId,
+  }) {
+    if (beforeId != null) {
+      final rootIndex = indexWhere((node) => node.id == beforeId);
+      if (rootIndex >= 0) {
+        return [
+          ...sublist(0, rootIndex),
+          rule,
+          ...sublist(rootIndex),
+        ];
+      }
+      return [
+        for (final node in this)
+          if (node is ReplyFolder &&
+              node.rules.any((item) => item.id == beforeId))
+            node.copyWith(
+              rules: [
+                for (final item in node.rules) ...[
+                  if (item.id == beforeId) rule,
+                  item,
+                ],
+              ],
+            )
+          else
+            node,
+      ];
+    }
+    final target = folders.any((f) => f.id == folderId) ? folderId : null;
+    if (target == null) return [...this, rule];
+    return [
+      for (final node in this)
+        if (node is ReplyFolder && node.id == target)
+          node.copyWith(rules: [...node.rules, rule])
+        else
+          node,
+    ];
+  }
+
+  /// [folderId] 无效时放在根目录；所在文件夹不变则原位替换，否则追加到目标末尾。
+  List<ReplyNode> upsertRule(ReplyRule rule, {String? folderId}) {
+    final target = folders.any((f) => f.id == folderId) ? folderId : null;
+    final stay = ruleById(rule.id) != null && folderIdOf(rule.id) == target;
+    final next = <ReplyNode>[];
+    for (final node in this) {
+      switch (node) {
+        case ReplyRule():
+          if (node.id != rule.id) {
+            next.add(node);
+          } else if (stay) {
+            next.add(rule);
+          }
+        case ReplyFolder():
+          final rules = <ReplyRule>[
+            for (final item in node.rules)
+              if (item.id != rule.id) item else if (stay) rule,
+          ];
+          if (!stay && node.id == target) rules.add(rule);
+          next.add(node.copyWith(rules: rules));
+      }
+    }
+    if (!stay && target == null) next.add(rule);
+    return next;
+  }
+
+  List<ReplyNode> deleteRule(String id) => [
+    for (final node in this)
+      switch (node) {
+        ReplyRule() => node,
+        ReplyFolder() => node.copyWith(
+          rules: node.rules.where((r) => r.id != id).toList(),
+        ),
+      },
+  ]..removeWhere((node) => node is ReplyRule && node.id == id);
+
+  /// 在源规则之后插入副本（同文件夹内跟随）。
+  List<ReplyNode> duplicateAfter(String id, ReplyRule copy) => [
+    for (final node in this)
+      ...switch (node) {
+        ReplyRule() => [node, if (node.id == id) copy],
+        ReplyFolder() => [
+          node.copyWith(
+            rules: [
+              for (final item in node.rules) ...[
+                item,
+                if (item.id == id) copy,
+              ],
+            ],
+          ),
+        ],
+      },
+  ];
+
+  List<ReplyNode> replaceRule(String id, ReplyRule Function(ReplyRule) update) {
+    return [
+      for (final node in this)
+        switch (node) {
+          ReplyRule() => node.id == id ? update(node) : node,
+          ReplyFolder() => node.copyWith(
+            rules: [
+              for (final item in node.rules)
+                if (item.id == id) update(item) else item,
+            ],
+          ),
+        },
+    ];
+  }
+
+  /// 按遍历顺序更新每条规则，保留文件夹结构。
+  List<ReplyNode> mapRules(ReplyRule Function(ReplyRule) update) => [
+    for (final node in this)
+      switch (node) {
+        ReplyRule() => update(node),
+        ReplyFolder() => node.copyWith(
+          rules: [for (final rule in node.rules) update(rule)],
+        ),
+      },
+  ];
+
+  /// 新文件夹追加到根目录末尾；已存在则只改名称。
+  List<ReplyNode> upsertFolder(String? id, String name) {
+    final exists = id != null && folders.any((f) => f.id == id);
+    if (exists) {
+      return [
+        for (final node in this)
+          if (node is ReplyFolder && node.id == id)
+            node.copyWith(name: name)
+          else
+            node,
+      ];
+    }
+    var newId = newSerialId('rf');
+    while (folders.any((f) => f.id == newId) || any((n) => n.id == newId)) {
+      newId = newSerialId('rf');
+    }
+    return [...this, ReplyFolder(id: newId, name: name)];
+  }
+
+  List<ReplyNode> toggleFolder(String id) => [
+    for (final node in this)
+      if (node is ReplyFolder && node.id == id)
+        node.copyWith(expanded: !node.expanded)
+      else
+        node,
+  ];
+
+  /// 连同文件夹内规则一起删除。
+  List<ReplyNode> deleteFolder(String id) =>
+      where((node) => !(node is ReplyFolder && node.id == id)).toList();
 }
 
 class BatchStep {
@@ -784,7 +1251,7 @@ class SerialWorkspace {
   final bool toolsVisible;
   final ToolTab tab;
   final List<QuickNode> quick;
-  final List<ReplyRule> rules;
+  final List<ReplyNode> rules;
   final List<BatchJob> batch;
   final String? selectedBatchId;
   final List<HistoryEntry> history;
@@ -869,7 +1336,7 @@ class SerialWorkspace {
     }
 
     final quick = listOf(raw['quick'], QuickNode.fromJson).withUniqueKeys();
-    final rules = listOf(raw['rules'], ReplyRule.fromJson);
+    final rules = listOf(raw['rules'], ReplyNode.fromJson);
     final batch = listOf(raw['batch'], BatchJob.fromJson);
     final history = listOf(raw['history'], HistoryEntry.fromJson);
     final scripts = listOf(raw['scripts'], LuaScript.fromJson);

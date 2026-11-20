@@ -44,6 +44,7 @@ String bleNoticeText(Translations t, BleNotice notice) {
     BleNoticeKind.deleted => n.deleted,
     BleNoticeKind.duplicated => n.duplicated,
     BleNoticeKind.quickSaved => n.quickSaved,
+    BleNoticeKind.folderSaved => n.folderSaved,
     BleNoticeKind.ruleSaved => n.ruleSaved,
     BleNoticeKind.batchSaved => n.batchSaved,
     BleNoticeKind.scriptSaved => n.scriptSaved,

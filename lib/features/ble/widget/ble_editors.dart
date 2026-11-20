@@ -89,20 +89,49 @@ class _QuickFormState extends State<_QuickForm> {
   }
 }
 
-Future<ReplyRule?> showBleRuleEditor(
+/// 规则与所属文件夹；[folderId] 为 null 表示根目录。
+typedef BleRuleDraft = ({ReplyRule rule, String? folderId});
+
+Future<BleRuleDraft?> showBleRuleEditor(
   BuildContext context, {
   ReplyRule? initial,
+  List<ReplyFolder> folders = const [],
+  String? folderId,
 }) {
-  return showSerialDialog<ReplyRule>(
+  return showSerialDialog<BleRuleDraft>(
     context: context,
-    builder: (dialogContext) => _RuleForm(initial: initial),
+    builder: (dialogContext) => _RuleForm(
+      initial: initial,
+      folders: folders,
+      folderId: folderId,
+    ),
+  );
+}
+
+Future<String?> showBleReplyFolderEditor(
+  BuildContext context, {
+  ReplyFolder? existing,
+  List<ReplyFolder> folders = const [],
+}) {
+  return showSerialDialog<String>(
+    context: context,
+    builder: (dialogContext) => _ReplyFolderForm(
+      existing: existing,
+      folders: folders,
+    ),
   );
 }
 
 class _RuleForm extends StatefulWidget {
-  const _RuleForm({this.initial});
+  const _RuleForm({
+    required this.folders,
+    this.initial,
+    this.folderId,
+  });
 
   final ReplyRule? initial;
+  final List<ReplyFolder> folders;
+  final String? folderId;
 
   @override
   State<_RuleForm> createState() => _RuleFormState();
@@ -118,6 +147,9 @@ class _RuleFormState extends State<_RuleForm> {
   late final TextEditingController _reply = TextEditingController(
     text: widget.initial?.replies.firstOrNull?.data ?? '',
   );
+  late String _folder = widget.folders.any((f) => f.id == widget.folderId)
+      ? widget.folderId!
+      : '';
 
   @override
   void dispose() {
@@ -130,6 +162,7 @@ class _RuleFormState extends State<_RuleForm> {
   @override
   Widget build(BuildContext context) {
     final t = Translations.of(context);
+    final r = t.serial.reply;
     return SerialDialogFrame(
       title: t.ble.dialog.ruleTitle,
       body: Column(
@@ -143,6 +176,16 @@ class _RuleFormState extends State<_RuleForm> {
           ),
           const SizedBox(height: AppSpacing.sm),
           SerialField(controller: _reply, hint: t.ble.dialog.data, mono: true),
+          const SizedBox(height: AppSpacing.sm),
+          SerialDropdown<String>(
+            value: _folder,
+            items: [
+              (value: '', label: r.root),
+              for (final folder in widget.folders)
+                (value: folder.id, label: folder.name),
+            ],
+            onChanged: (value) => setState(() => _folder = value),
+          ),
         ],
       ),
       actions: [
@@ -156,20 +199,92 @@ class _RuleFormState extends State<_RuleForm> {
           onPressed: () {
             Navigator.pop(
               context,
-              ReplyRule(
-                id: widget.initial?.id ?? newSerialId('r'),
-                name: _name.text.trim().isEmpty
-                    ? _pattern.text
-                    : _name.text.trim(),
-                match: MatchMode.prefix,
-                pattern: _pattern.text,
-                enabled: widget.initial?.enabled ?? true,
-                hits: widget.initial?.hits ?? 0,
-                replies: [ReplyStep(data: _reply.text, delayMs: 0)],
+              (
+                rule: ReplyRule(
+                  id: widget.initial?.id ?? newSerialId('r'),
+                  name: _name.text.trim().isEmpty
+                      ? _pattern.text
+                      : _name.text.trim(),
+                  match: MatchMode.prefix,
+                  pattern: _pattern.text,
+                  enabled: widget.initial?.enabled ?? true,
+                  hits: widget.initial?.hits ?? 0,
+                  replies: [ReplyStep(data: _reply.text, delayMs: 0)],
+                ),
+                folderId: _folder.isEmpty ? null : _folder,
               ),
             );
           },
         ),
+      ],
+    );
+  }
+}
+
+class _ReplyFolderForm extends StatefulWidget {
+  const _ReplyFolderForm({required this.folders, this.existing});
+
+  final ReplyFolder? existing;
+  final List<ReplyFolder> folders;
+
+  @override
+  State<_ReplyFolderForm> createState() => _ReplyFolderFormState();
+}
+
+class _ReplyFolderFormState extends State<_ReplyFolderForm> {
+  late final TextEditingController _name = TextEditingController(
+    text: widget.existing?.name ?? '',
+  );
+  String _error = '';
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final t = Translations.of(context);
+    final name = _name.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = t.serial.validate.needFolderName);
+      return;
+    }
+    final duplicate = widget.folders.any(
+      (f) => f.name == name && f.id != widget.existing?.id,
+    );
+    if (duplicate) {
+      setState(() => _error = t.serial.validate.dupFolder);
+      return;
+    }
+    Navigator.pop(context, name);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Translations.of(context);
+    final r = t.serial.reply;
+    return SerialDialogFrame(
+      title: widget.existing == null ? r.folderNewTitle : r.folderEditTitle,
+      body: Column(
+        children: [
+          SerialField(
+            controller: _name,
+            hint: r.folderName,
+            onSubmitted: (_) => _save(),
+          ),
+          if (_error.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            SerialDialogError(message: _error),
+          ],
+        ],
+      ),
+      actions: [
+        SerialButton(
+          label: t.common.cancel,
+          onPressed: () => Navigator.pop(context),
+        ),
+        SerialButton(label: t.common.save, primary: true, onPressed: _save),
       ],
     );
   }

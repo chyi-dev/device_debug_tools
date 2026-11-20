@@ -641,6 +641,25 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
     _notify(SocketNoticeKind.deleted, toast: true, hint: false);
   }
 
+  /// 拖拽移动到文件夹末尾或根目录末尾。
+  void moveQuick(String id, {String? folderId}) {
+    placeQuick(id, folderId: folderId);
+  }
+
+  /// 拖拽放置：指令或文件夹均可；[beforeId] 插到该节点之前。
+  void placeQuick(String id, {String? beforeId, String? folderId}) {
+    final next = state.quick.folderById(id) != null
+        ? state.quick.placeFolder(id, beforeId: beforeId)
+        : state.quick.placeCommand(
+            id,
+            beforeId: beforeId,
+            folderId: folderId,
+          );
+    if (identical(next, state.quick)) return;
+    _emit(state.copyWith(quick: next));
+    _persist();
+  }
+
   Future<void> runBatch(String id) async {
     if (!state.open) {
       _notify(SocketNoticeKind.closedBatch, toast: true, warn: true);
@@ -787,7 +806,7 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
   }
 
   void toggleRule(String id) {
-    final rule = _byId(state.rules, id);
+    final rule = state.rules.ruleById(id);
     if (rule == null) return;
     final enabled = !rule.enabled;
     _replaceRule(id, (item) => item.copyWith(enabled: enabled));
@@ -798,7 +817,7 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
   }
 
   Future<void> fireRule(String id) async {
-    final rule = _byId(state.rules, id);
+    final rule = state.rules.ruleById(id);
     if (rule == null) return;
     if (!state.open) {
       _notify(SocketNoticeKind.closedRule, toast: true, warn: true);
@@ -810,35 +829,48 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
     _scheduleReplies(hit, const []);
   }
 
-  void upsertRule(ReplyRule rule) {
-    final rules = [...state.rules];
-    final index = rules.indexWhere((item) => item.id == rule.id);
-    if (index >= 0) {
-      rules[index] = rule;
-    } else {
-      rules.add(rule);
-    }
-    _emit(state.copyWith(rules: rules));
+  /// [folderId] 为 null 或文件夹不存在时放在根目录；所在文件夹不变则原位替换，否则追加到目标末尾。
+  void upsertRule(ReplyRule rule, {String? folderId}) {
+    _emit(
+      state.copyWith(rules: state.rules.upsertRule(rule, folderId: folderId)),
+    );
     _persist();
     _notify(SocketNoticeKind.ruleSaved, toast: true, hint: false);
   }
 
+  /// 拖拽移动到文件夹末尾或根目录末尾；目标与当前位置相同则忽略。
+  void moveRule(String id, {String? folderId}) {
+    placeRule(id, folderId: folderId);
+  }
+
+  /// 拖拽放置：规则或文件夹均可；[beforeId] 插到该节点之前。
+  void placeRule(String id, {String? beforeId, String? folderId}) {
+    final next = state.rules.folderById(id) != null
+        ? state.rules.placeFolder(id, beforeId: beforeId)
+        : state.rules.placeRule(
+            id,
+            beforeId: beforeId,
+            folderId: folderId,
+          );
+    if (identical(next, state.rules)) return;
+    _emit(state.copyWith(rules: next));
+    _persist();
+  }
+
   void deleteRule(String id) {
-    _emit(
-      state.copyWith(
-        rules: state.rules.where((item) => item.id != id).toList(),
-      ),
-    );
+    _emit(state.copyWith(rules: state.rules.deleteRule(id)));
     _persist();
     _notify(SocketNoticeKind.deleted, toast: true, hint: false);
   }
 
   void duplicateRule(String id) {
-    final source = _byId(state.rules, id);
+    final source = state.rules.ruleById(id);
     if (source == null) return;
     final copy = ReplyRule(
-      id: _freshId('r', {for (final r in state.rules) r.id}),
-      name: _copyName(source.name, {for (final r in state.rules) r.name}),
+      id: _freshId('r', {for (final r in state.rules.allRules) r.id}),
+      name: _copyName(source.name, {
+        for (final r in state.rules.allRules) r.name,
+      }),
       match: source.match,
       pattern: source.pattern,
       enabled: false,
@@ -848,11 +880,28 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
       format: source.format,
       ignoreCase: source.ignoreCase,
     );
-    _emit(
-      state.copyWith(rules: _insertAfterId(state.rules, id, copy, (r) => r.id)),
-    );
+    _emit(state.copyWith(rules: state.rules.duplicateAfter(id, copy)));
     _persist();
     _notify(SocketNoticeKind.duplicated, toast: true, hint: false);
+  }
+
+  /// 新文件夹追加到根目录末尾；已存在则只改名称。
+  void upsertReplyFolder(String? id, String name) {
+    _emit(state.copyWith(rules: state.rules.upsertFolder(id, name)));
+    _persist();
+    _notify(SocketNoticeKind.folderSaved, toast: true, hint: false);
+  }
+
+  void toggleReplyFolder(String id) {
+    _emit(state.copyWith(rules: state.rules.toggleFolder(id)));
+    _persist();
+  }
+
+  /// 连同文件夹内规则一起删除。
+  void deleteReplyFolder(String id) {
+    _emit(state.copyWith(rules: state.rules.deleteFolder(id)));
+    _persist();
+    _notify(SocketNoticeKind.deleted, toast: true, hint: false);
   }
 
   Future<void> resendHistory(int index) async {
@@ -1002,7 +1051,7 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
   }
 
   bool importReplyFromMcp(ReplyRule rule) {
-    if (state.rules.any((r) => r.name == rule.name)) return false;
+    if (hasReplyNamed(rule.name)) return false;
     upsertRule(rule);
     return true;
   }
@@ -1028,7 +1077,8 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
 
   bool hasScriptNamed(String name) => state.scripts.any((s) => s.name == name);
 
-  bool hasReplyNamed(String name) => state.rules.any((r) => r.name == name);
+  bool hasReplyNamed(String name) =>
+      state.rules.allRules.any((r) => r.name == name);
 
   bool hasQuickNamed(String name) =>
       state.quick.commands.any((c) => c.name == name);
@@ -1045,7 +1095,7 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
   }
 
   bool setReplyEnabledByName(String name, bool enabled) {
-    for (final rule in state.rules) {
+    for (final rule in state.rules.allRules) {
       if (rule.name != name) continue;
       if (rule.enabled != enabled) {
         _replaceRule(rule.id, (item) => item.copyWith(enabled: enabled));
@@ -1609,19 +1659,15 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
     String? peerAddress,
   }) {
     final matched = <(ReplyRule, List<Uint8List?>)>[];
-    final next = <ReplyRule>[];
-    for (final rule in state.rules) {
+    final next = state.rules.mapRules((rule) {
       final captures = rule.enabled
           ? SerialBytes.ruleCaptures(rule, bytes)
           : null;
-      if (captures == null) {
-        next.add(rule);
-        continue;
-      }
+      if (captures == null) return rule;
       final hit = rule.copyWith(hits: rule.hits + 1);
-      next.add(hit);
       matched.add((hit, captures));
-    }
+      return hit;
+    });
     if (matched.isEmpty) return;
     _emit(state.copyWith(rules: next));
     _persist();
@@ -1813,11 +1859,7 @@ class SocketConsoleCubit extends Cubit<SocketConsoleState> {
   }
 
   void _replaceRule(String id, ReplyRule Function(ReplyRule rule) update) {
-    final rules = [
-      for (final rule in state.rules)
-        if (rule.id == id) update(rule) else rule,
-    ];
-    _emit(state.copyWith(rules: rules));
+    _emit(state.copyWith(rules: state.rules.replaceRule(id, update)));
     _persist();
   }
 

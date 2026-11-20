@@ -34,7 +34,7 @@ void main() {
       final sum = frame.sublist(0, frame.length - 1).fold<int>(0, (a, b) => a + b);
       expect(frame.last, sum & 0xFF, reason: '${command.name} 校验');
       final matched = [
-        for (final rule in pack.rules!)
+        for (final rule in pack.rules!.allRules)
           if (SerialBytes.ruleMatches(rule, frame)) rule,
       ];
       expect(matched, hasLength(1), reason: command.name);
@@ -82,14 +82,14 @@ void main() {
     expect(engine.inspect(making.id, making.code).error, isNull);
 
     final statusReply = SerialBytes.parseHex(
-      pack.rules!.singleWhere((r) => r.id == 'r-1e').replies.single.data,
+      pack.rules!.ruleById('r-1e')!.replies.single.data,
     )!;
     final statusOut = engine.receive(status.id, status.code, statusReply);
     expect(statusOut.error, isNull);
     expect(statusOut.logs, ['0x1E 整机 正常空闲', '0x1E 故障 无']);
 
     final makingReply = SerialBytes.parseHex(
-      pack.rules!.singleWhere((r) => r.id == 'r-1f').replies.single.data,
+      pack.rules!.ruleById('r-1f')!.replies.single.data,
     )!;
     final makingOut = engine.receive(making.id, making.code, makingReply);
     expect(makingOut.error, isNull);

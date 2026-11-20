@@ -18,7 +18,7 @@ class ConfigPack {
   static const fileName = 'device-debug-config.json';
 
   final List<QuickNode>? quick;
-  final List<ReplyRule>? rules;
+  final List<ReplyNode>? rules;
   final List<BatchJob>? batch;
   final List<LuaScript>? scripts;
 
@@ -32,24 +32,35 @@ class ConfigPack {
     if (scripts != null) ConfigPart.scripts,
   };
 
-  /// 快捷指令按指令条数算，文件夹不计。
+  /// 快捷指令与应答规则按条数算，文件夹不计。
   int? count(ConfigPart part) => switch (part) {
     ConfigPart.quick => quick?.commands.length,
-    ConfigPart.rules => rules?.length,
+    ConfigPart.rules => rules?.allRules.length,
     ConfigPart.batch => batch?.length,
     ConfigPart.scripts => scripts?.length,
   };
 
   int get enabledScripts => scripts?.where((s) => s.enabled).length ?? 0;
 
-  /// 命中次数是运行统计，不写进文件。
+  /// 命中次数是运行统计，不写进文件（含文件夹内规则）。
   Map<String, Object> toJson(Set<ConfigPart> only) => {
     'kind': kind,
     'version': version,
     if (only.contains(ConfigPart.quick) && quick != null)
       'quick': quick!.map((q) => q.toJson()).toList(),
     if (only.contains(ConfigPart.rules) && rules != null)
-      'rules': rules!.map((r) => r.toJson()..remove('hits')).toList(),
+      'rules': [
+        for (final node in rules!)
+          switch (node) {
+            ReplyRule() => node.toJson()..remove('hits'),
+            ReplyFolder() => {
+              ...node.toJson(),
+              'rules': [
+                for (final rule in node.rules) rule.toJson()..remove('hits'),
+              ],
+            },
+          },
+      ],
     if (only.contains(ConfigPart.batch) && batch != null)
       'batch': batch!.map((b) => b.toJson()).toList(),
     if (only.contains(ConfigPart.scripts) && scripts != null)
@@ -67,7 +78,7 @@ class ConfigPack {
     if (present.isEmpty) return null;
     if (present.any((key) => raw[key] is! List)) return null;
     final quick = _all(raw['quick'], QuickNode.fromJson);
-    final rules = _all(raw['rules'], ReplyRule.fromJson);
+    final rules = _all(raw['rules'], ReplyNode.fromJson);
     final batch = _all(raw['batch'], BatchJob.fromJson);
     final scripts = _all(raw['scripts'], LuaScript.fromJson);
     final failed = [
@@ -98,7 +109,7 @@ class ConfigPack {
       return list == null ? null : ConfigPack(scripts: list, legacy: true);
     }
     if (first.containsKey('pattern') || first['replies'] is List) {
-      final list = _all(raw, ReplyRule.fromJson);
+      final list = _all(raw, ReplyNode.fromJson);
       return list == null ? null : ConfigPack(rules: list, legacy: true);
     }
     final list = _all(raw, QuickNode.fromJson);

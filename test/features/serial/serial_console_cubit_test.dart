@@ -82,7 +82,7 @@ void main() {
     await cubit.toggleOpen();
     ports.emit(Uint8List.fromList([0xA5, 0x5A, 0x03, 0x11]));
     await Future<void>.delayed(const Duration(milliseconds: 40));
-    expect(cubit.state.rules.firstWhere((rule) => rule.id == 'r1').hits, 1);
+    expect(cubit.state.rules.ruleById('r1')!.hits, 1);
     await Future<void>.delayed(const Duration(milliseconds: 80));
     expect(ports.written.map(SerialBytes.toHex), contains('A5 A0 00 A0'));
     await Future<void>.delayed(const Duration(milliseconds: 120));
@@ -234,6 +234,67 @@ void main() {
       expect(cubit.state.toast?.kind, SerialNoticeKind.importedConfig);
       expect(cubit.state.toast?.args, {'quick': 3});
     });
+
+    test('拖拽：指令可移入夹、移回根、插到指定位置之前', () {
+      cubit.upsertQuick(read);
+      cubit.upsertQuick(stop);
+      cubit.upsertQuick(
+        const QuickCommand(
+          id: 'q3',
+          name: 'C',
+          data: '03',
+          format: DataFormat.hex,
+        ),
+      );
+      expect(cubit.state.quick.commands.map((c) => c.id), ['q1', 'q2', 'q3']);
+
+      cubit.placeQuick('q3', beforeId: 'q1');
+      expect(cubit.state.quick.commands.map((c) => c.id), ['q3', 'q1', 'q2']);
+
+      final folderId = addFolder('夹');
+      cubit.moveQuick('q1', folderId: folderId);
+      cubit.moveQuick('q2', folderId: folderId);
+      expect(
+        cubit.state.quick.folders.single.commands.map((c) => c.id),
+        ['q1', 'q2'],
+      );
+
+      cubit.placeQuick('q2', beforeId: 'q1');
+      expect(
+        cubit.state.quick.folders.single.commands.map((c) => c.id),
+        ['q2', 'q1'],
+      );
+
+      cubit.placeQuick('q3', beforeId: 'q1');
+      expect(cubit.state.quick.folderIdOf('q3'), folderId);
+      expect(
+        cubit.state.quick.folders.single.commands.map((c) => c.id),
+        ['q2', 'q3', 'q1'],
+      );
+
+      cubit.moveQuick('q3');
+      expect(cubit.state.quick.folderIdOf('q3'), isNull);
+      expect(cubit.state.quick.last.id, 'q3');
+    });
+
+    test('拖拽：文件夹可在根目录调整顺序', () {
+      final a = addFolder('甲');
+      final b = addFolder('乙');
+      cubit.upsertQuick(read);
+      expect(cubit.state.quick.map((n) => n.id), [a, b, 'q1']);
+
+      cubit.placeQuick(b, beforeId: a);
+      expect(cubit.state.quick.map((n) => n.id), [b, a, 'q1']);
+
+      cubit.placeQuick(a, beforeId: 'q1');
+      expect(cubit.state.quick.map((n) => n.id), [b, a, 'q1']);
+
+      cubit.placeQuick(b, beforeId: 'q1');
+      expect(cubit.state.quick.map((n) => n.id), [a, b, 'q1']);
+
+      cubit.placeQuick(a);
+      expect(cubit.state.quick.map((n) => n.id), [b, 'q1', a]);
+    });
   });
 
   group('复制', () {
@@ -315,16 +376,19 @@ void main() {
         ),
       );
       cubit.duplicateRule('r1');
-      expect(cubit.state.rules.map((r) => r.name), ['温度应答', '温度应答 副本']);
-      final copy = cubit.state.rules.last;
+      expect(cubit.state.rules.allRules.map((r) => r.name), [
+        '温度应答',
+        '温度应答 副本',
+      ]);
+      final copy = cubit.state.rules.allRules.last;
       expect(copy.enabled, isFalse);
       expect(copy.hits, 0);
       expect(copy.format, DataFormat.ascii);
       expect(copy.ignoreCase, isTrue);
       expect(copy.replies.single.delayMs, 50);
       // 原规则不受影响
-      expect(cubit.state.rules.first.enabled, isTrue);
-      expect(cubit.state.rules.first.hits, 7);
+      expect(cubit.state.rules.ruleById('r1')!.enabled, isTrue);
+      expect(cubit.state.rules.ruleById('r1')!.hits, 7);
     });
 
     test('脚本：保留 .lua 命名、默认停用、选中并打开编辑区，重名顺延', () {
@@ -415,7 +479,7 @@ void main() {
       });
       final keys = cubit.state.quick.commands.map((q) => q.key).toList();
       expect(keys, ['F2', '']);
-      expect(cubit.state.rules.single.hits, 0);
+      expect(cubit.state.rules.allRules.single.hits, 0);
       expect(cubit.state.scripts, hasLength(scriptsBefore));
       expect(cubit.state.batch, same(batchBefore));
       expect(cubit.state.toast?.args, {'quick': 2, 'rules': 1});
@@ -452,6 +516,213 @@ void main() {
         expect(await cubit.pickConfig(), isNull);
         expect(cubit.state.toast?.kind, SerialNoticeKind.importInvalid);
       }
+    });
+
+    test('应答文件夹：夹内规则导出去掉 hits，导入后命中归零', () async {
+      files.savePath = 'cfg.json';
+      cubit.upsertReplyFolder(null, '设备');
+      final folderId = cubit.state.rules.folders.single.id;
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'r-folder',
+          name: '夹内',
+          match: MatchMode.prefix,
+          pattern: 'A5',
+          enabled: true,
+          hits: 5,
+          replies: [ReplyStep(data: 'A5 01', delayMs: 0)],
+        ),
+        folderId: folderId,
+      );
+      await cubit.exportConfig({ConfigPart.rules});
+      final out = jsonDecode(files.written!) as Map<String, dynamic>;
+      final nodes = out['rules'] as List;
+      expect(nodes, hasLength(1));
+      final folder = nodes.single as Map<String, dynamic>;
+      expect(folder['type'], 'folder');
+      expect((folder['rules'] as List).single, isNot(contains('hits')));
+
+      files.text = files.written;
+      cubit.applyConfig((await cubit.pickConfig())!, {ConfigPart.rules});
+      expect(cubit.state.rules, hasLength(1));
+      expect(cubit.state.rules.folders.single.name, '设备');
+      expect(cubit.state.rules.allRules.single.hits, 0);
+      expect(cubit.state.rules.folderIdOf('r-folder'), isNotNull);
+    });
+  });
+
+  group('应答文件夹', () {
+    test('旧扁平规则 JSON 仍解析为根规则', () {
+      final node = ReplyNode.fromJson({
+        'id': 'r-old',
+        'name': '旧',
+        'pattern': 'A5',
+        'enabled': true,
+        'replies': [
+          {'data': 'A5 01', 'delay': 0},
+        ],
+      });
+      expect(node, isA<ReplyRule>());
+      expect((node as ReplyRule).id, 'r-old');
+    });
+
+    test('夹内规则参与匹配，命中后文件夹结构保留', () async {
+      cubit.upsertReplyFolder(null, '回包');
+      final folderId = cubit.state.rules.folders.single.id;
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'r-in',
+          name: '夹内应答',
+          match: MatchMode.prefix,
+          pattern: 'A5 5A',
+          enabled: true,
+          hits: 0,
+          replies: [ReplyStep(data: 'A5 00', delayMs: 0)],
+        ),
+        folderId: folderId,
+      );
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'r-root',
+          name: '根应答',
+          match: MatchMode.prefix,
+          pattern: 'B5',
+          enabled: true,
+          hits: 0,
+          replies: [ReplyStep(data: 'B5 00', delayMs: 0)],
+        ),
+      );
+      expect(cubit.state.rules, hasLength(2));
+      expect(cubit.state.rules.allRules.map((r) => r.id), ['r-in', 'r-root']);
+
+      await cubit.toggleOpen();
+      ports.emit(Uint8List.fromList([0xA5, 0x5A, 0x01]));
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+      expect(cubit.state.rules.ruleById('r-in')!.hits, 1);
+      expect(cubit.state.rules, hasLength(2));
+      expect(cubit.state.rules.folders.single.rules, hasLength(1));
+      expect(cubit.state.rules.folderIdOf('r-in'), folderId);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(ports.written.map(SerialBytes.toHex), contains('A5 00'));
+    });
+
+    test('拖拽移动：规则可进文件夹再回到根目录', () {
+      cubit.upsertReplyFolder(null, '一组');
+      final folderId = cubit.state.rules.folders.single.id;
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'r-move',
+          name: '可拖',
+          match: MatchMode.prefix,
+          pattern: 'AA',
+          enabled: true,
+          hits: 0,
+          replies: [ReplyStep(data: 'BB', delayMs: 0)],
+        ),
+      );
+      expect(cubit.state.rules.folderIdOf('r-move'), isNull);
+
+      cubit.moveRule('r-move', folderId: folderId);
+      expect(cubit.state.rules.folderIdOf('r-move'), folderId);
+      expect(cubit.state.rules.whereType<ReplyRule>(), isEmpty);
+      expect(cubit.state.rules.folders.single.rules.single.id, 'r-move');
+
+      cubit.moveRule('r-move');
+      expect(cubit.state.rules.folderIdOf('r-move'), isNull);
+      expect(cubit.state.rules.ruleById('r-move'), isNotNull);
+    });
+
+    test('拖拽排序：同夹与根目录可插到指定规则之前', () {
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'a',
+          name: 'A',
+          match: MatchMode.prefix,
+          pattern: '01',
+          enabled: true,
+          hits: 0,
+          replies: [ReplyStep(data: '01', delayMs: 0)],
+        ),
+      );
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'b',
+          name: 'B',
+          match: MatchMode.prefix,
+          pattern: '02',
+          enabled: true,
+          hits: 0,
+          replies: [ReplyStep(data: '02', delayMs: 0)],
+        ),
+      );
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'c',
+          name: 'C',
+          match: MatchMode.prefix,
+          pattern: '03',
+          enabled: true,
+          hits: 0,
+          replies: [ReplyStep(data: '03', delayMs: 0)],
+        ),
+      );
+      expect(cubit.state.rules.allRules.map((r) => r.id), ['a', 'b', 'c']);
+
+      cubit.placeRule('c', beforeId: 'a');
+      expect(cubit.state.rules.allRules.map((r) => r.id), ['c', 'a', 'b']);
+
+      cubit.upsertReplyFolder(null, '夹');
+      final folderId = cubit.state.rules.folders.single.id;
+      cubit.moveRule('a', folderId: folderId);
+      cubit.moveRule('b', folderId: folderId);
+      expect(
+        cubit.state.rules.folders.single.rules.map((r) => r.id),
+        ['a', 'b'],
+      );
+
+      cubit.placeRule('b', beforeId: 'a');
+      expect(
+        cubit.state.rules.folders.single.rules.map((r) => r.id),
+        ['b', 'a'],
+      );
+
+      cubit.placeRule('c', beforeId: 'a');
+      expect(cubit.state.rules.folderIdOf('c'), folderId);
+      expect(
+        cubit.state.rules.folders.single.rules.map((r) => r.id),
+        ['b', 'c', 'a'],
+      );
+    });
+
+    test('拖拽排序：文件夹可在根目录调整顺序', () {
+      cubit.upsertReplyFolder(null, '甲');
+      cubit.upsertReplyFolder(null, '乙');
+      cubit.upsertRule(
+        const ReplyRule(
+          id: 'r1',
+          name: '根规则',
+          match: MatchMode.prefix,
+          pattern: '01',
+          enabled: true,
+          hits: 0,
+          replies: [ReplyStep(data: '01', delayMs: 0)],
+        ),
+      );
+      final a = cubit.state.rules.folders.firstWhere((f) => f.name == '甲').id;
+      final b = cubit.state.rules.folders.firstWhere((f) => f.name == '乙').id;
+      expect(cubit.state.rules.map((n) => n.id), [a, b, 'r1']);
+
+      cubit.placeRule(b, beforeId: a);
+      expect(cubit.state.rules.map((n) => n.id), [b, a, 'r1']);
+
+      cubit.placeRule(a, beforeId: 'r1');
+      expect(cubit.state.rules.map((n) => n.id), [b, a, 'r1']);
+
+      cubit.placeRule(b, beforeId: 'r1');
+      expect(cubit.state.rules.map((n) => n.id), [a, b, 'r1']);
+
+      cubit.placeRule(a);
+      expect(cubit.state.rules.map((n) => n.id), [b, 'r1', a]);
     });
   });
 

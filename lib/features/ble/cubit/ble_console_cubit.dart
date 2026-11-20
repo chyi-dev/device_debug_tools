@@ -371,36 +371,40 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
     _notify(BleNoticeKind.deleted, toast: true);
   }
 
-  void saveRule(ReplyRule rule) {
-    final exists = state.rules.any((item) => item.id == rule.id);
+  /// [folderId] 为 null 或文件夹不存在时放在根目录；所在文件夹不变则原位替换，否则追加到目标末尾。
+  void saveRule(ReplyRule rule, {String? folderId}) {
     emit(
-      state.copyWith(
-        rules: [
-          for (final item in state.rules)
-            if (item.id == rule.id) rule else item,
-          if (!exists) rule,
-        ],
-      ),
+      state.copyWith(rules: state.rules.upsertRule(rule, folderId: folderId)),
     );
     _persist();
     _notify(BleNoticeKind.ruleSaved, toast: true);
   }
 
-  void toggleRule(String id) {
-    ReplyRule? hit;
-    emit(
-      state.copyWith(
-        rules: [
-          for (final item in state.rules)
-            if (item.id == id)
-              (hit = item.copyWith(enabled: !item.enabled))
-            else
-              item,
-        ],
-      ),
-    );
+  /// 拖拽移动到文件夹末尾或根目录末尾；目标与当前位置相同则忽略。
+  void moveRule(String id, {String? folderId}) {
+    placeRule(id, folderId: folderId);
+  }
+
+  /// 拖拽放置：规则或文件夹均可；[beforeId] 插到该节点之前。
+  void placeRule(String id, {String? beforeId, String? folderId}) {
+    final next = state.rules.folderById(id) != null
+        ? state.rules.placeFolder(id, beforeId: beforeId)
+        : state.rules.placeRule(
+            id,
+            beforeId: beforeId,
+            folderId: folderId,
+          );
+    if (identical(next, state.rules)) return;
+    emit(state.copyWith(rules: next));
     _persist();
-    if (hit == null) return;
+  }
+
+  void toggleRule(String id) {
+    final rule = state.rules.ruleById(id);
+    if (rule == null) return;
+    final hit = rule.copyWith(enabled: !rule.enabled);
+    emit(state.copyWith(rules: state.rules.replaceRule(id, (_) => hit)));
+    _persist();
     _notify(
       hit.enabled ? BleNoticeKind.ruleOn : BleNoticeKind.ruleOff,
       toast: true,
@@ -409,9 +413,26 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
   }
 
   void deleteRule(String id) {
-    emit(
-      state.copyWith(rules: [for (final item in state.rules) if (item.id != id) item]),
-    );
+    emit(state.copyWith(rules: state.rules.deleteRule(id)));
+    _persist();
+    _notify(BleNoticeKind.deleted, toast: true);
+  }
+
+  /// 新文件夹追加到根目录末尾；已存在则只改名称。
+  void upsertReplyFolder(String? id, String name) {
+    emit(state.copyWith(rules: state.rules.upsertFolder(id, name)));
+    _persist();
+    _notify(BleNoticeKind.folderSaved, toast: true);
+  }
+
+  void toggleReplyFolder(String id) {
+    emit(state.copyWith(rules: state.rules.toggleFolder(id)));
+    _persist();
+  }
+
+  /// 连同文件夹内规则一起删除。
+  void deleteReplyFolder(String id) {
+    emit(state.copyWith(rules: state.rules.deleteFolder(id)));
     _persist();
     _notify(BleNoticeKind.deleted, toast: true);
   }
@@ -494,7 +515,7 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
   }
 
   bool importReplyFromMcp(ReplyRule rule) {
-    if (state.rules.any((item) => item.name == rule.name)) return false;
+    if (hasReplyNamed(rule.name)) return false;
     saveRule(rule);
     return true;
   }
@@ -521,7 +542,8 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
   bool hasScriptNamed(String name) =>
       state.scripts.any((item) => item.name == name);
 
-  bool hasReplyNamed(String name) => state.rules.any((item) => item.name == name);
+  bool hasReplyNamed(String name) =>
+      state.rules.allRules.any((item) => item.name == name);
 
   bool hasQuickNamed(String name) => state.quick.any((item) => item.name == name);
 
@@ -548,18 +570,15 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
   }
 
   bool setReplyEnabledByName(String name, bool enabled) {
-    for (final rule in state.rules) {
+    for (final rule in state.rules.allRules) {
       if (rule.name != name) continue;
       if (rule.enabled != enabled) {
         emit(
           state.copyWith(
-            rules: [
-              for (final item in state.rules)
-                if (item.id == rule.id)
-                  item.copyWith(enabled: enabled)
-                else
-                  item,
-            ],
+            rules: state.rules.replaceRule(
+              rule.id,
+              (item) => item.copyWith(enabled: enabled),
+            ),
           ),
         );
         _persist();
@@ -993,19 +1012,15 @@ class BleConsoleCubit extends Cubit<BleConsoleState> {
   void _matchRules(Uint8List bytes) {
     if (state.pinWrite == null) return;
     final matched = <(ReplyRule, List<Uint8List?>)>[];
-    final next = <ReplyRule>[];
-    for (final rule in state.rules) {
+    final next = state.rules.mapRules((rule) {
       final captures = rule.enabled
           ? SerialBytes.ruleCaptures(rule, bytes)
           : null;
-      if (captures == null) {
-        next.add(rule);
-        continue;
-      }
+      if (captures == null) return rule;
       final hit = rule.copyWith(hits: rule.hits + 1);
-      next.add(hit);
       matched.add((hit, captures));
-    }
+      return hit;
+    });
     if (matched.isEmpty) return;
     emit(state.copyWith(rules: next));
     _persist();

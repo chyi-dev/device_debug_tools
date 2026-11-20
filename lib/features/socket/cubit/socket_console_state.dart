@@ -158,7 +158,7 @@ class SocketConsoleState {
   final bool toolsVisible;
   final ToolTab tab;
   final List<QuickNode> quick;
-  final List<ReplyRule> rules;
+  final List<ReplyNode> rules;
   final List<BatchJob> batch;
   final String? selectedBatchId;
   final BatchProgress? batchRun;
@@ -286,7 +286,7 @@ class SocketConsoleState {
     bool? toolsVisible,
     ToolTab? tab,
     List<QuickNode>? quick,
-    List<ReplyRule>? rules,
+    List<ReplyNode>? rules,
     List<BatchJob>? batch,
     Object? selectedBatchId = _keep,
     Object? batchRun = _keep,

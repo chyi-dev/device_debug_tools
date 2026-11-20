@@ -161,7 +161,7 @@ class SocketWorkspace {
   final bool toolsVisible;
   final ToolTab tab;
   final List<QuickNode> quick;
-  final List<ReplyRule> rules;
+  final List<ReplyNode> rules;
   final List<BatchJob> batch;
   final String? selectedBatchId;
   final List<HistoryEntry> history;
@@ -240,7 +240,7 @@ class SocketWorkspace {
     }
 
     final quick = listOf(raw['quick'], QuickNode.fromJson).withUniqueKeys();
-    final rules = listOf(raw['rules'], ReplyRule.fromJson);
+    final rules = listOf(raw['rules'], ReplyNode.fromJson);
     final batch = listOf(raw['batch'], BatchJob.fromJson);
     final history = listOf(raw['history'], HistoryEntry.fromJson);
     final scripts = listOf(raw['scripts'], LuaScript.fromJson);

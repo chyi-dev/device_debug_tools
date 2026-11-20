@@ -1330,6 +1330,15 @@ class Translations$serial$quick$zh {
 
 	/// zh: '名称'
 	String get folderName => '名称';
+
+	/// zh: '放到根目录'
+	String get dropRoot => '放到根目录';
+
+	/// zh: '放到此文件夹'
+	String get dropFolder => '放到此文件夹';
+
+	/// zh: '插到此条之前'
+	String get dropBefore => '插到此条之前';
 }
 
 // Path: serial.batch
@@ -1426,6 +1435,42 @@ class Translations$serial$reply$zh {
 
 	/// zh: '新增规则'
 	String get add => '新增规则';
+
+	/// zh: '新增文件夹'
+	String get newFolder => '新增文件夹';
+
+	/// zh: '文件夹'
+	String get folder => '文件夹';
+
+	/// zh: '根目录'
+	String get root => '根目录';
+
+	/// zh: '重命名'
+	String get rename => '重命名';
+
+	/// zh: '$count 条'
+	String folderCount({required Object count}) => '${count} 条';
+
+	/// zh: '文件夹为空。点「新增」在这里添加规则。'
+	String get folderEmpty => '文件夹为空。点「新增」在这里添加规则。';
+
+	/// zh: '新增文件夹'
+	String get folderNewTitle => '新增文件夹';
+
+	/// zh: '重命名文件夹'
+	String get folderEditTitle => '重命名文件夹';
+
+	/// zh: '名称'
+	String get folderName => '名称';
+
+	/// zh: '放到根目录'
+	String get dropRoot => '放到根目录';
+
+	/// zh: '放到此文件夹'
+	String get dropFolder => '放到此文件夹';
+
+	/// zh: '插到此条之前'
+	String get dropBefore => '插到此条之前';
 
 	/// zh: '执行'
 	String get fire => '执行';
@@ -1683,6 +1728,9 @@ class Translations$serial$dialog$zh {
 
 	/// zh: '删除文件夹「$name」会一并删除其中 $count 条指令，删除后无法恢复。'
 	String deleteFolderWith({required Object name, required Object count}) => '删除文件夹「${name}」会一并删除其中 ${count} 条指令，删除后无法恢复。';
+
+	/// zh: '删除文件夹「$name」会一并删除其中 $count 条规则，删除后无法恢复。'
+	String deleteReplyFolderWith({required Object name, required Object count}) => '删除文件夹「${name}」会一并删除其中 ${count} 条规则，删除后无法恢复。';
 
 	/// zh: '删除应答规则「$name」后无法恢复。'
 	String deleteRule({required Object name}) => '删除应答规则「${name}」后无法恢复。';
@@ -2337,6 +2385,9 @@ class Translations$ble$notice$zh {
 
 	/// zh: '快捷指令已保存'
 	String get quickSaved => '快捷指令已保存';
+
+	/// zh: '文件夹已保存'
+	String get folderSaved => '文件夹已保存';
 
 	/// zh: '应答规则已保存'
 	String get ruleSaved => '应答规则已保存';
@@ -3750,6 +3801,9 @@ extension on Translations {
 			'serial.quick.folderNewTitle' => '新增文件夹',
 			'serial.quick.folderEditTitle' => '重命名文件夹',
 			'serial.quick.folderName' => '名称',
+			'serial.quick.dropRoot' => '放到根目录',
+			'serial.quick.dropFolder' => '放到此文件夹',
+			'serial.quick.dropBefore' => '插到此条之前',
 			'serial.batch.kNew' => '新建',
 			'serial.batch.edit' => '编辑',
 			'serial.batch.delete' => '删除',
@@ -3776,6 +3830,18 @@ extension on Translations {
 			'serial.batch.noteHint' => '备注',
 			'serial.reply.note' => ({required Object enabled, required Object total}) => '已启用 ${enabled} / ${total}，按列表顺序逐条匹配',
 			'serial.reply.add' => '新增规则',
+			'serial.reply.newFolder' => '新增文件夹',
+			'serial.reply.folder' => '文件夹',
+			'serial.reply.root' => '根目录',
+			'serial.reply.rename' => '重命名',
+			'serial.reply.folderCount' => ({required Object count}) => '${count} 条',
+			'serial.reply.folderEmpty' => '文件夹为空。点「新增」在这里添加规则。',
+			'serial.reply.folderNewTitle' => '新增文件夹',
+			'serial.reply.folderEditTitle' => '重命名文件夹',
+			'serial.reply.folderName' => '名称',
+			'serial.reply.dropRoot' => '放到根目录',
+			'serial.reply.dropFolder' => '放到此文件夹',
+			'serial.reply.dropBefore' => '插到此条之前',
 			'serial.reply.fire' => '执行',
 			'serial.reply.hits' => ({required Object count}) => '${count} 次',
 			'serial.reply.explain' => '收到的数据与规则匹配后，按应答列表顺序依次发送；每条应答的延时从上一条发出后开始计算。',
@@ -3884,6 +3950,7 @@ extension on Translations {
 			'serial.dialog.deleteQuick' => ({required Object name}) => '删除快捷指令「${name}」后无法恢复。',
 			'serial.dialog.deleteFolder' => ({required Object name}) => '删除文件夹「${name}」后无法恢复。',
 			'serial.dialog.deleteFolderWith' => ({required Object name, required Object count}) => '删除文件夹「${name}」会一并删除其中 ${count} 条指令，删除后无法恢复。',
+			'serial.dialog.deleteReplyFolderWith' => ({required Object name, required Object count}) => '删除文件夹「${name}」会一并删除其中 ${count} 条规则，删除后无法恢复。',
 			'serial.dialog.deleteRule' => ({required Object name}) => '删除应答规则「${name}」后无法恢复。',
 			'serial.dialog.deleteBatch' => ({required Object name}) => '删除批量任务「${name}」后无法恢复。',
 			'serial.dialog.deleteHistory' => ({required Object count}) => '删除全部 ${count} 条发送历史后无法恢复。',
@@ -3983,6 +4050,8 @@ extension on Translations {
 			'serial.notice.folderSaved' => '文件夹已保存',
 			'serial.notice.ruleSaved' => '应答规则已保存',
 			'serial.notice.batchSaved' => '批量任务已保存',
+			_ => null,
+		} ?? switch (path) {
 			'serial.notice.scriptSaved' => '脚本已重命名',
 			'serial.notice.lessonCreated' => ({required Object title, required Object name}) => '已用「${title}」新建 ${name}',
 			'serial.notice.lessonTried' => '样例试跑结果已写入运行日志',
@@ -3999,8 +4068,6 @@ extension on Translations {
 			'ble.scan.scanning' => '扫描中',
 			'ble.scan.empty' => '没有匹配的设备',
 			'ble.scan.notScanned' => '尚未扫描',
-			_ => null,
-		} ?? switch (path) {
 			'ble.scan.adapterOff' => '蓝牙适配器不可用',
 			'ble.connect' => '连接',
 			'ble.disconnect' => '断开',
@@ -4086,6 +4153,7 @@ extension on Translations {
 			'ble.notice.deleted' => '已删除',
 			'ble.notice.duplicated' => '已复制',
 			'ble.notice.quickSaved' => '快捷指令已保存',
+			'ble.notice.folderSaved' => '文件夹已保存',
 			'ble.notice.ruleSaved' => '应答规则已保存',
 			'ble.notice.batchSaved' => '批量任务已保存',
 			'ble.notice.scriptSaved' => '脚本已保存',

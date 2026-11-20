@@ -33,6 +33,7 @@ enum BleNoticeKind {
   deleted,
   duplicated,
   quickSaved,
+  folderSaved,
   ruleSaved,
   batchSaved,
   scriptSaved,
@@ -211,7 +212,7 @@ class BleWorkspace {
   final bool wrap;
   final bool autoScroll;
   final List<QuickCommand> quick;
-  final List<ReplyRule> rules;
+  final List<ReplyNode> rules;
   final List<BatchJob> batch;
   final List<HistoryEntry> history;
   final List<LuaScript> scripts;
@@ -237,7 +238,7 @@ class BleWorkspace {
   static BleWorkspace fromJson(Object raw) {
     final map = raw is Map ? raw : const {};
     final quick = <QuickCommand>[];
-    final rules = <ReplyRule>[];
+    final rules = <ReplyNode>[];
     final batch = <BatchJob>[];
     final history = <HistoryEntry>[];
     final scripts = <LuaScript>[];
@@ -251,8 +252,8 @@ class BleWorkspace {
     final rulesRaw = map['rules'];
     if (rulesRaw is List) {
       for (final item in rulesRaw) {
-        final rule = ReplyRule.fromJson(item);
-        if (rule != null) rules.add(rule);
+        final node = ReplyNode.fromJson(item);
+        if (node != null) rules.add(node);
       }
     }
     final batchRaw = map['batch'];

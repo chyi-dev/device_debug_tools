@@ -5,6 +5,7 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_style.dart';
 import '../../../app/theme/serial_palette.dart';
 import '../../../i18n/i18n.dart';
+import '../../serial/model/serial_models.dart';
 import '../../serial/serial_metrics.dart';
 import '../../serial/widget/serial_chrome.dart';
 import '../../serial/widget/serial_status_widgets.dart';
@@ -98,8 +99,10 @@ class BleStatusBar extends StatelessWidget {
                 SerialStatusCell(
                   child: Text(
                     t.serial.status.reply(
-                      enabled: state.rules.where((rule) => rule.enabled).length,
-                      total: state.rules.length,
+                      enabled: state.rules.allRules
+                          .where((rule) => rule.enabled)
+                          .length,
+                      total: state.rules.allRules.length,
                     ),
                     style: AppTextStyles.caption(
                       cs,
