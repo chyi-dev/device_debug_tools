@@ -35,7 +35,7 @@
     "clientConnected": "Cursor connected",
     "waitingClient": "Waiting for client",
     "endpoint": "URL $url",
-    "copyConfig": "Copy Cursor config",
+    "copyConfig": "Copy MCP config",
     "configCopied": "Config copied",
     "authTitle": "Permissions",
     "allowSend": "Send data",

@@ -176,8 +176,8 @@ class Translations$mcp$zh {
 	/// zh: '地址 $url'
 	String endpoint({required Object url}) => '地址 ${url}';
 
-	/// zh: '复制 Cursor 配置'
-	String get copyConfig => '复制 Cursor 配置';
+	/// zh: '复制 MCP 配置'
+	String get copyConfig => '复制 MCP 配置';
 
 	/// zh: '配置已复制'
 	String get configCopied => '配置已复制';
@@ -3573,7 +3573,7 @@ extension on Translations {
 			'mcp.clientConnected' => 'Cursor 已连上',
 			'mcp.waitingClient' => '等待连接',
 			'mcp.endpoint' => ({required Object url}) => '地址 ${url}',
-			'mcp.copyConfig' => '复制 Cursor 配置',
+			'mcp.copyConfig' => '复制 MCP 配置',
 			'mcp.configCopied' => '配置已复制',
 			'mcp.authTitle' => '授权',
 			'mcp.allowSend' => '发送数据',

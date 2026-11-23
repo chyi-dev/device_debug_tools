@@ -35,7 +35,7 @@
     "clientConnected": "Cursor 已连上",
     "waitingClient": "等待连接",
     "endpoint": "地址 $url",
-    "copyConfig": "复制 Cursor 配置",
+    "copyConfig": "复制 MCP 配置",
     "configCopied": "配置已复制",
     "authTitle": "授权",
     "allowSend": "发送数据",

@@ -115,7 +115,7 @@ class _Translations$mcp$en extends Translations$mcp$zh {
 	@override String get clientConnected => 'Cursor connected';
 	@override String get waitingClient => 'Waiting for client';
 	@override String endpoint({required Object url}) => 'URL ${url}';
-	@override String get copyConfig => 'Copy Cursor config';
+	@override String get copyConfig => 'Copy MCP config';
 	@override String get configCopied => 'Config copied';
 	@override String get authTitle => 'Permissions';
 	@override String get allowSend => 'Send data';
@@ -1772,7 +1772,7 @@ extension on TranslationsEn {
 			'mcp.clientConnected' => 'Cursor connected',
 			'mcp.waitingClient' => 'Waiting for client',
 			'mcp.endpoint' => ({required Object url}) => 'URL ${url}',
-			'mcp.copyConfig' => 'Copy Cursor config',
+			'mcp.copyConfig' => 'Copy MCP config',
 			'mcp.configCopied' => 'Config copied',
 			'mcp.authTitle' => 'Permissions',
 			'mcp.allowSend' => 'Send data',
